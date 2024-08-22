@@ -12,4 +12,5 @@ dependencies {
 
     modImplementation "software.bernie.geckolib:geckolib-common-${minecraft_version}:$rootProject.geckolib_version"
 
+    implementation 'com.fazecast:jSerialComm:[2.0.0,3.0.0)'
 }

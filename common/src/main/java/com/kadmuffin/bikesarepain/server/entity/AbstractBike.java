@@ -34,6 +34,12 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public float bikePitch = 0.0F;
     public float internalSpeed = 0.0F;
 
+    // For arduino link
+    private float jCommaSpeed = 0.0F;
+    private float distanceTravelled = 0.0F;
+    private float kcaloriesBurned = 0.0F;
+    private float jCommaWheelRadius = 0.0F;
+    private boolean jCommaEnabled = false;
 
     protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level);
@@ -173,6 +179,27 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         // the g is a magnitude in blocks
         float rotation = (float) (g * (Math.PI))/20F;
         float movSpeed = rotation * this.getBackWheelRadius();
+
+        if (jCommaEnabled) {
+            // The speed we get from the arduino is in km/h
+            // we need to convert it to meters per second
+            float speed = this.getjCommaSpeed() / 3.6F;
+
+            // Minecraft runs at 20 ticks per second
+            speed = speed / 20F;
+
+            float expectedRotation = (speed / this.getjCommaWheelRadius());
+
+            // Now we need to map the expected rotation to the actual rotation
+            // as our wheel diameter is different
+            rotation = expectedRotation * (this.getBackWheelRadius() / this.getjCommaWheelRadius());
+            movSpeed = Math.signum(g) * speed;
+
+            // We'll set jCommaEnabled to false, so we only update
+            // the speed when we get a new packet
+            setjCommaEnabled(false);
+        }
+
         this.backWheelRotation += (float) (rotation % 2*Math.PI);
 
         // Calculate the tilt of the bike
@@ -240,5 +267,46 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         // Return the size of the bounding box
         Vector3f newSize = max.sub(min);
         return new Vec3(newSize.x, newSize.y, newSize.z);
+    }
+
+    // Get/Set for privates
+    public float getjCommaSpeed() {
+        return jCommaSpeed;
+    }
+
+    public void setjCommaSpeed(float jCommaSpeed) {
+        this.jCommaSpeed = jCommaSpeed;
+    }
+
+    public float getDistanceTravelled() {
+        return distanceTravelled;
+    }
+
+    public void setDistanceTravelled(float distanceTravelled) {
+        this.distanceTravelled = distanceTravelled;
+    }
+
+    public float getKcaloriesBurned() {
+        return kcaloriesBurned;
+    }
+
+    public void setKcaloriesBurned(float kcaloriesBurned) {
+        this.kcaloriesBurned = kcaloriesBurned;
+    }
+
+    public float getjCommaWheelRadius() {
+        return jCommaWheelRadius;
+    }
+
+    public void setjCommaWheelRadius(float jCommaWheelRadius) {
+        this.jCommaWheelRadius = jCommaWheelRadius;
+    }
+
+    public boolean isjCommaEnabled() {
+        return jCommaEnabled;
+    }
+
+    public void setjCommaEnabled(boolean jCommaEnabled) {
+        this.jCommaEnabled = jCommaEnabled;
     }
 }

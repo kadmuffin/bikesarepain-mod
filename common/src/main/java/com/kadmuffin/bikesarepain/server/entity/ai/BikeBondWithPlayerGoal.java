@@ -15,8 +15,11 @@ public class BikeBondWithPlayerGoal extends RunAroundLikeCrazyGoal {
     }
 
     @Override
-    public void start() {
-
+    public boolean canUse() {
+        if (!this.bike.getPassengers().isEmpty()) {
+            return super.canUse();
+        }
+        return false;
     }
 
     @Override

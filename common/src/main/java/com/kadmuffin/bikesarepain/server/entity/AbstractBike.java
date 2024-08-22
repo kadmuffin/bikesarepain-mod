@@ -1,8 +1,7 @@
 package com.kadmuffin.bikesarepain.server.entity;
 
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
-import net.fabricmc.loader.impl.lib.sat4j.core.Vec;
-import net.minecraft.core.Direction;
+import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -21,20 +20,19 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
+import org.joml.Vector3d;
 import org.joml.Vector3f;
 
-public abstract class AbstractBike extends AbstractHorse {
+public abstract class AbstractBike extends AbstractHorse implements PlayerRideableJumping, Saddleable {
     protected boolean jumping;
     public float tilt = 0.0F;
     public float steeringYaw = 0.0F;
-    public boolean showGears = true;
+    public boolean showGears = false;
     public float frontWheelRotation = 0.0F;
     public float backWheelRotation = 0.0F;
-    public float maxTiltAngle = 10.0F;
-    public float maxSteeringAngle = 50.0F;
     public boolean hasChest = false;
-    final float delta = 1.0F / 20.0F;
     public float bikePitch = 0.0F;
+
 
     protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level);
@@ -51,38 +49,103 @@ public abstract class AbstractBike extends AbstractHorse {
         this.goalSelector.addGoal(1, new BikeBondWithPlayerGoal(this, 1.3));
     }
 
+    @Override
     protected boolean canAddPassenger(Entity passenger) {
         return this.getPassengers().size() < 2 && !hasChest;
     }
 
-    // This method calculates the turn rate
-    public float getTurnRate(float speed) {
-        float tiltInf = (this.tilt / this.maxTiltAngle);
-        float steeringInf = (this.steeringYaw / this.maxSteeringAngle);
-
-        float turnInfluence = tiltInf * 0.3F + steeringInf * 0.7F;
-        float turnRate = turnInfluence * speed * 2.0F;
-        System.out.printf("Tilt: %f, Steering: %f, Speed: %f, TurnRate: %f, ActualSteering: %f, ActualTilt: %f\n", tiltInf, steeringInf, speed, turnRate, this.steeringYaw, this.tilt);
-        return Math.clamp(turnRate, -90F, 90F);
+    @Override
+    public boolean isFood(ItemStack stack) {
+        return false;
     }
 
+    @Override
+    protected void executeRidersJump(float strength, Vec3 movementInput) {
+        super.executeRidersJump(strength, movementInput);
+        bikePitch = 10F;
+    }
+
+    @Override
+    public boolean canJump() {
+        return true;
+    }
+
+    @Override
+    public void handleStartJump(int height) {
+        this.jumping = true;
+    }
+
+    @Override
+    public @NotNull Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
+        this.tilt = 0.0F;
+        this.bikePitch = 0.0F;
+        return super.getDismountLocationForPassenger(passenger);
+    }
+
+    @Override
+    protected @NotNull AABB makeBoundingBox() {
+        // I (probably) should not be modifying the bounding box like this
+        Vec3 position = this.position();
+        Vec3 boxSize = this.calculateBoxSize(this.getModelSize(), 0, this.getYRot());
+        return new AABB(position.x - boxSize.x / 2, position.y, position.z - boxSize.z / 2, position.x + boxSize.x / 2, position.y + boxSize.y, position.z + boxSize.z / 2);
+    }
+
+    @Override
+    public @NotNull InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (!this.getPassengers().isEmpty()) {
+            return super.mobInteract(player, hand);
+
+            // Check if the player is doing a right click
+        } else if (player.isShiftKeyDown()) {
+            if (player.getItemInHand(hand).getItem() == Items.DARK_OAK_SLAB && this.showGears) {
+                this.showGears = false;
+                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
+                // Remove one item from the player's hand
+                if (!player.isCreative()) {
+                    player.getItemInHand(hand).shrink(1);
+                }
+                return InteractionResult.sidedSuccess(this.level().isClientSide);
+            }
+            if (!this.showGears){
+                this.showGears = true;
+                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
+                // Give one slab
+                player.addItem(new ItemStack(Items.DARK_OAK_SLAB, 1));
+                return InteractionResult.sidedSuccess(this.level().isClientSide);
+            }
+            this.openCustomInventoryScreen(player);
+            return InteractionResult.sidedSuccess(this.level().isClientSide);
+        }
+        this.doPlayerRide(player);
+        return InteractionResult.sidedSuccess(this.level().isClientSide);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (!this.isSaddled() && this.getFirstPassenger() instanceof Player playerEntity) {
+            playerEntity.hurt(new DamageSources(this.registryAccess()).sting(this), (this.tilt /this.getMaxTiltAngle()));
+        }
+    }
 
     @Override
     protected @NotNull Vec2 getRiddenRotation(LivingEntity controllingPassenger) {
         float speed = this.getSpeed();
 
-        // Calculate how much to spin the model and the wheels
+        // Calculate how much to spin the model
         float turnRate = getTurnRate(speed);
 
+        // Calculate the yaw of the player and the bike
         float playerYaw = controllingPassenger.getYRot();
         float calculatedYaw = this.getYRot() - turnRate;
+
+        // Make sure that we are in range
         calculatedYaw = Mth.wrapDegrees(calculatedYaw);
         float diff = this.getYRot() - playerYaw;
         diff = Mth.wrapDegrees(diff);
 
-        // Calculate SteeringYaw using the difference between the player yaw and the entity yaw
-        // The steeringYaw is used for the handle and is in range -1F to 1F
-        this.steeringYaw = diff;
+        this.steeringYaw = (float) Math.toRadians(diff);
+        this.steeringYaw = Math.clamp(this.steeringYaw, -this.getMaxSteeringAngle(), this.getMaxSteeringAngle());
 
         return new Vec2(controllingPassenger.getXRot() * 0.5F, calculatedYaw);
 
@@ -96,47 +159,47 @@ public abstract class AbstractBike extends AbstractHorse {
             g *= 0.25F;
         }
 
-        // Add to the tilt angle based on sideways movement
-        final float targetTilt = f * this.maxTiltAngle;
-        this.tilt = this.tilt + (targetTilt - this.tilt) * delta;
+        this.getCenterMass().setPlayerOffset(new Vector3d(f,0,0));
 
-        //System.out.printf("Tilt: %f, TargetMax: %f, MaxRad: %f", this.tilt, this.maxTiltAngle * f, targetTilt);
+        this.frontWheelRotation = this.backWheelRotation;
 
         // Rotate the wheels based on our speed knowing that
         // the g is a magnitude in blocks
-        // and that one wheel measures about 1 diameter
-        // So if we move 1 block, then we must have made the
-        // wheel rotate 1 diameter
-        this.frontWheelRotation = (this.frontWheelRotation + (g)) % 360;
-        this.backWheelRotation = this.frontWheelRotation;
+        // 1 block / second will now be 2 rotation per second
+        float rotation = (float) (g * (Math.PI * 2))/20F;
+        float movSpeed = rotation * this.getBackWheelRadius();
+        this.backWheelRotation += (float) (movSpeed % Math.toRadians(360));
 
-        return new Vec3(0.0, 0.0, g);
+        // Calculate the tilt of the bike
+        float newTilt = (float) (Math.toRadians(90) + this.getCenterMass().calculateRollAngle());
+        newTilt = Math.clamp(newTilt, -this.getMaxTiltAngle(), this.getMaxTiltAngle());
+
+        this.tilt = this.tilt + (newTilt - this.tilt) * 0.25F;
+
+        return new Vec3(0.0, 0.0, movSpeed);
     }
 
-
+    // Vanilla Abstracting methods
     @Override
-    protected @NotNull Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float scaleFactor) {
-        int i = Math.max(this.getPassengers().indexOf(passenger), 0);
-        boolean primaryPassenger = i == 0;
-        float horizontalOffset = -0.66F;
-        float verticalOffset = 1.85F;
-        if (this.getPassengers().size() > 1) {
-            if (!primaryPassenger) {
-                horizontalOffset -= 0.5F;
-                verticalOffset -= 0.4F;
-            }
-        }
-        return (new Vec3(0.0F, verticalOffset, horizontalOffset * scaleFactor)).yRot(-this.getYRot() * 0.017453292F);
-    }
+    protected abstract @NotNull Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float scaleFactor);
 
-    @Override
-    protected @NotNull AABB makeBoundingBox() {
-        Vec3 position = this.position();
-        Vec3 boxSize = this.calculateBoxSize(this.getModelSize(), 0, this.getYRot());
-        return new AABB(position.x - boxSize.x / 2, position.y, position.z - boxSize.z / 2, position.x + boxSize.x / 2, position.y + boxSize.y, position.z + boxSize.z / 2);
-    }
-
+    // These define the bike's physical properties
+    public abstract CenterMass getCenterMass();
+    public abstract float getBackWheelRadius();
+    public abstract float getMaxTiltAngle();
+    public abstract float getMaxSteeringAngle();
     public abstract Vec3 getModelSize();
+
+    // Custom methods
+    public float getTurnRate(float speed) {
+        float tiltInf = (this.tilt / this.getMaxTiltAngle());
+        float steeringInf = (this.steeringYaw / this.getMaxSteeringAngle());
+
+        float turnInfluence = tiltInf * 0.3F + steeringInf * 0.7F;
+        float turnRate = turnInfluence * speed * 8.0F;
+        //System.out.printf("Tilt: %f, Steering: %f, Speed: %f, TurnRate: %f, ActualSteering: %f, ActualTilt: %f\n", tiltInf, steeringInf, speed, turnRate, this.steeringYaw, this.tilt);
+        return (float) Math.clamp(turnRate, -Math.PI / 2, Math.PI / 2);
+    }
 
     public Vec3 calculateBoxSize(Vec3 size, float pitch, float yaw) {
         // Convert pitch and yaw to radians
@@ -170,63 +233,5 @@ public abstract class AbstractBike extends AbstractHorse {
         // Return the size of the bounding box
         Vector3f newSize = max.sub(min);
         return new Vec3(newSize.x, newSize.y, newSize.z);
-    }
-
-    @Override
-    public void tick() {
-        super.tick();
-        if (!this.isSaddled() && this.getFirstPassenger() instanceof Player playerEntity) {
-            playerEntity.hurt(new DamageSources(this.registryAccess()).sting(this), (this.tilt / this.maxTiltAngle));
-        }
-    }
-
-
-    @Override
-    public @NotNull InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (!this.getPassengers().isEmpty()) {
-            return super.mobInteract(player, hand);
-        } else if (player.isSecondaryUseActive()) {
-            if (player.getItemInHand(hand).getItem() == Items.DARK_OAK_SLAB && this.showGears) {
-                this.showGears = false;
-                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
-                // Remove one item from the player's hand
-                if (!player.isCreative()) {
-                    player.getItemInHand(hand).shrink(1);
-                }
-                return InteractionResult.sidedSuccess(this.level().isClientSide);
-            }
-            if (!this.showGears){
-                this.showGears = true;
-                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
-                // Give one slab
-                player.addItem(new ItemStack(Items.DARK_OAK_SLAB, 1));
-                return InteractionResult.sidedSuccess(this.level().isClientSide);
-            }
-            this.openCustomInventoryScreen(player);
-            return InteractionResult.sidedSuccess(this.level().isClientSide);
-        }
-        this.doPlayerRide(player);
-        return InteractionResult.sidedSuccess(this.level().isClientSide);
-    }
-
-    @Override
-    public boolean isFood(ItemStack stack) {
-        return false;
-    }
-
-    @Override
-    protected void executeRidersJump(float strength, Vec3 movementInput) {
-        super.executeRidersJump(strength, movementInput);
-        bikePitch = 10F;
-    }
-
-    @Override
-    public boolean canJump() {
-        return true;
-    }
-
-    @Override
-    public void handleStartJump(int height) {
-        this.jumping = true;
     }
 }

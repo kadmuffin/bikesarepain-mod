@@ -32,6 +32,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public float backWheelRotation = 0.0F;
     public boolean hasChest = false;
     public float bikePitch = 0.0F;
+    public float internalSpeed = 0.0F;
 
 
     protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level) {
@@ -73,6 +74,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     @Override
     public void handleStartJump(int height) {
         this.jumping = true;
+    }
+
+    @Override
+    protected float getRiddenSpeed(Player player) {
+        return this.internalSpeed;
     }
 
     @Override
@@ -165,10 +171,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
         // Rotate the wheels based on our speed knowing that
         // the g is a magnitude in blocks
-        // 1 block / second will now be 2 rotation per second
-        float rotation = (float) (g * (Math.PI * 2))/20F;
+        float rotation = (float) (g * (Math.PI))/20F;
         float movSpeed = rotation * this.getBackWheelRadius();
-        this.backWheelRotation += (float) (movSpeed % Math.toRadians(360));
+        this.backWheelRotation += (float) (rotation % 2*Math.PI);
 
         // Calculate the tilt of the bike
         float newTilt = (float) (Math.toRadians(90) + this.getCenterMass().calculateRollAngle());
@@ -176,7 +181,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
         this.tilt = this.tilt + (newTilt - this.tilt) * 0.25F;
 
-        return new Vec3(0.0, 0.0, movSpeed);
+        this.internalSpeed = movSpeed;
+
+        return new Vec3(0.0, 0.0, 1.0F);
     }
 
     // Vanilla Abstracting methods

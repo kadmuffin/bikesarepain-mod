@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
-    public Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF");
+    public Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF", "Display");
 
     public BicycleRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new DefaultedEntityGeoModel<>(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle")));
@@ -36,6 +36,10 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
             }
             if (geoBone.getName().equals("Handlebar")) {
                 geoBone.setRotY(bikeEntity.steeringYaw);
+            }
+
+            if (geoBone.getName().equals("Display")) {
+                geoBone.setHidden(!bikeEntity.isjCommaEnabled());
             }
 
             if (geoBone.getName().equals("ActualWheel2")) {

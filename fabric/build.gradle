@@ -35,6 +35,9 @@ dependencies {
     shadowBundle project(path: ':common', configuration: 'transformProductionFabric')
 
     modImplementation "software.bernie.geckolib:geckolib-fabric-${minecraft_version}:$rootProject.geckolib_version"
+
+    runtimeOnly 'com.fazecast:jSerialComm:[2.0.0,3.0.0)'
+
 }
 
 processResources {

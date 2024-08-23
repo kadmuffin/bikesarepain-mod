@@ -30,5 +30,6 @@ public final class BikesArePain {
                 PacketManager.ArduinoData.TYPE,
                 PacketManager.ArduinoData.CODEC,
                 PacketManager.ArduinoData.RECEIVER);
+
     }
 }

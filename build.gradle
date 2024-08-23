@@ -51,7 +51,8 @@ subprojects {
             officialMojangMappings()
             parchment("org.parchmentmc.data:parchment-${rootProject.minecraft_version}:${rootProject.parchmentmc_version}@zip")
         }
-
+        implementation 'com.fazecast:jSerialComm:[2.0.0,3.0.0)'
+        include "com.fazecast:jSerialComm:[2.0.0,3.0.0)"
 
     }
 

@@ -2,7 +2,10 @@ package com.kadmuffin.bikesarepain.server.entity;
 
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
+import com.mojang.authlib.minecraft.client.MinecraftClient;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.CommonColors;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -135,9 +138,23 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     @Override
     public void tick() {
         super.tick();
-        if (!this.isSaddled() && this.getFirstPassenger() instanceof Player playerEntity) {
-            playerEntity.hurt(new DamageSources(this.registryAccess()).sting(this), (this.tilt /this.getMaxTiltAngle()));
+        if (this.getFirstPassenger() instanceof Player playerEntity) {
+            if (!this.isSaddled() && !this.level().isClientSide()) {
+                playerEntity.hurt(new DamageSources(this.registryAccess()).sting(this), (this.tilt /this.getMaxTiltAngle()));
+            }
+            if (this.isjCommaEnabled() && this.level().isClientSide()) {
+                // Display colored message
+                // "Speed": red, "Distance": green, "Kcalories": blue
+                playerEntity.displayClientMessage(Component.literal("Speed: ").withColor(CommonColors.GREEN)
+                                .append(Component.literal(String.format("%f ", this.getjCommaSpeed())).withColor(CommonColors.RED)
+                                .append(Component.literal("Distance: ").withColor(CommonColors.GREEN)
+                                        .append(Component.literal(String.format("%f meters ", this.getDistanceTravelled())).withColor(CommonColors.BLUE)
+                                                        .append(Component.literal("KCal: ").withColor(CommonColors.GREEN)
+                                                                .append(Component.literal(String.format("%f", this.getKcaloriesBurned())).withColor(CommonColors.BLUE)))))), true);
+            }
         }
+
+
     }
 
     @Override

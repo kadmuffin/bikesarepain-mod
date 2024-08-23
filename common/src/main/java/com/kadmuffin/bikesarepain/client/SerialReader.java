@@ -33,7 +33,7 @@ public class SerialReader implements Runnable {
         }
 
         this.serialPort = SerialPort.getCommPort(port);
-        this.serialPort.setComPortParameters(115200, 8, 1, 0);
+        this.serialPort.setComPortParameters(31250, 8, 1, 0);
         this.serialPort.setFlowControl(SerialPort.FLOW_CONTROL_DISABLED);
     }
 

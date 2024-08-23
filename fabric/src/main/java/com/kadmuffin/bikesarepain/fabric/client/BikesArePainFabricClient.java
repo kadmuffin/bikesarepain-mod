@@ -37,7 +37,7 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
                                         context.getSource().sendFeedback(Component.literal("Opened port"));
                                         return 1;
                                     })
-                    ).then(
+                    )).then(
                             ClientCommandManager.literal("close").executes(context -> {
                                 try {
                                     reader.stop();
@@ -51,7 +51,7 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
                                 return 1;
                             })
                     )
-            ));
+            );
         });
     }
 }

@@ -1,20 +1,33 @@
 package com.kadmuffin.bikesarepain.server.entity;
 
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
-import net.minecraft.world.entity.EntityType;
+import com.kadmuffin.bikesarepain.server.item.ItemManager;
+import com.mojang.logging.LogUtils;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
+import org.slf4j.Logger;
+import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class Bicycle extends AbstractBike implements GeoEntity {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+    protected static final RawAnimation DIE_ANIM = RawAnimation.begin().thenPlayAndHold("bike.die");
+
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private final CenterMass centerMass = new CenterMass(
             new Vector3d(0.0F, 1.35F, 0.0F),
@@ -22,6 +35,37 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             7,
             60
     );
+
+    @Override
+    public void die(DamageSource damageSource) {
+        if (!this.isRemoved() && !this.dead) {
+            Entity entity = damageSource.getEntity();
+
+            this.dead = true;
+            this.getCombatTracker().recheckStatus();
+            if (this.level() instanceof ServerLevel serverLevel) {
+                if (entity == null || entity.killedEntity(serverLevel, this)) {
+                    this.gameEvent(GameEvent.ENTITY_DIE);
+                    this.dropAllDeathLoot(serverLevel, damageSource);
+                }
+
+                this.level().broadcastEntityEvent(this, (byte)3);
+            }
+
+            this.triggerAnim("finalAnim", "die");
+        }
+    }
+
+    @Override
+    protected void dropAllDeathLoot(ServerLevel level, DamageSource damageSource) {
+        this.dropEquipment();
+
+        // Summon a bicycle item
+        ItemStack itemStack = new ItemStack(ItemManager.BICYCLE_ITEM.get());
+        itemStack.setCount(1);
+
+        this.spawnAtLocation(itemStack);
+    }
 
     protected Bicycle(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level);
@@ -47,6 +91,9 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+        controllers.add(new AnimationController<>(this, "finalAnim", event -> PlayState.CONTINUE)
+                .triggerableAnim("die", DIE_ANIM)
+        );
     }
 
     @Override
@@ -79,4 +126,17 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         return (float) Math.toRadians(45F);
     }
 
+    @Override
+    public float getMaxPedalAnglePerSecond() {
+        return (float) Math.PI/1.32F;
+    }
+
+    @Override
+    public float getMaxTurnRate() {
+        return (float) (2*Math.PI/3);
+    }
+
+    public float getTurnScalingFactor() {
+        return 15.0F;
+    }
 }

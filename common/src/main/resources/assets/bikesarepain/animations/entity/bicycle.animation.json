@@ -344,7 +344,6 @@
 			}
 		},
 		"bike.spawn": {
-			"loop": true,
 			"animation_length": 4.8333,
 			"bones": {
 				"Bike": {
@@ -676,7 +675,7 @@
 			}
 		},
 		"bike.bell": {
-			"animation_length": 0.875,
+			"animation_length": 0.75,
 			"bones": {
 				"Button": {
 					"rotation": {
@@ -725,7 +724,7 @@
 							"vector": [0, 0, 0],
 							"easing": "linear"
 						},
-						"0.7917": {
+						"0.7083": {
 							"vector": [0, 0, 0],
 							"easing": "linear"
 						}
@@ -748,7 +747,7 @@
 							"easing": "easeInElastic",
 							"easingArgs": [3]
 						},
-						"0.7917": {
+						"0.7083": {
 							"vector": [0, 0, 0],
 							"easing": "linear"
 						}
@@ -770,7 +769,7 @@
 							"vector": [1, 1, 1],
 							"easing": "linear"
 						},
-						"0.7917": {
+						"0.7083": {
 							"vector": [1, 1, 1],
 							"easing": "linear"
 						}
@@ -780,6 +779,45 @@
 			"sound_effects": {
 				"0.125": {
 					"effect": "89544__cgeffex__cartoon_8boing_01"
+				}
+			}
+		},
+		"bike.screen.popup": {
+			"animation_length": 0.5833,
+			"bones": {
+				"Display": {
+					"position": {
+						"0.125": {
+							"vector": [-0.525, -0.625, 0],
+							"easing": "linear"
+						},
+						"0.2083": {
+							"vector": [-0.555, -0.44, 0],
+							"easing": "linear"
+						},
+						"0.5": {
+							"vector": [0.07, -0.195, 0],
+							"easing": "linear"
+						}
+					},
+					"scale": {
+						"0.0": {
+							"vector": [0, 0, 0],
+							"easing": "linear"
+						},
+						"0.125": {
+							"vector": [0.05, 0.1, 0.075],
+							"easing": "linear"
+						},
+						"0.2083": {
+							"vector": [0.05, 0.2, 1],
+							"easing": "linear"
+						},
+						"0.5": {
+							"vector": [1, 1, 1],
+							"easing": "linear"
+						}
+					}
 				}
 			}
 		}

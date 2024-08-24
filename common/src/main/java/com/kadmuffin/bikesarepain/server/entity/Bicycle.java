@@ -2,14 +2,24 @@ package com.kadmuffin.bikesarepain.server.entity;
 
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
+import com.mojang.authlib.minecraft.client.MinecraftClient;
 import com.mojang.logging.LogUtils;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
@@ -21,12 +31,16 @@ import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.ClientUtil;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class Bicycle extends AbstractBike implements GeoEntity {
     private static final Logger LOGGER = LogUtils.getLogger();
+    private int timeSinceLastRing = 0;
+    public boolean showGears = false;
 
     protected static final RawAnimation DIE_ANIM = RawAnimation.begin().thenPlayAndHold("bike.die");
+    protected static final RawAnimation RING_BELL_ANIM = RawAnimation.begin().thenPlay("bike.bell");
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private final CenterMass centerMass = new CenterMass(
@@ -72,6 +86,70 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     }
 
     @Override
+    public @NotNull InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (!this.getPassengers().isEmpty()) {
+            return super.mobInteract(player, hand);
+
+            // Check if the player is doing a right click
+        } else if (player.isShiftKeyDown()) {
+            // Each nugget repairs 1 health
+            if (player.getItemInHand(hand).getItem() == Items.IRON_NUGGET && this.showGears
+                && this.getHealth() < this.getMaxHealth()
+            ) {
+                if (!player.isCreative()) {
+                    player.getItemInHand(hand).shrink(1);
+                }
+
+                this.heal(1.0F);
+
+                return InteractionResult.sidedSuccess(this.level().isClientSide());
+            }
+
+            if (player.getItemInHand(hand).getItem() == Items.STICK && this.showGears) {
+                this.showGears = false;
+                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
+                return InteractionResult.sidedSuccess(this.level().isClientSide());
+            }
+
+            if (!this.showGears){
+                this.showGears = true;
+                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
+                return InteractionResult.sidedSuccess(this.level().isClientSide());
+            }
+            this.openCustomInventoryScreen(player);
+            return InteractionResult.sidedSuccess(this.level().isClientSide());
+        }
+        this.doPlayerRide(player);
+        return InteractionResult.sidedSuccess(this.level().isClientSide());
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        this.timeSinceLastRing++;
+    }
+
+    // Play bell sound
+    public void ringBell() {
+        // Check if the bell has been rung in the last 20 ticks
+        if (this.timeSinceLastRing < 4) {
+            return;
+        }
+        this.triggerAnim("finalAnim", "bell");
+
+        // Scare nearby entities
+        AABB aABB = this.getBoundingBox().inflate(3.6D);
+        // Check for PathAwareEntities
+        this.level().getEntities(this, aABB).stream().filter((entity) -> entity instanceof PathfinderMob).forEach((entity) -> {
+            // Give velocity in opposite direction with slight 0.1F upwards
+            Vec3 vec3 = entity.position().subtract(this.position()).normalize();
+            entity.addDeltaMovement(new Vec3(vec3.x * 0.5F, 0.4F, vec3.z * 0.5F));
+        });
+
+        this.timeSinceLastRing = 0;
+    }
+
+    @Override
     protected @NotNull Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float scaleFactor)  {
         int i = Math.max(this.getPassengers().indexOf(passenger), 0);
         boolean primaryPassenger = i == 0;
@@ -84,8 +162,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             }
         }
 
-
-
         return (new Vec3(0.0F, verticalOffset, horizontalOffset * scaleFactor)).yRot(-this.getYRot() * 0.017453292F);
     }
 
@@ -93,6 +169,15 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "finalAnim", event -> PlayState.CONTINUE)
                 .triggerableAnim("die", DIE_ANIM)
+                .triggerableAnim("bell", RING_BELL_ANIM).setSoundKeyframeHandler(
+                        state -> {
+                            Player player = ClientUtil.getClientPlayer();
+
+                            if (player != null) {
+                                player.playSound(SoundEvents.BELL_BLOCK, 1.0F, (float) Math.random() * 0.1F + 1.9F);
+                            }
+                        }
+                )
         );
     }
 

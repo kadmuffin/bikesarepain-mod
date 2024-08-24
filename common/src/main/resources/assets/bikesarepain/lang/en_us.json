@@ -1,4 +1,6 @@
 {
   "item.bikesarepain.bicycle_item": "Dutch Bicycle",
-  "entity.bikesarepain.bicycle": "Dutch Bicycle"
+  "entity.bikesarepain.bicycle": "Dutch Bicycle",
+  "key.bikesarepain.ring_bell": "Ring Bell",
+  "key.categories.bikesarepain": "Bikes Are Pain"
 }

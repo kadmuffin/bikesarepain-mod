@@ -27,7 +27,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     protected boolean jumping;
     public float tilt = 0.0F;
     public float steeringYaw = 0.0F;
-    public boolean showGears = false;
     public float frontWheelRotation = 0.0F;
     public float backWheelRotation = 0.0F;
     public boolean hasChest = false;
@@ -104,22 +103,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
             // Check if the player is doing a right click
         } else if (player.isShiftKeyDown()) {
-            if (player.getItemInHand(hand).getItem() == Items.DARK_OAK_SLAB && this.showGears) {
-                this.showGears = false;
-                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
-                // Remove one item from the player's hand
-                if (!player.isCreative()) {
-                    player.getItemInHand(hand).shrink(1);
-                }
-                return InteractionResult.sidedSuccess(this.level().isClientSide);
-            }
-            if (!this.showGears){
-                this.showGears = true;
-                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
-                // Give one slab
-                player.addItem(new ItemStack(Items.DARK_OAK_SLAB, 1));
-                return InteractionResult.sidedSuccess(this.level().isClientSide);
-            }
             this.openCustomInventoryScreen(player);
             return InteractionResult.sidedSuccess(this.level().isClientSide);
         }

@@ -30,7 +30,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     protected boolean jumping;
     public float tilt = 0.0F;
     public float steeringYaw = 0.0F;
-    public boolean showGears = false;
     public float frontWheelRotation = 0.0F;
     public float backWheelRotation = 0.0F;
     public boolean hasChest = false;
@@ -51,7 +50,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public static AttributeSupplier.@NotNull Builder createBaseHorseAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.22499999403953552);
+                .add(Attributes.MOVEMENT_SPEED, 0.22499999403953552)
+                .add(Attributes.FALL_DAMAGE_MULTIPLIER, 0D);
     }
 
     @Override
@@ -112,22 +112,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
             // Check if the player is doing a right click
         } else if (player.isShiftKeyDown()) {
-            if (player.getItemInHand(hand).getItem() == Items.DARK_OAK_SLAB && this.showGears) {
-                this.showGears = false;
-                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
-                // Remove one item from the player's hand
-                if (!player.isCreative()) {
-                    player.getItemInHand(hand).shrink(1);
-                }
-                return InteractionResult.sidedSuccess(this.level().isClientSide);
-            }
-            if (!this.showGears){
-                this.showGears = true;
-                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
-                // Give one slab
-                player.addItem(new ItemStack(Items.DARK_OAK_SLAB, 1));
-                return InteractionResult.sidedSuccess(this.level().isClientSide);
-            }
             this.openCustomInventoryScreen(player);
             return InteractionResult.sidedSuccess(this.level().isClientSide);
         }
@@ -194,8 +178,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
         // Rotate the wheels based on our speed knowing that
         // the g is a magnitude in blocks
-        float rotation = (float) (g * (Math.PI))/20F;
+        float rotation = (g * this.getMaxPedalAnglePerSecond())/20F;
         float movSpeed = rotation * this.getBackWheelRadius();
+        this.backWheelRotation += rotation;
+        // Fit in the range of 0 to 2PI
+        this.backWheelRotation = (float) (this.backWheelRotation % 2*Math.PI);
 
         if (jCommaEnabled) {
             // The speed we get from the arduino is in km/h
@@ -220,7 +207,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.backWheelRotation += (float) (rotation % 2*Math.PI);
 
         // Calculate the tilt of the bike
-        float newTilt = (float) (Math.toRadians(90) + this.getCenterMass().calculateRollAngle());
+        float newTilt = (float) (Math.PI/2 + this.getCenterMass().calculateRollAngle());
         newTilt = Math.clamp(newTilt, -this.getMaxTiltAngle(), this.getMaxTiltAngle());
 
         this.tilt = this.tilt + (newTilt - this.tilt) * 0.25F;
@@ -240,6 +227,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public abstract float getMaxTiltAngle();
     public abstract float getMaxSteeringAngle();
     public abstract Vec3 getModelSize();
+    public abstract float getMaxPedalAnglePerSecond();
+    public abstract float getMaxTurnRate();
+    public abstract float getTurnScalingFactor();
 
     // Custom methods
     public float getTurnRate(float speed) {
@@ -247,9 +237,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         float steeringInf = (this.steeringYaw / this.getMaxSteeringAngle());
 
         float turnInfluence = tiltInf * 0.3F + steeringInf * 0.7F;
-        float turnRate = turnInfluence * speed * 8.0F;
-        //System.out.printf("Tilt: %f, Steering: %f, Speed: %f, TurnRate: %f, ActualSteering: %f, ActualTilt: %f\n", tiltInf, steeringInf, speed, turnRate, this.steeringYaw, this.tilt);
-        return (float) Math.clamp(turnRate, -Math.PI / 2, Math.PI / 2);
+        float turnRate = turnInfluence * speed * this.getTurnScalingFactor();
+        return Math.clamp(turnRate, -this.getMaxTurnRate(), this.getMaxTurnRate());
     }
 
     public Vec3 calculateBoxSize(Vec3 size, float pitch, float yaw) {

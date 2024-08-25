@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "iron_ingot",
+  "pattern": [
+    "iin",
+    "wiw",
+    "sws"
+  ],
+  "key": {
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "n": {
+      "item": "minecraft:gold_nugget"
+    },
+    "w": {
+      "item": "minecraft:dark_oak_slab"
+    },
+    "s": {
+      "item": "minecraft:slime_block"
+    }
+  },
+  "result": {
+    "id": "bikesarepain:bicycle_item",
+    "count": 1
+  },
+  "show_notification": true
+}

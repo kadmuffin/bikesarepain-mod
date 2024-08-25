@@ -2,10 +2,12 @@ package com.kadmuffin.bikesarepain.server.entity;
 
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
+import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageSources;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -29,7 +31,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public float steeringYaw = 0.0F;
     public float frontWheelRotation = 0.0F;
     public float backWheelRotation = 0.0F;
+    public float lastSpeed = 0.0F;
     public boolean hasChest = false;
+    public boolean wasRingedAlready = false;
     public float bikePitch = 0.0F;
     public float internalSpeed = 0.0F;
 
@@ -61,6 +65,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     }
 
     @Override
+    public void aiStep() {}
+
+    @Override
     protected void executeRidersJump(float strength, Vec3 movementInput) {
         super.executeRidersJump(strength, movementInput);
         bikePitch = 10F;
@@ -78,12 +85,13 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     @Override
     protected float getRiddenSpeed(Player player) {
-        return this.internalSpeed;
+        return this.getSpeed();
     }
 
     @Override
     public @NotNull Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
         this.tilt = 0.0F;
+        this.lastSpeed = 0.0F;
         this.bikePitch = 0.0F;
         return super.getDismountLocationForPassenger(passenger);
     }
@@ -116,6 +124,32 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         if (!this.isSaddled() && this.getFirstPassenger() instanceof Player playerEntity) {
             playerEntity.hurt(new DamageSources(this.registryAccess()).sting(this), (this.tilt /this.getMaxTiltAngle()));
         }
+
+        if (!this.level().isClientSide()) {
+            if (this.getSpeed() > 0F && this.getControllingPassenger() != null) {
+                AABB aABB = this.getBoundingBox();
+
+                this.level().getEntities(this, aABB).stream().filter((entity) -> entity instanceof Mob).forEach((entity) -> {
+                    Vec3 vec3 = entity.position().subtract(this.position()).normalize();
+                    Vec3 pushMov = new Vec3(vec3.x * 0.5F, 0.23F, vec3.z * 0.5F);
+
+                    entity.addDeltaMovement(pushMov);
+
+                    DamageSource damageSource = new DamageSources(this.registryAccess()).sting(this.getControllingPassenger());
+
+                    // Round the speed to the nearest 0.5F increment
+                    float damage = Math.round(this.getSpeed() / 0.5F) * 0.5F;
+
+                    // Apply the damage to the entity
+                    entity.hurt(damageSource, damage);
+
+                    // Do a random change of the bike getting damaged
+                    if (this.random.nextInt(100) < 20* damage) {
+                        this.hurt(new DamageSources(this.registryAccess()).sting(this), damage);
+                    }
+                });
+            }
+        }
     }
 
     @Override
@@ -138,7 +172,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.steeringYaw = Math.clamp(this.steeringYaw, -this.getMaxSteeringAngle(), this.getMaxSteeringAngle());
 
         return new Vec2(controllingPassenger.getXRot() * 0.5F, calculatedYaw);
-
     }
 
     @Override
@@ -151,15 +184,30 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
         this.getCenterMass().setPlayerOffset(new Vector3d(f,0,0));
 
-        this.frontWheelRotation = this.backWheelRotation;
-
         // Rotate the wheels based on our speed knowing that
         // the g is a magnitude in blocks
+        this.lastSpeed = this.getSpeed();
         float rotation = (g * this.getMaxPedalAnglePerSecond())/20F;
         float movSpeed = rotation * this.getBackWheelRadius();
-        this.backWheelRotation += rotation;
-        // Fit in the range of 0 to 2PI
-        this.backWheelRotation = (float) (this.backWheelRotation % 2*Math.PI);
+
+        if (g == 0) {
+            movSpeed = lastSpeed * this.inertiaFactor();
+            if (movSpeed < 0.05F) {
+                movSpeed = 0;
+            }
+
+            // Solve for the rotation
+            rotation = movSpeed / this.getBackWheelRadius();
+        } else {
+            movSpeed = lastSpeed + (movSpeed - lastSpeed) * (1.15F-this.inertiaFactor());
+        }
+
+        this.backWheelRotation += (float) rotation;
+        if (this.backWheelRotation > 2*Math.PI) {
+            this.backWheelRotation = (float) rotation;
+        }
+        // Make the front wheel lag behind the back wheel
+        this.frontWheelRotation = this.frontWheelRotation + (this.backWheelRotation - this.frontWheelRotation) * 0.25F;
 
         // Calculate the tilt of the bike
         float newTilt = (float) (Math.PI/2 + this.getCenterMass().calculateRollAngle());
@@ -170,6 +218,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.internalSpeed = movSpeed;
 
         return new Vec3(0.0, 0.0, 1.0F);
+    }
+
+    @Override
+    public float getSpeed() {
+        return this.internalSpeed;
     }
 
     // Vanilla Abstracting methods
@@ -185,6 +238,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public abstract float getMaxPedalAnglePerSecond();
     public abstract float getMaxTurnRate();
     public abstract float getTurnScalingFactor();
+    public abstract float inertiaFactor();
 
     // Custom methods
     public float getTurnRate(float speed) {

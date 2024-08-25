@@ -23,6 +23,7 @@ public class ItemManager {
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
                             .arch$tab(BIKES_MOD_TAB.get())
+                            .durability(100)
             )
     );
 

@@ -14,6 +14,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -94,6 +95,11 @@ public class BikeItem extends Item implements GeoItem {
                     !Objects.equals(blockPos, blockPos2) && direction == Direction.UP
             );
 
+            // Scale the health based on the durability
+            if (entity instanceof AbstractBike) {
+                entity.setHealth(entity.getMaxHealth() * (itemStack.getMaxDamage() - itemStack.getDamageValue()) / itemStack.getMaxDamage());
+            }
+
             if (entity != null) {
                 itemStack.shrink(1);
                 level.gameEvent(context.getPlayer(), GameEvent.ENTITY_PLACE, blockPos);
@@ -106,4 +112,10 @@ public class BikeItem extends Item implements GeoItem {
             return InteractionResult.CONSUME;
         }
     }
+
+    @Override
+    public boolean isValidRepairItem(ItemStack stack, ItemStack repairCandidate) {
+        return repairCandidate.getItem() == Items.IRON_NUGGET;
+    }
+
 }

@@ -20,7 +20,7 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
         super(renderManager, new DefaultedEntityGeoModel<>(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle")));
         addRenderLayer(new FastBoneFilterGeoLayer<>(this, bones, (geoBone, bikeEntity, aFloat) -> {
             if (geoBone.getName().equals("ActualWheel")) {
-                geoBone.setRotZ(-bikeEntity.backWheelRotation);
+                geoBone.setRotZ(bikeEntity.backWheelRotation);
             }
             if (geoBone.getName().equals("Cap2")) {
                 geoBone.setHidden(bikeEntity.showGears);
@@ -39,7 +39,7 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
             }
 
             if (geoBone.getName().equals("ActualWheel2")) {
-                geoBone.setRotZ(-bikeEntity.backWheelRotation);
+                geoBone.setRotZ(bikeEntity.backWheelRotation);
             }
 
             if (geoBone.getName().equals("SeatF")) {

@@ -5,7 +5,9 @@ import com.kadmuffin.bikesarepain.client.entity.BicycleRenderer;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.kadmuffin.bikesarepain.server.entity.EntityManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
+import com.kadmuffin.bikesarepain.server.item.TooltipManager;
 import dev.architectury.registry.registries.DeferredRegister;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
@@ -22,5 +24,6 @@ public final class BikesArePain {
         ItemManager.init();
         PacketManager.init();
         KeybindManager.init();
+        TooltipManager.init();
     }
 }

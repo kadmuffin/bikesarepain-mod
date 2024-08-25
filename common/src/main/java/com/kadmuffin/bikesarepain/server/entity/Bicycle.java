@@ -4,13 +4,17 @@ import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import com.mojang.authlib.minecraft.client.MinecraftClient;
 import com.mojang.logging.LogUtils;
+import net.minecraft.core.component.*;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.npc.Villager;
@@ -35,8 +39,6 @@ import software.bernie.geckolib.util.ClientUtil;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class Bicycle extends AbstractBike implements GeoEntity {
-    private static final Logger LOGGER = LogUtils.getLogger();
-    private int timeSinceLastRing = 0;
     public boolean showGears = false;
 
     protected static final RawAnimation DIE_ANIM = RawAnimation.begin().thenPlayAndHold("bike.die");
@@ -49,6 +51,23 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             7,
             60
     );
+
+    protected Bicycle(EntityType<? extends AbstractHorse> entityType, Level level) {
+        super(entityType, level);
+    }
+
+    // Reads the nbt data
+    @Override
+    public void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
+        this.showGears = compound.getBoolean("ShowGears");
+        // Read health percentage
+        float health = compound.getFloat("Health");
+        health = Mth.clamp(health, 0.0F, 1.0F);
+
+        // Set the health
+        this.setHealth(health * this.getMaxHealth());
+    }
 
     @Override
     public void die(DamageSource damageSource) {
@@ -75,14 +94,9 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         this.dropEquipment();
 
         // Summon a bicycle item
-        ItemStack itemStack = new ItemStack(ItemManager.BICYCLE_ITEM.get());
-        itemStack.setCount(1);
+        ItemStack itemStack = this.getBicycleItem();
 
         this.spawnAtLocation(itemStack);
-    }
-
-    protected Bicycle(EntityType<? extends AbstractHorse> entityType, Level level) {
-        super(entityType, level);
     }
 
     @Override
@@ -102,39 +116,40 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
                 this.heal(1.0F);
 
+                // Play the repair sound
+                this.playSound(SoundEvents.ANVIL_USE, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
+
+                // Do some particles
+                this.level().broadcastEntityEvent(this, (byte) 7);
+
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
-            if (player.getItemInHand(hand).getItem() == Items.STICK && this.showGears) {
-                this.showGears = false;
-                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
-                return InteractionResult.sidedSuccess(this.level().isClientSide());
-            }
+            if (player.getItemInHand(hand).getItem() == Items.STICK) {
+                // Toggle the showGears state
+                this.showGears = !this.showGears;
 
-            if (!this.showGears){
-                this.showGears = true;
-                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
+                // Determine the sound to play based on the new state
+                SoundEvent soundEvent = this.showGears ? SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF : SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON;
+
+                // Play the corresponding sound
+                this.playSound(soundEvent, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
+
+                // Return the interaction result
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
-            this.openCustomInventoryScreen(player);
+            // Summon an item
+            this.spawnAtLocation(this.getBicycleItem());
+            this.remove(RemovalReason.DISCARDED);
+
             return InteractionResult.sidedSuccess(this.level().isClientSide());
         }
         this.doPlayerRide(player);
         return InteractionResult.sidedSuccess(this.level().isClientSide());
     }
 
-    @Override
-    public void tick() {
-        super.tick();
-        this.timeSinceLastRing++;
-    }
-
     // Play bell sound
     public void ringBell() {
-        // Check if the bell has been rung in the last 20 ticks
-        if (this.timeSinceLastRing < 4) {
-            return;
-        }
         this.triggerAnim("finalAnim", "bell");
 
         // Scare nearby entities
@@ -145,8 +160,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             Vec3 vec3 = entity.position().subtract(this.position()).normalize();
             entity.addDeltaMovement(new Vec3(vec3.x * 0.5F, 0.4F, vec3.z * 0.5F));
         });
-
-        this.timeSinceLastRing = 0;
     }
 
     @Override
@@ -186,6 +199,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         return this.geoCache;
     }
 
+    public ItemStack getBicycleItem() {
+        ItemStack itemStack = new ItemStack(ItemManager.BICYCLE_ITEM.get());
+        itemStack.setDamageValue(itemStack.getMaxDamage() - (int) (this.getHealth() / this.getMaxHealth() * itemStack.getMaxDamage()));
+        return itemStack;
+    }
+
     @Override
     public Vec3 getModelSize() {
         return new Vec3(3.78 / 16, 0.5, 30.0 / 16);
@@ -213,7 +232,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     public float getMaxPedalAnglePerSecond() {
-        return (float) Math.PI/1.32F;
+        return (float) (Math.PI);
     }
 
     @Override
@@ -223,5 +242,9 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     public float getTurnScalingFactor() {
         return 15.0F;
+    }
+
+    public float inertiaFactor() {
+        return 0.95F;
     }
 }

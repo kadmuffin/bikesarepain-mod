@@ -6,5 +6,13 @@
 
   "item.bikesarepain.bicycle_item.tooltip.brand_new": "A brand new bicycle.",
   "item.bikesarepain.bicycle_item.tooltip.repair": "Repair with iron nuggets with an anvil.",
-  "item.bikesarepain.bicycle_item.tooltip.health": "Health: "
+  "item.bikesarepain.bicycle_item.tooltip.health": "Health: ",
+  "item.bikesarepain.bicycle_item.tooltip.saddled": "Is Saddled: ",
+  "item.bikesarepain.bicycle_item.tooltip.yes": "Yes",
+  "item.bikesarepain.bicycle_item.tooltip.no": "No",
+
+  "sound.bikesarepain.bicycle_spokes": "Bicycle Spokes",
+  "sound.bikesarepain.bicycle_bell": "Bicycle Bell",
+  "sound.bikesarepain.bicycle_movement": "Bicycle Sound",
+  "sound.bikesarepain.bicycle_land": "Bicycle Landing"
 }

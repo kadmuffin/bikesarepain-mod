@@ -3,6 +3,7 @@ package com.kadmuffin.bikesarepain.server.item;
 import dev.architectury.event.events.client.ClientTooltipEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.CommonColors;
+import software.bernie.geckolib.util.Color;
 
 public class TooltipManager {
     public static void init() {
@@ -20,6 +21,17 @@ public class TooltipManager {
                 } else {
                     lines.add(Component.translatable("item.bikesarepain.bicycle_item.tooltip.repair")
                             .withColor(CommonColors.GREEN));
+                }
+
+                // Check if contains a saddle
+                if (stack.has(ItemManager.SADDLED.get()) && Boolean.TRUE.equals(stack.get(ItemManager.SADDLED.get()))) {
+                    lines.add(Component.translatable("item.bikesarepain.bicycle_item.tooltip.saddled")
+                            .withColor(CommonColors.GRAY).append(Component.translatable("item.bikesarepain.bicycle_item.tooltip.yes")
+                                    .withColor(Color.ofRGB(255, 149, 0).argbInt())));
+                } else {
+                    lines.add(Component.translatable("item.bikesarepain.bicycle_item.tooltip.saddled")
+                            .withColor(CommonColors.GRAY).append(Component.translatable("item.bikesarepain.bicycle_item.tooltip.no")
+                                    .withColor(CommonColors.RED)));
                 }
 
 

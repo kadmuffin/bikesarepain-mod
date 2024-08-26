@@ -1,0 +1,26 @@
+# Sounds Used:
+
+## Bicycle Movement:
+
+Combined the following sounds to create the bicycle movement sound:
+
+- Bike Pedal Gravel Tire 1 by Geoff-Bremner-Audio -- https://freesound.org/s/730572/ -- License: Creative Commons 0
+- Bike_2.mp3 by SoundAppProject -- https://freesound.org/s/537539/ -- License: Creative Commons 0
+- Bike tire on dirt road.wav by SpliceSound -- https://freesound.org/s/218301/ -- License: Creative Commons 0
+- metal-blade-friction-5.mp3 by lesaucisson -- https://freesound.org/s/585244/ -- License: Creative Commons 0
+- friction_2.wav by Lau7 -- https://freesound.org/s/156197/ -- License: Creative Commons 0
+
+## Bicycle Spokes:
+
+- Bicycle spokes loop.aif by TiesWijnen -- https://freesound.org/s/337080/ -- License: Creative Commons 0
+
+## Bicycle Bell:
+
+- Bicycle Bell.wav by PanosA -- https://freesound.org/s/546371/ -- License: Creative Commons 0
+
+## Bicycle Landing:
+
+Combined the following sounds to create the bicycle landing sound:
+
+- SFXJumpLandingGrass.wav by WakuWakuWakuWaku -- https://freesound.org/s/422969/ -- License: Creative Commons 0
+- land.mp3 by nathanchurchyard -- https://freesound.org/s/520750/ -- License: Creative Commons 0

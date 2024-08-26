@@ -97,7 +97,18 @@ public class BikeItem extends Item implements GeoItem {
 
             // Scale the health based on the durability
             if (entity instanceof AbstractBike) {
-                entity.setHealth(entity.getMaxHealth() * (itemStack.getMaxDamage() - itemStack.getDamageValue()) / itemStack.getMaxDamage());
+                entity.setHealth(entity.getMaxHealth() * (itemStack.getMaxDamage() - Math.min(itemStack.getDamageValue(), itemStack.getMaxDamage()-1)) / itemStack.getMaxDamage());
+
+                if (itemStack.has(ItemManager.SADDLED.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SADDLED.get()))) {
+                    ItemStack saddle = new ItemStack(Items.SADDLE);
+                    saddle.setCount(1);
+                    entity.equipSaddle(saddle, null);
+                }
+
+                // Make the bike look the same direction as the player
+                if (context.getPlayer() != null) {
+                    entity.setYRot(context.getPlayer().getYRot());
+                }
             }
 
             if (entity != null) {

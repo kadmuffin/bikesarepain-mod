@@ -265,16 +265,16 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     protected @NotNull Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float scaleFactor)  {
         int i = Math.max(this.getPassengers().indexOf(passenger), 0);
         boolean primaryPassenger = i == 0;
-        float horizontalOffset = -0.66F;
-        float verticalOffset = this.getBackWheelRadius() - 0.2F;
+        float horizontalOffset = -0.4F;
+        float verticalOffset = 0.9625F;
         if (this.getPassengers().size() > 1) {
             if (!primaryPassenger) {
-                horizontalOffset -= 0.5F;
-                verticalOffset -= 0.4F;
+                horizontalOffset = -0.575F;
+                verticalOffset = 0.797F;
             }
         }
 
-        return (new Vec3(0.0F, verticalOffset, horizontalOffset * scaleFactor)).yRot(-this.getYRot() * 0.017453292F);
+        return (new Vec3(0.0F, verticalOffset * this.getModelScalingFactor(), horizontalOffset * this.getModelScalingFactor() * scaleFactor)).yRot(-this.getYRot() * 0.017453292F);
     }
 
     @Override
@@ -321,8 +321,26 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     }
 
     @Override
-    public float getBackWheelRadius() {
-        return 1.67F;
+    public float getModelWheelRadius() {
+        return 0.3515625F;
+    }
+
+    @Override
+    public float getWheelRadius() {
+        if (this.isjCommaEnabled()){
+            return this.getSerialWheelRadius();
+        }
+        // 0.5F means the wheel measures 1 block
+        return 0.5F;
+    }
+
+    @Override
+    public float getPedalMultiplier() {
+        if (this.isjCommaEnabled()) {
+            return 1F;
+        }
+
+        return 3F;
     }
 
     @Override
@@ -350,6 +368,9 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     }
 
     public float inertiaFactor() {
+        if (this.isjCommaEnabled()) {
+            return 0.98F;
+        }
         return 0.95F;
     }
 }

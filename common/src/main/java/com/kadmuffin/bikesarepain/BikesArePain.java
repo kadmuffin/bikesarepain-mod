@@ -3,6 +3,7 @@ package com.kadmuffin.bikesarepain;
 import com.kadmuffin.bikesarepain.client.KeybindManager;
 import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
+import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.kadmuffin.bikesarepain.server.entity.EntityManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import com.kadmuffin.bikesarepain.server.item.TooltipManager;
@@ -13,6 +14,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.GameRules;
 
 public final class BikesArePain {
     public static final String MOD_ID = "bikesarepain";
@@ -29,5 +31,6 @@ public final class BikesArePain {
         KeybindManager.init();
         TooltipManager.init();
         SoundManager.init();
+        GameRuleManager.init();
     }
 }

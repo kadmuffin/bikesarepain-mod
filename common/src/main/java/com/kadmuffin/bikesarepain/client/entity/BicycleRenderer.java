@@ -70,7 +70,7 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
 
     @Override
     public void render(Bicycle entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        poseStack.scale(entity.getBackWheelRadius(), entity.getBackWheelRadius(), entity.getBackWheelRadius());
+        poseStack.scale(entity.getModelScalingFactor(), entity.getModelScalingFactor(), entity.getModelScalingFactor());
 
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }

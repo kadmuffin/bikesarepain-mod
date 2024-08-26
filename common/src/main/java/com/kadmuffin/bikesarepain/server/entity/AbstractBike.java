@@ -46,7 +46,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private static final EntityDataAccessor<Boolean> JCOMMASENABLED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> JCOMMASPEED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> DISTANCETRAVELLED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> KCALORIESBURNED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> CALORIESBURNED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> JCOMMAWHEELRADIUS = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
 
     protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level) {
@@ -73,7 +73,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         builder.define(JCOMMASENABLED, false);
         builder.define(JCOMMASPEED, 0.0F);
         builder.define(DISTANCETRAVELLED, 0.0F);
-        builder.define(KCALORIESBURNED, 0.0F);
+        builder.define(CALORIESBURNED, 0.0F);
         builder.define(JCOMMAWHEELRADIUS, 0.0F);
     }
 
@@ -167,7 +167,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                                         .append(Component.literal(((float) Math.round(this.getDistanceTravelled()*100))/100 + " meters ").withColor(CommonColors.BLUE)
                                                 .append(Component.literal("Calories Spent: ").withColor(CommonColors.GREEN)
                                                         .append(Component.literal(
-                                                                ((float) Math.round(this.getKcaloriesBurned()*100))/100 + " kcal").withColor(CommonColors.BLUE)))))), true);
+                                                                ((float) Math.round(this.getCaloriesBurned()*100))/100 + " kcal").withColor(CommonColors.BLUE)))))), true);
             }
             if (!this.isSaddled()) {
                 playerEntity.hurt(new DamageSources(this.registryAccess()).sting(this), 0.5F);
@@ -267,6 +267,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         if (g <= 0.0F) {
             g *= 0.25F;
         }
+        g *= this.getPedalMultiplier();
         // System.out.printf("MOV; Is client side: %b, Is controlled by local instance: %b\n", this.level().isClientSide(), this.isControlledByLocalInstance());
 
         // Print all relevant information
@@ -278,38 +279,37 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         // the g is a magnitude in blocks
         float lastSpeed = this.getSpeed();
         this.setLastSpeed(lastSpeed);
-        float rotation = (g * this.getMaxPedalAnglePerSecond())/20F;
-        float movSpeed = rotation * this.getBackWheelRadius();
+
+        float rotation;
+        float movSpeed;
 
         float jCommaSpeed = 0;
-        if (this.isjCommaEnabled()) {
+        final boolean isJCommaEnabled = this.isjCommaEnabled();
+        if (isJCommaEnabled) {
             jCommaSpeed = this.getjCommaSpeed() / 3.6F;
 
             // Minecraft runs at 20 ticks per second
             jCommaSpeed = jCommaSpeed / 20F;
 
-            float expectedRotation = (jCommaSpeed / this.getjCommaWheelRadius()/2);
-
-            // Now we need to map the expected rotation to the actual rotation
-            // as our wheel diameter is different
-            rotation = expectedRotation * (this.getBackWheelRadius() / this.getjCommaWheelRadius());
-
-            // Solve for movSpeed
-            movSpeed = rotation * this.getBackWheelRadius();
             if (g < 0F) {
-                movSpeed = -movSpeed;
+                jCommaSpeed = -jCommaSpeed;
             }
 
+            movSpeed = jCommaSpeed;
+        } else {
+            rotation = (g * this.getMaxPedalAnglePerSecond())/20F;
+            movSpeed = rotation * this.getWheelRadius();
         }
 
-        if (g == 0 || (this.isjCommaEnabled() && jCommaSpeed == 0F)) {
+        if ((g == 0 && !isJCommaEnabled) || (isJCommaEnabled && jCommaSpeed == 0F)) {
             movSpeed = lastSpeed * this.inertiaFactor();
             if (movSpeed < 0.05F) {
                 movSpeed = 0;
             }
-            rotation = movSpeed / this.getBackWheelRadius();
+            rotation = movSpeed / this.getWheelRadius();
         } else {
             movSpeed = lastSpeed + (movSpeed - lastSpeed) * (1.15F-this.inertiaFactor());
+            rotation = movSpeed / this.getWheelRadius();
         }
 
         this.setRearWheelSpeed(rotation / (2 * (float) Math.PI));
@@ -385,7 +385,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     // These define the bike's physical properties
     public abstract CenterMass getCenterMass();
-    public abstract float getBackWheelRadius();
     public abstract float getMaxTiltAngle();
     public abstract float getMaxSteeringAngle();
     public abstract Vec3 getModelSize();
@@ -393,10 +392,27 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public abstract float getMaxTurnRate();
     public abstract float getTurnScalingFactor();
     public abstract float inertiaFactor();
+    public abstract float getPedalMultiplier();
+
+    /**
+     * Gets the radius of the wheel in meters (where 1 block = 1 meter)
+     * @return The radius of the wheel in meters
+     */
+    public abstract float getWheelRadius();
+
+    /**
+     * The real size of the wheel in the model, that is later scaled to `getWheelRadius()`
+     * @return The real size of the wheel in the model (in blocks)
+     */
+    public abstract float getModelWheelRadius();
 
     // Custom methods
+    public float getModelScalingFactor() {
+        return this.getWheelRadius() / this.getModelWheelRadius();
+    }
+
     public float getTheoreticalMaxSpeed() {
-        return (this.getMaxPedalAnglePerSecond()/20F) * this.getBackWheelRadius();
+        return (this.getMaxPedalAnglePerSecond()/20F) * this.getWheelRadius();
     }
 
     public void actuallyHeal(float healAmount) {
@@ -463,20 +479,20 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.entityData.set(DISTANCETRAVELLED, distanceTravelled);
     }
 
-    public float getKcaloriesBurned() {
-        return this.entityData.get(KCALORIESBURNED);
+    public float getCaloriesBurned() {
+        return this.entityData.get(CALORIESBURNED);
     }
 
-    public void setKcaloriesBurned(float kcaloriesBurned) {
-        this.entityData.set(KCALORIESBURNED, kcaloriesBurned);
+    public void setCaloriesBurned(float caloriesBurned) {
+        this.entityData.set(CALORIESBURNED, caloriesBurned);
     }
 
-    public float getjCommaWheelRadius() {
+    public float getSerialWheelRadius() {
         return this.entityData.get(JCOMMAWHEELRADIUS);
     }
 
-    public void setjCommaWheelRadius(float jCommaWheelRadius) {
-        this.entityData.set(JCOMMAWHEELRADIUS, jCommaWheelRadius);
+    public void setSerialWheelRadius(float jCommaCircumference) {
+        this.entityData.set(JCOMMAWHEELRADIUS, jCommaCircumference);
     }
 
     public boolean isjCommaEnabled() {

@@ -2,6 +2,8 @@ package com.kadmuffin.bikesarepain.neoforge;
 
 import com.kadmuffin.bikesarepain.BikesArePain;
 import com.kadmuffin.bikesarepain.client.SerialReader;
+import com.kadmuffin.bikesarepain.server.GameRuleManager;
+import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
@@ -67,7 +69,57 @@ public final class BikesArePainNeoForge {
                                     context.getSource().arch$sendSuccess(() -> Component.literal("Closed port"), false);
                                     return 1;
                                 })
-                        );
+                        )
+                                .then(ClientCommandRegistrationEvent.literal("scale")
+                                        .then(ClientCommandRegistrationEvent.literal("set")
+                                                .then(ClientCommandRegistrationEvent.argument("scale1", FloatArgumentType.floatArg(
+                                                        GameRuleManager.MIN_BIKE_SCALING_VAL / 10F,
+                                                        GameRuleManager.MAX_BIKE_SCALING_VAL
+                                                ))
+                                                                .then(ClientCommandRegistrationEvent.literal("block")
+                                                                        .then(ClientCommandRegistrationEvent.literal("is")
+                                                                                .then(ClientCommandRegistrationEvent.argument("scale2", FloatArgumentType.floatArg(
+                                                                                        GameRuleManager.MIN_BIKE_SCALING_VAL / 10F,
+                                                                                        GameRuleManager.MAX_BIKE_SCALING_VAL
+                                                                                ))
+                                                                                        .then(ClientCommandRegistrationEvent.literal("meter")
+                                                                                                .executes(context -> {
+                                                                                                    float scale1 = FloatArgumentType.getFloat(context, "scale1");
+                                                                                                    float scale2 = FloatArgumentType.getFloat(context, "scale2");
+                                                                                                    reader.setScaleFactor(scale1, scale2);
+                                                                                                    context.getSource().arch$sendSuccess(() -> Component.literal("Set scale factor"), false);
+                                                                                                    return 1;
+                                                                                                })
+                                                                                        )
+                                                                                )
+                                                                        )
+                                                                )
+
+                                                                .then(ClientCommandRegistrationEvent.literal("meter")
+                                                                        .then(ClientCommandRegistrationEvent.argument("scale2", FloatArgumentType.floatArg(
+                                                                                GameRuleManager.MIN_BIKE_SCALING_VAL / 10F,
+                                                                                GameRuleManager.MAX_BIKE_SCALING_VAL
+                                                                        ))
+                                                                                .executes(context -> {
+                                                                                    float scale1 = FloatArgumentType.getFloat(context, "scale1");
+                                                                                    float scale2 = FloatArgumentType.getFloat(context, "scale2");
+                                                                                    reader.setScaleFactor(scale1, scale2);
+                                                                                    context.getSource().arch$sendSuccess(() -> Component.literal("Set scale factor"), false);
+                                                                                    return 1;
+                                                                                })
+                                                                        )
+                                                                )
+                                                )
+                                        ).then(
+                                                ClientCommandRegistrationEvent.literal("get")
+                                                        .then(ClientCommandRegistrationEvent.literal("scale")
+                                                                .executes(context -> {
+                                                                    context.getSource().arch$sendSuccess(() -> Component.literal(reader.getScaleFactorString()), false);
+                                                                    return 1;
+                                                                })
+                                                        )
+                                        )
+                                );
 
                 dispatcher.register(command);
             });

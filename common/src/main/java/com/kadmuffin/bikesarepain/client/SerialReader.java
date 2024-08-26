@@ -1,6 +1,8 @@
 package com.kadmuffin.bikesarepain.client;
 
 import com.fazecast.jSerialComm.SerialPort;
+import com.fazecast.jSerialComm.SerialPortDataListener;
+import com.fazecast.jSerialComm.SerialPortEvent;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.mojang.authlib.minecraft.client.MinecraftClient;
 import dev.architectury.networking.NetworkManager;
@@ -15,16 +17,38 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class SerialReader implements Runnable {
-    private final AtomicBoolean running = new AtomicBoolean(false);
+public class SerialReader {
+    // private final AtomicBoolean running = new AtomicBoolean(false);
     private final StringBuilder buffer = new StringBuilder();
     private boolean markerFound = false;
     private SerialPort serialPort;
     private Queue<Float> speedQueue;
     private float sumSpeed = 0;
 
+    private float lastSpeed = 0;
+    private float lastDistance = 0;
+    private float lastKcalories = 0;
+    private float lastWheelCircumference = 0;
+    private float scaleBlock = 1;
+    private float scaleMeter = 1;
+    private float scaleFactor = 1;
+
     public SerialPort getSerial() {
         return this.serialPort;
+    }
+
+    public void setScaleFactor(float scaleBlock, float scaleMeter) {
+        this.scaleBlock = scaleBlock;
+        this.scaleMeter = scaleMeter;
+        this.scaleFactor = scaleBlock / scaleMeter;
+    }
+
+    public float getScaleFactor() {
+        return this.scaleFactor;
+    }
+
+    public String getScaleFactorString() {
+        return this.scaleBlock + " block is " + this.scaleMeter + " meter";
     }
 
     public void setSerial(String port) {
@@ -32,41 +56,23 @@ public class SerialReader implements Runnable {
             this.serialPort.closePort();
         }
 
+
         this.serialPort = SerialPort.getCommPort(port);
         this.serialPort.setComPortParameters(31250, 8, 1, 0);
         this.serialPort.setFlowControl(SerialPort.FLOW_CONTROL_DISABLED);
-    }
+        this.serialPort.addDataListener(new SerialPortDataListener() {
+            @Override
+            public int getListeningEvents() { return SerialPort.LISTENING_EVENT_DATA_AVAILABLE; }
+            @Override
+            public void serialEvent(SerialPortEvent event)
+            {
+                if (event.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE)
+                    return;
 
-    public void start() {
-        this.serialPort.openPort();
-        this.speedQueue = new LinkedList<>();
-        Thread worker = new Thread(this);
-        worker.start();
-    }
-
-    public void stop() {
-        running.set(false);
-        this.serialPort.closePort();
-    }
-
-    public String[] getPorts() {
-        SerialPort[] ports = SerialPort.getCommPorts();
-        String[] portNames = new String[ports.length];
-        for (int i = 0; i < ports.length; i++) {
-            portNames[i] = ports[i].getSystemPortName();
-        }
-        return portNames;
-    }
-
-    @Override
-    public void run() {
-        running.set(true);
-        while (running.get()) {
-            try {
-                if (this.serialPort.isOpen()) {
-                    if (this.serialPort.bytesAvailable() > 0) {
-                        byte[] readBuffer = new byte[this.serialPort.bytesAvailable()];
-                        int numRead = this.serialPort.readBytes(readBuffer, readBuffer.length);
+                if (serialPort.isOpen()) {
+                    if (serialPort.bytesAvailable() > 0) {
+                        byte[] readBuffer = new byte[serialPort.bytesAvailable()];
+                        int numRead = serialPort.readBytes(readBuffer, readBuffer.length);
 
                         //String data = new String(readBuffer, 0, numRead, StandardCharsets.US_ASCII);
                         //System.out.println("Data: " + data);
@@ -90,30 +96,38 @@ public class SerialReader implements Runnable {
                                     float speed = Float.parseFloat(data[0]);
                                     float totalDistance = Float.parseFloat(data[1]);
                                     float kcalories = Float.parseFloat(data[2]);
-                                    float wheelRadius = Float.parseFloat(data[3]);
+                                    float wheelCircumference = Float.parseFloat(data[3]);
 
                                     // Now calculate average speed
-                                    this.speedQueue.add(speed);
-                                    this.sumSpeed += speed;
-                                    if (this.speedQueue.size() > 10) {
-                                        this.sumSpeed -= this.speedQueue.poll();
+                                    speedQueue.add(speed);
+                                    sumSpeed += speed;
+                                    if (speedQueue.size() > 3) {
+                                        sumSpeed -= speedQueue.poll();
                                     }
 
                                     float avgSpeed = 0;
-                                    if (!this.speedQueue.isEmpty()) {
-                                        avgSpeed = this.sumSpeed / this.speedQueue.size();
+                                    if (!speedQueue.isEmpty()) {
+                                        avgSpeed = sumSpeed / speedQueue.size();
                                         avgSpeed = avgSpeed > 0 ? avgSpeed : 0;
                                     }
 
                                     // Round to last two decimal places
                                     avgSpeed = (float) (Math.round(avgSpeed * 100.0) / 100.0);
 
-                                    NetworkManager.sendToServer(new PacketManager.ArduinoData(
-                                            avgSpeed,
-                                            totalDistance,
-                                            kcalories,
-                                            wheelRadius
-                                    ));
+                                    if (avgSpeed != lastSpeed || totalDistance != lastDistance || kcalories != lastKcalories || wheelCircumference != lastWheelCircumference) {
+                                        lastSpeed = avgSpeed;
+                                        lastDistance = totalDistance;
+                                        lastKcalories = kcalories;
+                                        lastWheelCircumference = wheelCircumference;
+
+                                        NetworkManager.sendToServer(new PacketManager.ArduinoData(
+                                                avgSpeed,
+                                                totalDistance,
+                                                kcalories,
+                                                wheelCircumference,
+                                                scaleFactor
+                                        ));
+                                    }
                                 }
 
                             } else if (markerFound) {
@@ -123,10 +137,28 @@ public class SerialReader implements Runnable {
 
                     }
                 }
-
-            } catch (Exception e) {
-                Thread.currentThread().interrupt();
             }
+        });
+    }
+
+    public void start() {
+        this.serialPort.openPort();
+        this.speedQueue = new LinkedList<>();
+        //Thread worker = new Thread(this);
+        //worker.start();
+    }
+
+    public void stop() {
+        //running.set(false);
+        this.serialPort.closePort();
+    }
+
+    public String[] getPorts() {
+        SerialPort[] ports = SerialPort.getCommPorts();
+        String[] portNames = new String[ports.length];
+        for (int i = 0; i < ports.length; i++) {
+            portNames[i] = ports[i].getSystemPortName();
         }
+        return portNames;
     }
 }

@@ -2,16 +2,10 @@ package com.kadmuffin.bikesarepain.server.entity;
 
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
-import net.minecraft.CrashReport;
-import net.minecraft.CrashReportCategory;
-import net.minecraft.ReportedException;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.network.chat.Component;
 import net.minecraft.util.CommonColors;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
@@ -24,35 +18,20 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.BooleanOp;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public abstract class AbstractBike extends AbstractHorse implements PlayerRideableJumping, Saddleable {
     protected boolean jumping;
-   // public float tilt = 0.0F;
-    //public float steeringYaw = 0.0F;
-    //public float frontWheelRotation = 0.0F;
-    //public float backWheelRotation = 0.0F;
-    //public float lastSpeed = 0.0F;
     public boolean hasChest = false;
     public boolean wasRingedAlready = false;
     public float bikePitch = 0.0F;
-    //public float internalSpeed = 0.0F;
     private float rearWheelSpeed = 0.0F;
 
     // DataParameters for commented out variables
@@ -64,11 +43,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private static final EntityDataAccessor<Float> INTERNAL_SPEED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
 
     // For arduino link
-    private float jCommaSpeed = 0.0F;
-    private float distanceTravelled = 0.0F;
-    private float kcaloriesBurned = 0.0F;
-    private float jCommaWheelRadius = 0.0F;
-    private boolean jCommaEnabled = false;
+    private static final EntityDataAccessor<Boolean> JCOMMASENABLED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> JCOMMASPEED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DISTANCETRAVELLED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> KCALORIESBURNED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> JCOMMAWHEELRADIUS = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
 
     protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level);
@@ -90,6 +69,12 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         builder.define(FRONWHEEL_ROTATION, 0.0F);
         builder.define(LAST_SPEED, 0.0F);
         builder.define(INTERNAL_SPEED, 0.0F);
+
+        builder.define(JCOMMASENABLED, false);
+        builder.define(JCOMMASPEED, 0.0F);
+        builder.define(DISTANCETRAVELLED, 0.0F);
+        builder.define(KCALORIESBURNED, 0.0F);
+        builder.define(JCOMMAWHEELRADIUS, 0.0F);
     }
 
     @Override
@@ -171,15 +156,18 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public void tick() {
         super.tick();
         if (this.getFirstPassenger() instanceof Player playerEntity) {
-            if (this.isjCommaEnabled() && this.level().isClientSide()) {
+            if (this.isjCommaEnabled() && !this.level().isClientSide()) {
                 // Display colored message
                 // "Speed": red, "Distance": green, "Kcalories": blue
                 playerEntity.displayClientMessage(Component.literal("Speed: ").withColor(CommonColors.GREEN)
-                        .append(Component.literal(String.format("%f ", this.getjCommaSpeed())).withColor(CommonColors.RED)
+                        .append(Component.literal(
+                                        ((float) Math.round(this.getjCommaSpeed()*100))/100 + " km/h "
+                                        ).withColor(CommonColors.RED)
                                 .append(Component.literal("Distance: ").withColor(CommonColors.GREEN)
-                                        .append(Component.literal(String.format("%f meters ", this.getDistanceTravelled())).withColor(CommonColors.BLUE)
-                                                .append(Component.literal("KCal: ").withColor(CommonColors.GREEN)
-                                                        .append(Component.literal(String.format("%f", this.getKcaloriesBurned())).withColor(CommonColors.BLUE)))))), true);
+                                        .append(Component.literal(((float) Math.round(this.getDistanceTravelled()*100))/100 + " meters ").withColor(CommonColors.BLUE)
+                                                .append(Component.literal("Calories Spent: ").withColor(CommonColors.GREEN)
+                                                        .append(Component.literal(
+                                                                ((float) Math.round(this.getKcaloriesBurned()*100))/100 + " kcal").withColor(CommonColors.BLUE)))))), true);
             }
             if (!this.isSaddled()) {
                 playerEntity.hurt(new DamageSources(this.registryAccess()).sting(this), 0.5F);
@@ -294,25 +282,27 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         float movSpeed = rotation * this.getBackWheelRadius();
 
         float jCommaSpeed = 0;
-        if (jCommaEnabled) {
+        if (this.isjCommaEnabled()) {
             jCommaSpeed = this.getjCommaSpeed() / 3.6F;
 
             // Minecraft runs at 20 ticks per second
             jCommaSpeed = jCommaSpeed / 20F;
 
-            float expectedRotation = (jCommaSpeed / this.getjCommaWheelRadius());
+            float expectedRotation = (jCommaSpeed / this.getjCommaWheelRadius()/2);
 
             // Now we need to map the expected rotation to the actual rotation
             // as our wheel diameter is different
-            // rotation = expectedRotation * (this.getBackWheelRadius() / this.getjCommaWheelRadius());
-            movSpeed = Math.signum(g) * jCommaSpeed;
+            rotation = expectedRotation * (this.getBackWheelRadius() / this.getjCommaWheelRadius());
 
-            // We'll set jCommaEnabled to false, so we only update
-            // the speed when we get a new packet
-            setjCommaEnabled(false);
+            // Solve for movSpeed
+            movSpeed = rotation * this.getBackWheelRadius();
+            if (g < 0F) {
+                movSpeed = -movSpeed;
+            }
+
         }
 
-        if (g == 0 || (jCommaEnabled && jCommaSpeed == 0F)) {
+        if (g == 0 || (this.isjCommaEnabled() && jCommaSpeed == 0F)) {
             movSpeed = lastSpeed * this.inertiaFactor();
             if (movSpeed < 0.05F) {
                 movSpeed = 0;
@@ -458,42 +448,42 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     // Get/Set for privates
     public float getjCommaSpeed() {
-        return jCommaSpeed;
+        return this.entityData.get(JCOMMASPEED);
     }
 
     public void setjCommaSpeed(float jCommaSpeed) {
-        this.jCommaSpeed = jCommaSpeed;
+        this.entityData.set(JCOMMASPEED, jCommaSpeed);
     }
 
     public float getDistanceTravelled() {
-        return distanceTravelled;
+        return this.entityData.get(DISTANCETRAVELLED);
     }
 
     public void setDistanceTravelled(float distanceTravelled) {
-        this.distanceTravelled = distanceTravelled;
+        this.entityData.set(DISTANCETRAVELLED, distanceTravelled);
     }
 
     public float getKcaloriesBurned() {
-        return kcaloriesBurned;
+        return this.entityData.get(KCALORIESBURNED);
     }
 
     public void setKcaloriesBurned(float kcaloriesBurned) {
-        this.kcaloriesBurned = kcaloriesBurned;
+        this.entityData.set(KCALORIESBURNED, kcaloriesBurned);
     }
 
     public float getjCommaWheelRadius() {
-        return jCommaWheelRadius;
+        return this.entityData.get(JCOMMAWHEELRADIUS);
     }
 
     public void setjCommaWheelRadius(float jCommaWheelRadius) {
-        this.jCommaWheelRadius = jCommaWheelRadius;
+        this.entityData.set(JCOMMAWHEELRADIUS, jCommaWheelRadius);
     }
 
     public boolean isjCommaEnabled() {
-        return jCommaEnabled;
+        return this.entityData.get(JCOMMASENABLED);
     }
 
     public void setjCommaEnabled(boolean jCommaEnabled) {
-        this.jCommaEnabled = jCommaEnabled;
+        this.entityData.set(JCOMMASENABLED, jCommaEnabled);
     }
 }

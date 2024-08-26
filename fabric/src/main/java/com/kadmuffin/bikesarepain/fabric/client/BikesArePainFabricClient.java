@@ -8,7 +8,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.minecraft.network.chat.Component;
 
 public final class BikesArePainFabricClient implements ClientModInitializer {
-    private SerialReader reader = new SerialReader();
+    private final SerialReader reader = new SerialReader();
 
     @Override
     public void onInitializeClient() {

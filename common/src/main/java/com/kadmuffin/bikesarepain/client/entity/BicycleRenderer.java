@@ -20,22 +20,22 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
         super(renderManager, new DefaultedEntityGeoModel<>(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle")));
         addRenderLayer(new FastBoneFilterGeoLayer<>(this, bones, (geoBone, bikeEntity, aFloat) -> {
             if (geoBone.getName().equals("ActualWheel")) {
-                geoBone.setRotZ(-bikeEntity.backWheelRotation);
+                geoBone.setRotZ(bikeEntity.getBackWheelRotation());
             }
             if (geoBone.getName().equals("Cap2")) {
                 geoBone.setHidden(bikeEntity.showGears);
             }
             if (geoBone.getName().equals("RearGears")) {
-                geoBone.setRotZ(bikeEntity.backWheelRotation);
+                geoBone.setRotZ(bikeEntity.getBackWheelRotation());
             }
             if (geoBone.getName().equals("Pedals")) {
-                geoBone.setRotZ(bikeEntity.backWheelRotation);
+                geoBone.setRotZ(bikeEntity.getBackWheelRotation());
             }
             if (geoBone.getName().equals("WheelUnion")) {
-                geoBone.setRotY(bikeEntity.steeringYaw);
+                geoBone.setRotY(bikeEntity.getSteeringYaw());
             }
             if (geoBone.getName().equals("Handlebar")) {
-                geoBone.setRotY(bikeEntity.steeringYaw);
+                geoBone.setRotY(bikeEntity.getSteeringYaw());
             }
 
             if (geoBone.getName().equals("Display")) {
@@ -43,7 +43,7 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
             }
 
             if (geoBone.getName().equals("ActualWheel2")) {
-                geoBone.setRotZ(-bikeEntity.backWheelRotation);
+                geoBone.setRotZ(bikeEntity.getFrontWheelRotation());
             }
 
             if (geoBone.getName().equals("SeatF")) {
@@ -51,7 +51,7 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
             }
 
             if (geoBone.getName().equals("Bike")) {
-                geoBone.setRotZ(bikeEntity.tilt);
+                geoBone.setRotZ(bikeEntity.getTilt());
             }
 
             if (geoBone.getName().equals("ActualRoot")) {
@@ -70,7 +70,7 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
 
     @Override
     public void render(Bicycle entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        poseStack.scale(2F, 2F, 2F);
+        poseStack.scale(entity.getBackWheelRadius(), entity.getBackWheelRadius(), entity.getBackWheelRadius());
 
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }

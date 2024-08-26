@@ -44,16 +44,25 @@ public class PacketManager {
         }
     }
 
-    public record RingBellPacket() implements CustomPacketPayload {
+        public record RingBellPacket(boolean isPressed) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<RingBellPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "ringbell_click"));
-        public static final StreamCodec<FriendlyByteBuf, RingBellPacket> CODEC = StreamCodec.of((buf, obj) -> {}, buf -> new RingBellPacket());
+        public static final StreamCodec<FriendlyByteBuf, RingBellPacket> CODEC = StreamCodec.of((buf, obj) -> {
+            buf.writeBoolean(obj.isPressed);
+        }, buf -> new RingBellPacket(buf.readBoolean()));
 
         public static final NetworkManager.NetworkReceiver<RingBellPacket> RECEIVER = (packet, contextSupplier) -> {
             Player player = contextSupplier.getPlayer();
             if (player != null) {
                 Bicycle bike = player.getVehicle() instanceof Bicycle ? (Bicycle) player.getVehicle() : null;
                 if (bike != null) {
-                    bike.ringBell();
+                    if (!bike.wasRingedAlready && packet.isPressed) {
+                        bike.wasRingedAlready = true;
+                        bike.ringBell();
+                    }
+
+                    if (!packet.isPressed) {
+                        bike.wasRingedAlready = false;
+                    }
                 }
             }
         };

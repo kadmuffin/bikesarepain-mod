@@ -34,5 +34,12 @@ versionRange = "[13.0.6,)"
 ordering = "AFTER"
 side = "BOTH"
 
+[[dependencies.bikesarepain]]
+modId = "geckolib"
+type = "required"
+versionRange = "[4.5.0,5.0.0)"
+ordering = "AFTER"
+side = "BOTH"
+
 [[mixins]]
 config = "bikesarepain.mixins.json"

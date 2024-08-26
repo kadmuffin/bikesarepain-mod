@@ -1,16 +1,24 @@
 package com.kadmuffin.bikesarepain.server.entity;
 
+import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import com.mojang.authlib.minecraft.client.MinecraftClient;
 import com.mojang.logging.LogUtils;
+import net.minecraft.client.resources.sounds.Sound;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.core.component.*;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.npc.Villager;
@@ -18,11 +26,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
+import org.lwjgl.system.MathUtil;
 import org.slf4j.Logger;
 import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -35,9 +47,9 @@ import software.bernie.geckolib.util.ClientUtil;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class Bicycle extends AbstractBike implements GeoEntity {
-    private static final Logger LOGGER = LogUtils.getLogger();
-    private int timeSinceLastRing = 0;
     public boolean showGears = false;
+    private int ticksSinceLastClick = 0;
+    private SoundType soundType = SoundType.WOOD;
 
     protected static final RawAnimation DIE_ANIM = RawAnimation.begin().thenPlayAndHold("bike.die");
     protected static final RawAnimation RING_BELL_ANIM = RawAnimation.begin().thenPlay("bike.bell");
@@ -49,6 +61,23 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             7,
             60
     );
+
+    protected Bicycle(EntityType<? extends AbstractHorse> entityType, Level level) {
+        super(entityType, level);
+    }
+
+    // Reads the nbt data
+    @Override
+    public void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
+        this.showGears = compound.getBoolean("ShowGears");
+        // Read health percentage
+        float health = compound.getFloat("Health");
+        health = Mth.clamp(health, 0.0F, 1.0F);
+
+        // Set the health
+        this.setHealth(health * this.getMaxHealth());
+    }
 
     @Override
     public void die(DamageSource damageSource) {
@@ -75,22 +104,100 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         this.dropEquipment();
 
         // Summon a bicycle item
-        ItemStack itemStack = new ItemStack(ItemManager.BICYCLE_ITEM.get());
-        itemStack.setCount(1);
+        ItemStack itemStack = this.getBicycleItem(false);
 
         this.spawnAtLocation(itemStack);
     }
 
-    protected Bicycle(EntityType<? extends AbstractHorse> entityType, Level level) {
-        super(entityType, level);
+
+    @Override
+    protected @NotNull Vec3 getRiddenInput(Player controllingPlayer, Vec3 movementInput) {
+        Vec3 vec3d = super.getRiddenInput(controllingPlayer, movementInput);
+
+        if (!this.level().isClientSide()) {
+            float g = controllingPlayer.zza;
+            if (g <= 0.0F) {
+                g *= 0.25F;
+            }
+            float speed = Math.abs(this.getSpeed());
+            boolean isReverse = g < 0.0F;
+
+            if (speed > 0.05) {
+                // Depending on the speed, we'll scale the volume and pitch
+                // with a sprinkle of randomness
+                final float pitch = 0.85F + Math.min(speed, 2.0F) + (float) Math.random() * 0.1F * this.soundType.getPitch();
+                float volume = this.soundType.getVolume() * 0.07F * (0.7F-speed);
+                float wheelRotationSpeed = speed;
+                if (speed < 0.08F && g == 0 || isReverse) {
+                    wheelRotationSpeed *= 10;
+                }
+                float ticksPerClick = 1/ wheelRotationSpeed * 3F;
+                if ((speed > 0.25F && g == 0) || isReverse) {
+                    volume *= 1.5F;
+                    ticksPerClick /= 2F;
+                }
+
+                // ticksPerClick = Math.max(1, ticksPerClick);
+                System.out.printf("Speed: %f, Volume: %f, Pitch: %f, TicksPerClick: %f\n", speed, volume, pitch, ticksPerClick);
+
+                if (this.getSpeed() > 0.1F) {
+                    this.playSound(SoundManager.BICYCLE_MOVEMENT.get(), this.getSpeed() * this.soundType.getVolume(), Mth.nextFloat(this.random, 0.8F, 1.3F) * this.soundType.getPitch());
+                }
+
+                if (this.ticksSinceLastClick > ticksPerClick && speed > 0.05F) {
+                    this.playSound(SoundManager.BICYCLE_SPOKES.get(), volume, pitch);
+                    this.ticksSinceLastClick = 0;
+                } else {
+                    this.ticksSinceLastClick++;
+                }
+            }
+        }
+
+        return vec3d;
+    }
+
+    @Override
+    protected void playJumpSound() {
+        this.playSound(SoundManager.BICYCLE_LAND.get(), 0.8F, 1.0F);
+    }
+
+    @Override
+    public boolean causeFallDamage(float fallDistance, float multiplier, DamageSource source) {
+        if (fallDistance > 1.0F) {
+            this.playSound(SoundManager.BICYCLE_LAND.get(), 0.8F, 1.0F);
+        }
+
+        int i = this.calculateFallDamage(fallDistance, multiplier);
+        if (i <= 0) {
+            return false;
+        } else {
+            this.hurt(source, (float)i);
+            if (this.isVehicle()) {
+                for (Entity entity : this.getIndirectPassengers()) {
+                    entity.hurt(source, (float)i);
+                }
+            }
+
+            this.playBlockFallSound();
+            return true;
+        }
+    }
+
+    @Override
+    protected void playStepSound(BlockPos pos, BlockState state) {
+        if (!state.liquid()) {
+            BlockState blockState = this.level().getBlockState(pos.above());
+            this.soundType = state.getSoundType();
+            if (blockState.is(Blocks.SNOW)) {
+                this.soundType = blockState.getSoundType();
+            }
+        }
     }
 
     @Override
     public @NotNull InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (!this.getPassengers().isEmpty()) {
+        if (!this.getPassengers().isEmpty() && !this.canAddPassenger(player)){
             return super.mobInteract(player, hand);
-
-            // Check if the player is doing a right click
         } else if (player.isShiftKeyDown()) {
             // Each nugget repairs 1 health
             if (player.getItemInHand(hand).getItem() == Items.IRON_NUGGET && this.showGears
@@ -100,53 +207,69 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                     player.getItemInHand(hand).shrink(1);
                 }
 
-                this.heal(1.0F);
+                this.actuallyHeal(1.0F);
+
+                // Play the repair sound
+                this.playSound(SoundEvents.ANVIL_USE, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
+
+                // Do some particles
+                this.level().broadcastEntityEvent(this, (byte) 7);
 
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
-            if (player.getItemInHand(hand).getItem() == Items.STICK && this.showGears) {
-                this.showGears = false;
-                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
-                return InteractionResult.sidedSuccess(this.level().isClientSide());
-            }
+            if (player.getItemInHand(hand).getItem() == Items.STICK) {
+                // Toggle the showGears state
+                this.showGears = !this.showGears;
 
-            if (!this.showGears){
-                this.showGears = true;
-                this.playSound(SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
+                // Determine the sound to play based on the new state
+                SoundEvent soundEvent = this.showGears ? SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF : SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON;
+
+                // Play the corresponding sound
+                this.playSound(soundEvent, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
+
+                // Return the interaction result
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
-            this.openCustomInventoryScreen(player);
+            // Summon an item
+            this.spawnAtLocation(this.getBicycleItem(true));
+            this.remove(RemovalReason.DISCARDED);
+
             return InteractionResult.sidedSuccess(this.level().isClientSide());
         }
         this.doPlayerRide(player);
         return InteractionResult.sidedSuccess(this.level().isClientSide());
     }
 
-    @Override
-    public void tick() {
-        super.tick();
-        this.timeSinceLastRing++;
-    }
-
     // Play bell sound
     public void ringBell() {
-        // Check if the bell has been rung in the last 20 ticks
-        if (this.timeSinceLastRing < 4) {
-            return;
-        }
         this.triggerAnim("finalAnim", "bell");
 
         // Scare nearby entities
-        AABB aABB = this.getBoundingBox().inflate(3.6D);
+        AABB aABB = this.getBoundingBox().inflate(2.1D);
+
+        // Push it box position forward a bit
+        aABB = aABB.move(this.getLookAngle().scale(0.67F));
+
         // Check for PathAwareEntities
         this.level().getEntities(this, aABB).stream().filter((entity) -> entity instanceof PathfinderMob).forEach((entity) -> {
-            // Give velocity in opposite direction with slight 0.1F upwards
-            Vec3 vec3 = entity.position().subtract(this.position()).normalize();
-            entity.addDeltaMovement(new Vec3(vec3.x * 0.5F, 0.4F, vec3.z * 0.5F));
-        });
+            if (entity.onGround()) {
+                // Give velocity in opposite direction with slight 0.1F upwards
+                Vec3 vec3 = entity.position().subtract(this.position()).normalize();
 
-        this.timeSinceLastRing = 0;
+                // Add velocity either to the right or left randomly
+                // the velocity is always 0.8, only the sign changes
+                float direction = (float) (this.random.nextBoolean() ? 1.2 : -1.2);
+                vec3.add(new Vec3(
+                        vec3.z * direction,
+                        0.2F,
+                        vec3.x * direction
+                ));
+
+
+                entity.addDeltaMovement(new Vec3(vec3.x * 0.8F, 0.2F, vec3.z * 0.8F));
+            }
+        });
     }
 
     @Override
@@ -154,7 +277,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         int i = Math.max(this.getPassengers().indexOf(passenger), 0);
         boolean primaryPassenger = i == 0;
         float horizontalOffset = -0.66F;
-        float verticalOffset = 1.85F;
+        float verticalOffset = this.getBackWheelRadius() - 0.2F;
         if (this.getPassengers().size() > 1) {
             if (!primaryPassenger) {
                 horizontalOffset -= 0.5F;
@@ -174,7 +297,9 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                             Player player = ClientUtil.getClientPlayer();
 
                             if (player != null) {
-                                player.playSound(SoundEvents.BELL_BLOCK, 1.0F, (float) Math.random() * 0.1F + 1.9F);
+                                player.playSound(SoundManager.BICYCLE_BELL.get(), Mth.nextFloat(
+                                        player.getRandom(), 0.8F, 1.2F
+                                ), Mth.nextFloat(player.getRandom(), 1.01F, 1.04F));
                             }
                         }
                 )
@@ -184,6 +309,16 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.geoCache;
+    }
+
+    public ItemStack getBicycleItem(boolean includeSaddle) {
+        ItemStack itemStack = new ItemStack(ItemManager.BICYCLE_ITEM.get());
+        itemStack.setDamageValue(itemStack.getMaxDamage() - (int) (this.getHealth() / this.getMaxHealth() * itemStack.getMaxDamage()));
+
+        if (includeSaddle) {
+            itemStack.set(ItemManager.SADDLED.get(), this.isSaddled());
+        }
+        return itemStack;
     }
 
     @Override
@@ -198,7 +333,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     public float getBackWheelRadius() {
-        return 2F;
+        return 1.67F;
     }
 
     @Override
@@ -213,15 +348,19 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     public float getMaxPedalAnglePerSecond() {
-        return (float) Math.PI/1.32F;
+        return (float) (Math.PI);
     }
 
     @Override
     public float getMaxTurnRate() {
-        return (float) (2*Math.PI/3);
+        return (float) (Math.PI);
     }
 
     public float getTurnScalingFactor() {
-        return 15.0F;
+        return 40.0F;
+    }
+
+    public float inertiaFactor() {
+        return 0.95F;
     }
 }

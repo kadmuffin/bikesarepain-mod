@@ -18,8 +18,10 @@ public class KeybindManager {
     public static void init() {
         KeyMappingRegistry.register(RING_BELL);
         ClientTickEvent.CLIENT_POST.register(minecraft -> {
-            while (RING_BELL.consumeClick()) {
-                NetworkManager.sendToServer(new PacketManager.RingBellPacket());
+            if (RING_BELL.consumeClick()) {
+                NetworkManager.sendToServer(new PacketManager.RingBellPacket(true));
+            } else {
+                NetworkManager.sendToServer(new PacketManager.RingBellPacket(false));
             }
         });
     }

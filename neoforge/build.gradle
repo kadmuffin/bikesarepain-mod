@@ -39,7 +39,7 @@ dependencies {
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }
     shadowBundle project(path: ':common', configuration: 'transformProductionNeoForge')
     modImplementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:$rootProject.geckolib_version"
-
+    forgeRuntimeLibrary "com.fazecast:jSerialComm:[2.0.0,3.0.0)"
 }
 
 processResources {

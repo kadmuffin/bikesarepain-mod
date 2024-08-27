@@ -38,6 +38,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class Bicycle extends AbstractBike implements GeoEntity {
     public boolean showGears = false;
     private int ticksSinceLastClick = 0;
+    private int ticksSinceLastBrake = 0;
     private SoundType soundType = SoundType.WOOD;
 
     protected static final RawAnimation DIE_ANIM = RawAnimation.begin().thenPlayAndHold("bike.die");
@@ -372,5 +373,24 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             return 0.98F;
         }
         return 0.95F;
+    }
+
+    @Override
+    public float getBrakeMultiplier() {
+        return 0.7F;
+    }
+
+    @Override
+    public void playBrakeSound() {
+        this.ticksSinceLastBrake++;
+        if (this.ticksSinceLastBrake < 5) {
+            return;
+        }
+        float speed = Math.abs(this.getSpeed());
+        float volume = 0.8F * this.soundType.getVolume() * (0.7F-speed);
+        float pitch = 0.85F + Math.min(speed, 2.0F) + (float) Math.random() * 0.1F * this.soundType.getPitch();
+
+        this.playSound(SoundManager.BICYCLE_LAND.get(), volume, pitch);
+        ticksSinceLastBrake = 0;
     }
 }

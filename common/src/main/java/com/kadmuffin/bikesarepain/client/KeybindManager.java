@@ -1,6 +1,7 @@
 package com.kadmuffin.bikesarepain.client;
 
 import com.kadmuffin.bikesarepain.packets.PacketManager;
+import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.networking.NetworkManager;
@@ -15,13 +16,34 @@ public class KeybindManager {
             "key.categories.bikesarepain"
     );
 
+    public static KeyMapping BRAKE = new KeyMapping(
+            "key.bikesarepain.brake",
+            InputConstants.Type.KEYSYM,
+            InputConstants.KEY_X,
+            "key.categories.bikesarepain"
+    );
+
     public static void init() {
         KeyMappingRegistry.register(RING_BELL);
+        KeyMappingRegistry.register(BRAKE);
+
         ClientTickEvent.CLIENT_POST.register(minecraft -> {
+            if (minecraft.player == null) {
+                return;
+            }
+
+            if (minecraft.player.getVehicle() == null || !(minecraft.player.getVehicle() instanceof AbstractBike vehicle)) {
+                return;
+            }
+
             if (RING_BELL.consumeClick()) {
-                NetworkManager.sendToServer(new PacketManager.RingBellPacket(true));
+                NetworkManager.sendToServer(new PacketManager.KeypressPacket(true, PacketManager.KeyPress.RING_BELL));
             } else {
-                NetworkManager.sendToServer(new PacketManager.RingBellPacket(false));
+                NetworkManager.sendToServer(new PacketManager.KeypressPacket(false, PacketManager.KeyPress.RING_BELL));
+            }
+
+            if (BRAKE.consumeClick()) {
+                NetworkManager.sendToServer(new PacketManager.KeypressPacket(true, PacketManager.KeyPress.BRAKE));
             }
         });
     }

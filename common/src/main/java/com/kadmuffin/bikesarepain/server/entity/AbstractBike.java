@@ -2,6 +2,7 @@ package com.kadmuffin.bikesarepain.server.entity;
 
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -31,6 +32,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     protected boolean jumping;
     public boolean hasChest = false;
     public boolean wasRingedAlready = false;
+    public boolean wasBrakedAlready = false;
     public float bikePitch = 0.0F;
     private float rearWheelSpeed = 0.0F;
 
@@ -41,6 +43,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private static final EntityDataAccessor<Float> FRONWHEEL_ROTATION = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> LAST_SPEED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> INTERNAL_SPEED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> BRAKING = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.BOOLEAN);
 
     // For arduino link
     private static final EntityDataAccessor<Boolean> JCOMMASENABLED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.BOOLEAN);
@@ -75,6 +78,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         builder.define(DISTANCETRAVELLED, 0.0F);
         builder.define(CALORIESBURNED, 0.0F);
         builder.define(JCOMMAWHEELRADIUS, 0.0F);
+        builder.define(BRAKING, false);
     }
 
     @Override
@@ -130,14 +134,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return super.getDismountLocationForPassenger(passenger);
     }
 
-    @Override
-    protected @NotNull AABB makeBoundingBox() {
-        // I (probably) should not be modifying the bounding box like this
-        //Vec3 position = this.position();
-        //Vec3 boxSize = this.calculateBoxSize(this.getModelSize(), 0, this.getYRot());
-        //return new AABB(position.x - boxSize.x / 2, position.y, position.z - boxSize.z / 2, position.x + boxSize.x / 2, position.y + boxSize.y, position.z + boxSize.z / 2);
-        return super.makeBoundingBox();
-    }
 
     @Override
     public @NotNull InteractionResult mobInteract(Player player, InteractionHand hand) {
@@ -268,6 +264,10 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             g *= 0.25F;
         }
         g *= this.getPedalMultiplier();
+        if (this.isBraking()) {
+            g = 0F;
+        }
+
         // System.out.printf("MOV; Is client side: %b, Is controlled by local instance: %b\n", this.level().isClientSide(), this.isControlledByLocalInstance());
 
         // Print all relevant information
@@ -299,6 +299,19 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         } else {
             rotation = (g * this.getMaxPedalAnglePerSecond())/20F;
             movSpeed = rotation * this.getWheelRadius();
+        }
+
+        if (this.isBraking()) {
+            lastSpeed = (float) (lastSpeed * Math.exp(-this.getBrakeMultiplier()*0.25F));
+            if (lastSpeed > 0F) {
+                this.playBrakeSound();
+                // Add particles to the back of the bike (and scale amount based on speed)
+                for (int i = 0; i < 10; i++) {
+                    this.level().addParticle(ParticleTypes.SMOKE, this.getX() - Mth.sin(this.getYRot() * ((float) Math.PI / 180F)) * 0.5F, this.getY() + 0.5F, this.getZ() + Mth.cos(this.getYRot() * ((float) Math.PI / 180F)) * 0.5F, 0.0D, 0.0D, 0.0D);
+                }
+            } else {
+                this.setBraking(false);
+            }
         }
 
         if ((g == 0 && !isJCommaEnabled) || (isJCommaEnabled && jCommaSpeed == 0F)) {
@@ -370,6 +383,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public float getInternalSpeed() { return this.entityData.get(INTERNAL_SPEED);}
     public void setInternalSpeed(float internalSpeed) { this.entityData.set(INTERNAL_SPEED, internalSpeed);}
 
+    public boolean isBraking() { return this.entityData.get(BRAKING);}
+    public void setBraking(boolean braking) { this.entityData.set(BRAKING, braking);}
+
     /**
      * Gets the speed of the rear wheel in Revolutions per tick
      * @return The speed of the rear wheel in Revolutions per tick
@@ -393,6 +409,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public abstract float getTurnScalingFactor();
     public abstract float inertiaFactor();
     public abstract float getPedalMultiplier();
+    public abstract float getBrakeMultiplier();
+    public abstract void playBrakeSound();
 
     /**
      * Gets the radius of the wheel in meters (where 1 block = 1 meter)

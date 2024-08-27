@@ -15,6 +15,71 @@ import org.jetbrains.annotations.NotNull;
 import static com.kadmuffin.bikesarepain.BikesArePain.MOD_ID;
 
 public class PacketManager {
+    public static enum KeyPress {
+        RING_BELL(0),
+        BRAKE(1);
+
+        private final int type;
+
+        KeyPress(int type) {
+            this.type = type;
+        }
+
+        public static KeyPress fromType(int type) {
+            for (KeyPress key : values()) {
+                if (key.getType() == type) {
+                    return key;
+                }
+            }
+            return null;
+        }
+
+       // Get the type of the keypress
+        public int getType() {
+            return type;
+        }
+
+        public void ringBell(boolean isPressed, NetworkManager.PacketContext context) {
+            Player player = context.getPlayer();
+            if (player != null) {
+                Bicycle bike = player.getVehicle() instanceof Bicycle ? (Bicycle) player.getVehicle() : null;
+                if (bike != null) {
+                    if (isPressed) {
+                        if (!bike.wasRingedAlready) {
+                            bike.wasRingedAlready = true;
+                            bike.ringBell();
+                        }
+                    } else {
+                        bike.wasRingedAlready = false;
+                    }
+                }
+            }
+        }
+
+        public void brake(boolean isPressed, NetworkManager.PacketContext context) {
+            Player player = context.getPlayer();
+            if (player != null) {
+                Bicycle bike = player.getVehicle() instanceof Bicycle ? (Bicycle) player.getVehicle() : null;
+                if (bike != null) {
+                    bike.setBraking(isPressed);
+                }
+            }
+        }
+
+        public void run(boolean isPressed, NetworkManager.PacketContext context) {
+            switch (this) {
+                case RING_BELL:
+                    System.out.println("Ring bell");
+                    ringBell(isPressed, context);
+                    break;
+                case BRAKE:
+                    System.out.println("Brake");
+                    brake(isPressed, context);
+                    break;
+            }
+        }
+    }
+
     public record ArduinoData(float speed, float distanceMoved, float kcalories, float wheelCircumference, float scaleFactor) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<ArduinoData> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "arduino_data"));
         public static final StreamCodec<RegistryFriendlyByteBuf, ArduinoData> CODEC = StreamCodec.of(
@@ -69,27 +134,16 @@ public class PacketManager {
         }
     }
 
-        public record RingBellPacket(boolean isPressed) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<RingBellPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "ringbell_click"));
-        public static final StreamCodec<FriendlyByteBuf, RingBellPacket> CODEC = StreamCodec.of((buf, obj) -> {
+        public record KeypressPacket(boolean isPressed, KeyPress keyEnum) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<KeypressPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "ringbell_click"));
+        public static final StreamCodec<FriendlyByteBuf, KeypressPacket> CODEC = StreamCodec.of((buf, obj) -> {
             buf.writeBoolean(obj.isPressed);
-        }, buf -> new RingBellPacket(buf.readBoolean()));
+            buf.writeEnum(obj.keyEnum);
+        }, buf -> new KeypressPacket(buf.readBoolean(), buf.readEnum(KeyPress.class)));
 
-        public static final NetworkManager.NetworkReceiver<RingBellPacket> RECEIVER = (packet, contextSupplier) -> {
-            Player player = contextSupplier.getPlayer();
-            if (player != null) {
-                Bicycle bike = player.getVehicle() instanceof Bicycle ? (Bicycle) player.getVehicle() : null;
-                if (bike != null) {
-                    if (!bike.wasRingedAlready && packet.isPressed) {
-                        bike.wasRingedAlready = true;
-                        bike.ringBell();
-                    }
-
-                    if (!packet.isPressed) {
-                        bike.wasRingedAlready = false;
-                    }
-                }
-            }
+        public static final NetworkManager.NetworkReceiver<KeypressPacket> RECEIVER = (packet, contextSupplier) -> {
+            packet.keyEnum.run(packet.isPressed, contextSupplier);
+            System.out.println("Received keypress packet: " + packet.keyEnum + " " + packet.isPressed);
         };
 
         @Override
@@ -99,7 +153,7 @@ public class PacketManager {
     }
 
     public static void init() {
-        NetworkManager.registerReceiver(NetworkManager.Side.C2S, RingBellPacket.TYPE, RingBellPacket.CODEC, RingBellPacket.RECEIVER);
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeypressPacket.TYPE, KeypressPacket.CODEC, KeypressPacket.RECEIVER);
         NetworkManager.registerReceiver(
                 NetworkManager.c2s(),
                 PacketManager.ArduinoData.TYPE,

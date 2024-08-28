@@ -39,7 +39,7 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
             }
 
             if (geoBone.getName().equals("Display")) {
-                geoBone.setHidden(!bikeEntity.isjCommaEnabled());
+                geoBone.setHidden(false);
             }
 
             if (geoBone.getName().equals("ActualWheel2")) {

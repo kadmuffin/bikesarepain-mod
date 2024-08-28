@@ -120,13 +120,7 @@ public class SerialReader {
                                         lastKcalories = kcalories;
                                         lastWheelCircumference = wheelCircumference;
 
-                                        NetworkManager.sendToServer(new PacketManager.ArduinoData(
-                                                avgSpeed,
-                                                totalDistance,
-                                                kcalories,
-                                                wheelCircumference,
-                                                scaleFactor
-                                        ));
+                                        updateServerData(true);
                                     }
                                 }
 
@@ -141,16 +135,41 @@ public class SerialReader {
         });
     }
 
-    public void start() {
+    public boolean start() {
+        if (this.serialPort == null) {
+            return false;
+        }
+        this.updateServerData(true);
         this.serialPort.openPort();
         this.speedQueue = new LinkedList<>();
         //Thread worker = new Thread(this);
         //worker.start();
+        return true;
     }
 
-    public void stop() {
+    public boolean stop() {
         //running.set(false);
+        if (this.serialPort == null) {
+            return false;
+        }
+        updateServerData(false);
         this.serialPort.closePort();
+        return true;
+    }
+
+    public void updateServerData(boolean enabled) {
+        if (this.serialPort == null) {
+            return;
+        }
+
+        NetworkManager.sendToServer(new PacketManager.ArduinoData(
+                enabled,
+                lastSpeed,
+                lastDistance,
+                lastKcalories,
+                lastWheelCircumference,
+                scaleFactor
+        ));
     }
 
     public String[] getPorts() {

@@ -1,6 +1,7 @@
 package com.kadmuffin.bikesarepain.server.entity;
 
 import com.kadmuffin.bikesarepain.common.SoundManager;
+import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import net.minecraft.core.BlockPos;
@@ -18,6 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -37,6 +39,8 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class Bicycle extends AbstractBike implements GeoEntity {
     public boolean showGears = false;
+    private boolean ringAlreadyPressed = false;
+    private int ticksSinceLastRing = 0;
     private int ticksSinceLastClick = 0;
     private int ticksSinceLastBrake = 0;
     private SoundType soundType = SoundType.WOOD;
@@ -67,6 +71,16 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
         // Set the health
         this.setHealth(health * this.getMaxHealth());
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (!this.level().isClientSide()) {
+            if (this.ticksSinceLastRing <= 6) {
+                this.ticksSinceLastRing++;
+            }
+        }
     }
 
     @Override
@@ -233,6 +247,11 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     // Play bell sound
     public void ringBell() {
+        if (this.ticksSinceLastRing < 6) {
+            return;
+        }
+        this.ticksSinceLastRing = 0;
+
         this.triggerAnim("finalAnim", "bell");
 
         // Scare nearby entities
@@ -328,8 +347,11 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     public float getWheelRadius() {
-        if (this.isjCommaEnabled()){
-            return this.getSerialWheelRadius();
+        if (this.getFirstPassenger() instanceof Player player) {
+            PlayerAccessor mixPlayer = (PlayerAccessor) player;
+            if (mixPlayer.bikesarepain$isJSCActive()) {
+                return mixPlayer.bikesarepain$getJSCWheelRadius();
+            }
         }
         // 0.5F means the wheel measures 1 block
         return 0.5F;
@@ -337,8 +359,11 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     public float getPedalMultiplier() {
-        if (this.isjCommaEnabled()) {
-            return 1F;
+        if (this.getFirstPassenger() instanceof Player player) {
+            PlayerAccessor mixPlayer = (PlayerAccessor) player;
+            if (mixPlayer.bikesarepain$isJSCActive()) {
+                return 1F;
+            }
         }
 
         return 3F;
@@ -369,8 +394,11 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     }
 
     public float inertiaFactor() {
-        if (this.isjCommaEnabled()) {
-            return 0.98F;
+        if (this.getFirstPassenger() instanceof Player player) {
+            PlayerAccessor mixPlayer = (PlayerAccessor) player;
+            if (mixPlayer.bikesarepain$isJSCActive()) {
+                return 0.98F;
+            }
         }
         return 0.95F;
     }
@@ -392,5 +420,31 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
         this.playSound(SoundManager.BICYCLE_LAND.get(), volume, pitch);
         ticksSinceLastBrake = 0;
+    }
+
+    @Override
+    public Vec3 getFrontWheelPos() {
+        return new Vec3(0, 0, -0.59);
+    }
+
+    @Override
+    public Vec3 getBackWheelPos() {
+        return new Vec3(0, 0, 0.56);
+    }
+
+    public int getTicksSinceLastRing() {
+        return ticksSinceLastRing;
+    }
+
+    public void setTicksSinceLastRing(int ticksSinceLastRing) {
+        this.ticksSinceLastRing = ticksSinceLastRing;
+    }
+
+    public boolean isRingAlreadyPressed() {
+        return ringAlreadyPressed;
+    }
+
+    public void setRingAlreadyPressed(boolean ringAlreadyPressed) {
+        this.ringAlreadyPressed = ringAlreadyPressed;
     }
 }

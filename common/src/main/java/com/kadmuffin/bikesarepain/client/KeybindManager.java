@@ -9,6 +9,9 @@ import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import net.minecraft.client.KeyMapping;
 
 public class KeybindManager {
+    public static boolean alreadyRinging = false;
+    public static boolean alreadyBraking = false;
+
     public static KeyMapping RING_BELL = new KeyMapping(
             "key.bikesarepain.ring_bell",
             InputConstants.Type.KEYSYM,
@@ -36,14 +39,19 @@ public class KeybindManager {
                 return;
             }
 
-            if (RING_BELL.consumeClick()) {
+            /*if (RING_BELL.consumeClick()) {
                 NetworkManager.sendToServer(new PacketManager.KeypressPacket(true, PacketManager.KeyPress.RING_BELL));
-            } else {
-                NetworkManager.sendToServer(new PacketManager.KeypressPacket(false, PacketManager.KeyPress.RING_BELL));
+            }
+             */
+
+            if (RING_BELL.isDown() != alreadyRinging) {
+                alreadyRinging = !alreadyRinging;
+                NetworkManager.sendToServer(new PacketManager.KeypressPacket(alreadyRinging, PacketManager.KeyPress.RING_BELL));
             }
 
-            if (BRAKE.consumeClick()) {
-                NetworkManager.sendToServer(new PacketManager.KeypressPacket(true, PacketManager.KeyPress.BRAKE));
+            if (BRAKE.isDown() != alreadyBraking) {
+                alreadyBraking = !alreadyBraking;
+                NetworkManager.sendToServer(new PacketManager.KeypressPacket(alreadyBraking, PacketManager.KeyPress.BRAKE));
             }
         });
     }

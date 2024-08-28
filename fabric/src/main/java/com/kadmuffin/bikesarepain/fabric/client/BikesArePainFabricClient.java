@@ -2,11 +2,14 @@ package com.kadmuffin.bikesarepain.fabric.client;
 
 import com.kadmuffin.bikesarepain.client.SerialReader;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
+import com.mojang.authlib.minecraft.client.MinecraftClient;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 
 public final class BikesArePainFabricClient implements ClientModInitializer {

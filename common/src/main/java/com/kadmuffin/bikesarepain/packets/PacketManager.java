@@ -1,5 +1,6 @@
 package com.kadmuffin.bikesarepain.packets;
 
+import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
@@ -44,13 +45,12 @@ public class PacketManager {
             if (player != null) {
                 Bicycle bike = player.getVehicle() instanceof Bicycle ? (Bicycle) player.getVehicle() : null;
                 if (bike != null) {
-                    if (isPressed) {
-                        if (!bike.wasRingedAlready) {
-                            bike.wasRingedAlready = true;
+                    if (isPressed != bike.isRingAlreadyPressed()) {
+                        boolean newRingState = !bike.isRingAlreadyPressed();
+                        bike.setRingAlreadyPressed(newRingState);
+                        if (newRingState) {
                             bike.ringBell();
                         }
-                    } else {
-                        bike.wasRingedAlready = false;
                     }
                 }
             }
@@ -61,7 +61,10 @@ public class PacketManager {
             if (player != null) {
                 Bicycle bike = player.getVehicle() instanceof Bicycle ? (Bicycle) player.getVehicle() : null;
                 if (bike != null) {
-                    bike.setBraking(isPressed);
+                    if (isPressed != bike.isBraking()) {
+                        boolean newBrakeState = !bike.isBraking();
+                        bike.setBraking(newBrakeState);
+                    }
                 }
             }
         }
@@ -69,28 +72,27 @@ public class PacketManager {
         public void run(boolean isPressed, NetworkManager.PacketContext context) {
             switch (this) {
                 case RING_BELL:
-                    System.out.println("Ring bell");
                     ringBell(isPressed, context);
                     break;
                 case BRAKE:
-                    System.out.println("Brake");
                     brake(isPressed, context);
                     break;
             }
         }
     }
 
-    public record ArduinoData(float speed, float distanceMoved, float kcalories, float wheelCircumference, float scaleFactor) implements CustomPacketPayload {
+    public record ArduinoData(boolean enabled, float speed, float distanceMoved, float kcalories, float wheelCircumference, float scaleFactor) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<ArduinoData> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "arduino_data"));
         public static final StreamCodec<RegistryFriendlyByteBuf, ArduinoData> CODEC = StreamCodec.of(
                 (buf, obj) -> {
+                    buf.writeBoolean(obj.enabled);
                     buf.writeFloat(obj.speed);
                     buf.writeFloat(obj.distanceMoved);
                     buf.writeFloat(obj.kcalories);
                     buf.writeFloat(obj.wheelCircumference);
                     buf.writeFloat(obj.scaleFactor);
                 },
-                buf -> new ArduinoData(buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat())
+                buf -> new ArduinoData(buf.readBoolean(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat())
         );
         public static final NetworkManager.NetworkReceiver<ArduinoData> RECEIVER = (packet, context) -> {
             Player player = context.getPlayer();
@@ -119,11 +121,11 @@ public class PacketManager {
                         scaleFactor = bike.level().getGameRules().getRule(GameRuleManager.MIN_BIKE_SCALING).get()/10F;
                     }
 
-                    bike.setjCommaSpeed(packet.speed * scaleFactor);
-                    bike.setDistanceTravelled(packet.distanceMoved);
-                    bike.setCaloriesBurned(packet.kcalories);
-                    bike.setSerialWheelRadius(packet.wheelCircumference * scaleFactor);
-                    bike.setjCommaEnabled(true);
+                    ((PlayerAccessor) player).bikesarepain$setJSCActive(packet.enabled);
+                    ((PlayerAccessor) player).bikesarepain$setJSCSpeed(packet.speed * scaleFactor);
+                    ((PlayerAccessor) player).bikesarepain$setJSCDistance(packet.distanceMoved);
+                    ((PlayerAccessor) player).bikesarepain$setJSCCalories(packet.kcalories);
+                    ((PlayerAccessor) player).bikesarepain$setJSCWheelRadius(packet.wheelCircumference * scaleFactor);
                 }
             }
         };
@@ -143,7 +145,6 @@ public class PacketManager {
 
         public static final NetworkManager.NetworkReceiver<KeypressPacket> RECEIVER = (packet, contextSupplier) -> {
             packet.keyEnum.run(packet.isPressed, contextSupplier);
-            System.out.println("Received keypress packet: " + packet.keyEnum + " " + packet.isPressed);
         };
 
         @Override

@@ -506,4 +506,12 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return new Vec3(newSize.x, newSize.y, newSize.z);
     }
 
+    public float getSpeedInMetersPerSecond() {
+        return this.getSpeed() * this.getWheelRadius();
+    }
+
+    public Player getRider() {
+        return this.getControllingPassenger() instanceof Player ? (Player) this.getControllingPassenger() : null;
+    }
+
 }

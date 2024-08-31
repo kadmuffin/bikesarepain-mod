@@ -20,19 +20,25 @@ public class PlayerMixin implements PlayerAccessor {
     @Unique
     private static final EntityDataAccessor<Float> BAPAIN_JSC_SPEED = SynchedEntityData.defineId(Player.class, EntityDataSerializers.FLOAT);
     @Unique
+    private static final EntityDataAccessor<Float> BAPAIN_JSC_REAL_SPEED = SynchedEntityData.defineId(Player.class, EntityDataSerializers.FLOAT);
+    @Unique
     private static final EntityDataAccessor<Float> BAPAIN_JSC_DISTANCE = SynchedEntityData.defineId(Player.class, EntityDataSerializers.FLOAT);
     @Unique
     private static final EntityDataAccessor<Float> BAPAIN_JSC_CALORIES = SynchedEntityData.defineId(Player.class, EntityDataSerializers.FLOAT);
     @Unique
     private static final EntityDataAccessor<Float> BAPAIN_JSC_WHEELRADIUS = SynchedEntityData.defineId(Player.class, EntityDataSerializers.FLOAT);
+    @Unique
+    private static final EntityDataAccessor<Boolean> BAPAIN_AMERICA_UNITS_PLS = SynchedEntityData.defineId(Player.class, EntityDataSerializers.BOOLEAN);
 
     @Inject(at = @At("TAIL"), method = "defineSynchedData(Lnet/minecraft/network/syncher/SynchedEntityData$Builder;)V")
     protected void afterDefineSynchedData(SynchedEntityData.Builder builder, CallbackInfo ci) {
         builder.define(BAPAIN_JSC_ACTIVE, false);
         builder.define(BAPAIN_JSC_SPEED, 0.0F);
+        builder.define(BAPAIN_JSC_REAL_SPEED, 0.0F);
         builder.define(BAPAIN_JSC_DISTANCE, 0.0F);
         builder.define(BAPAIN_JSC_CALORIES, 0.0F);
         builder.define(BAPAIN_JSC_WHEELRADIUS, 0.0F);
+        builder.define(BAPAIN_AMERICA_UNITS_PLS, false);
     }
 
     @Unique
@@ -53,6 +59,16 @@ public class PlayerMixin implements PlayerAccessor {
     @Unique
     public void bikesarepain$setJSCSpeed(float speed) {
         ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_SPEED, speed);
+    }
+
+    @Unique
+    public float bikesarepain$getJSCRealSpeed() {
+        return ((Player)(Object)this).getEntityData().get(BAPAIN_JSC_REAL_SPEED);
+    }
+
+    @Unique
+    public void bikesarepain$setJSCRealSpeed(float speed) {
+        ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_REAL_SPEED, speed);
     }
 
     @Unique
@@ -83,6 +99,16 @@ public class PlayerMixin implements PlayerAccessor {
     @Unique
     public void bikesarepain$setJSCWheelRadius(float wheelRadius) {
         ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_WHEELRADIUS, wheelRadius);
+    }
+
+    @Unique
+    public boolean bikesarepain$wantsAmericaUnits() {
+        return ((Player)(Object)this).getEntityData().get(BAPAIN_AMERICA_UNITS_PLS);
+    }
+
+    @Unique
+    public void bikesarepain$setAmericaUnitsPls(boolean americaUnitsPls) {
+        ((Player)(Object)this).getEntityData().set(BAPAIN_AMERICA_UNITS_PLS, americaUnitsPls);
     }
 }
 

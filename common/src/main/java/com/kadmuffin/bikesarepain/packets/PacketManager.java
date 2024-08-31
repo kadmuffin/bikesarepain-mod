@@ -139,6 +139,7 @@ public class PacketManager {
 
                     ((PlayerAccessor) player).bikesarepain$setJSCActive(packet.enabled);
                     ((PlayerAccessor) player).bikesarepain$setJSCSpeed(packet.speed * scaleFactor);
+                    ((PlayerAccessor) player).bikesarepain$setJSCRealSpeed(packet.speed);
                     ((PlayerAccessor) player).bikesarepain$setJSCDistance(packet.distanceMoved);
                     ((PlayerAccessor) player).bikesarepain$setJSCCalories(packet.kcalories);
                     ((PlayerAccessor) player).bikesarepain$setJSCWheelRadius(packet.wheelCircumference * scaleFactor);

@@ -32,6 +32,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
+import oshi.util.tuples.Pair;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
@@ -40,6 +41,8 @@ import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.ClientUtil;
 import software.bernie.geckolib.util.GeckoLibUtil;
+
+import java.util.Map;
 
 public class Bicycle extends AbstractBike implements GeoEntity {
     public boolean showGears = false;
@@ -51,6 +54,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private final DodecagonDisplayManager displayManager = new DodecagonDisplayManager();
     private int ticksPedalling = 0;
     private float distanceMoved = 0;
+
 
     private static final EntityDataAccessor<Integer> DISPLAYSTAT = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DIGITCOUNT = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
@@ -361,6 +365,15 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         );
     }
 
+    public PlayerAccessor getRiderPlayerAccessor() {
+        Player player = this.getRider();
+        if (player != null) {
+            return (PlayerAccessor) player;
+        }
+
+        return null;
+    }
+
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return this.geoCache;
@@ -503,8 +516,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     }
 
     public void setCurrentDisplayStat(int currentDisplayStat) {
-        // In range of 0-4
-        this.entityData.set(DISPLAYSTAT, currentDisplayStat % 4);
+        this.entityData.set(DISPLAYSTAT, currentDisplayStat);
     }
 
     public void chooseNextDisplayStat() {
@@ -513,7 +525,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         // 1: Time in minutes
         // 2: Speed
         // 3: Calories
-        int stat = (this.getCurrentDisplayStat() + 1) % 4;
+        int stat = DodecagonDisplayManager.DisplayType.fromType(this.getCurrentDisplayStat()).getSubType().getType() + 1;
 
         // Check if JSC is active
         if (this.getFirstPassenger() instanceof Player player) {
@@ -526,47 +538,107 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             }
         }
 
-        this.setCurrentDisplayStat(stat);
+        DodecagonDisplayManager.DisplayType type = DodecagonDisplayManager.DisplayType.fromSubType(
+                DodecagonDisplayManager.DisplaySubType.fromType(stat % 4)
+        );
+
+        this.setCurrentDisplayStat(type.getType());
     }
 
-    public float getMinutesPedalled() {
-        return this.ticksPedalling / 20F / 60F;
+    public float getTicksPedalled() {
+        return this.ticksPedalling;
     }
 
     public float getDistanceMoved() {
         return this.distanceMoved;
     }
 
-    public float getTargetDisplayScore() {
-        if (this.getFirstPassenger() instanceof Player player) {
-            PlayerAccessor mixPlayer = (PlayerAccessor) player;
-            if (mixPlayer.bikesarepain$isJSCActive()) {
-                switch (this.getCurrentDisplayStat()) {
-                    case 0:
-                        return mixPlayer.bikesarepain$getJSCDistance();
-                    case 1:
-                        return this.getMinutesPedalled();
-                    case 2:
-                        return mixPlayer.bikesarepain$getJSCSpeed();
-                    case 3:
-                        return mixPlayer.bikesarepain$getJSCCalories();
-                }
+    public Pair<DodecagonDisplayManager.DisplayType, Float> autoCastUnitDistance(float distance) {
+        DodecagonDisplayManager.DisplayType displayType = DodecagonDisplayManager.DisplayType.DISTANCE_METERS;
+        if (distance > 1000) {
+            displayType = DodecagonDisplayManager.DisplayType.DISTANCE_KM;
+            distance /= 1000;
+        }
+
+        if (this.getRiderPlayerAccessor() instanceof PlayerAccessor mixPlayer && mixPlayer.bikesarepain$wantsAmericaUnits()) {
+            if (displayType == DodecagonDisplayManager.DisplayType.DISTANCE_KM) {
+                displayType = DodecagonDisplayManager.DisplayType.DISTANCE_MI;
+                distance *= 0.621371F;
             } else {
-                switch (this.getCurrentDisplayStat()) {
-                    case 0:
-                        return this.getDistanceMoved();
-                    case 1:
-                        return this.getMinutesPedalled();
-                    case 2:
-                        return this.getSpeed();
+                displayType = DodecagonDisplayManager.DisplayType.DISTANCE_FT;
+                distance *= 3.28084F;
+            }
+        }
+
+        return new Pair<>(displayType, distance);
+    }
+
+    public Pair<DodecagonDisplayManager.DisplayType, Float> autoCastUnitSpeed(float speed, boolean forceInitialKMH) {
+        DodecagonDisplayManager.DisplayType displayType = DodecagonDisplayManager.DisplayType.SPEED_MS;
+
+        if (forceInitialKMH) {
+            displayType = DodecagonDisplayManager.DisplayType.SPEED_KMH;
+        } else if (speed > 3.6F) {
+            displayType = DodecagonDisplayManager.DisplayType.SPEED_KMH;
+            speed *= 3.6F;
+        }
+
+        if (this.getRiderPlayerAccessor() instanceof PlayerAccessor mixPlayer && mixPlayer.bikesarepain$wantsAmericaUnits()) {
+            displayType = DodecagonDisplayManager.DisplayType.SPEED_MPH;
+            speed *= 0.621371F;
+        }
+
+        return new Pair<>(displayType, speed);
+    }
+
+    public Pair<DodecagonDisplayManager.DisplayType, Float> autoCastUnitTime(float timeInTicks) {
+        DodecagonDisplayManager.DisplayType displayType = DodecagonDisplayManager.DisplayType.TIME_SEC;
+        float time = timeInTicks / 20F;
+        if (time > 60) {
+            displayType = DodecagonDisplayManager.DisplayType.TIME_MIN;
+            time /= 60;
+            if (time > 60) {
+                displayType = DodecagonDisplayManager.DisplayType.TIME_HR;
+                time /= 60;
+                if (time > 24) {
+                    displayType = DodecagonDisplayManager.DisplayType.TIME_DAY;
+                    time /= 24;
                 }
             }
         }
-        return 0;
+
+        System.out.println("Time: " + time + " " + displayType);
+
+        return new Pair<>(displayType, time);
+    }
+
+    public Pair<DodecagonDisplayManager.DisplayType, Float> getTargetDisplayScore() {
+        DodecagonDisplayManager.DisplaySubType subType = DodecagonDisplayManager.DisplayType.fromType(this.getCurrentDisplayStat()).getSubType();
+        if (this.getFirstPassenger() instanceof Player player) {
+            PlayerAccessor mixPlayer = (PlayerAccessor) player;
+            if (mixPlayer.bikesarepain$isJSCActive()) {
+                return switch (subType) {
+                    case DISTANCE -> this.autoCastUnitDistance(mixPlayer.bikesarepain$getJSCDistance());
+                    case TIME -> this.autoCastUnitTime(this.getTicksPedalled());
+                    case SPEED -> this.autoCastUnitSpeed(mixPlayer.bikesarepain$getJSCSpeed(), true);
+                    case CALORIES ->
+                            new Pair<>(DodecagonDisplayManager.DisplayType.CALORIES_KCAL, mixPlayer.bikesarepain$getJSCCalories());
+                };
+            }
+        }
+        return switch (subType) {
+            case DISTANCE -> this.autoCastUnitDistance(this.getDistanceMoved());
+            case TIME -> this.autoCastUnitTime(this.getTicksPedalled());
+            default -> this.autoCastUnitSpeed(this.getSpeedInMetersPerSecond(), false);
+        };
     }
 
     public void updateDisplayTarget() {
-        this.displayManager.preprocessTarget((int)this.getTargetDisplayScore(), this);
+        Pair<DodecagonDisplayManager.DisplayType, Float> result = this.getTargetDisplayScore();
+        int value = (int) Math.floor(result.getB());
+
+        this.setCurrentDisplayStat(result.getA().getType());
+        this.displayManager.preprocessTarget(value, this);
     }
 
     public int getCachedIntDisplay(int displayIndex) {

@@ -1,6 +1,7 @@
 package com.kadmuffin.bikesarepain.client.entity;
 
 import com.kadmuffin.bikesarepain.BikesArePain;
+import com.kadmuffin.bikesarepain.client.helper.DodecagonDisplayManager;
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -17,7 +18,7 @@ import java.util.function.Supplier;
 public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
     public Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF", "Display",
             "Display1", "Display2", "Display3", "Display4", "Display5", "Display6",
-            "TypeScreen"
+            "TypeScreen", "UnitDistance", "UnitTime", "UnitSpeed"
     );
 
     public BicycleRenderer(EntityRendererProvider.Context renderManager) {
@@ -67,8 +68,16 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
             }
 
             // Check via regex if it matches s[1-9]{1,2}
-            if (geoBone.getName().matches("Display[1-6]") || geoBone.getName().equals("TypeScreen")) {
-                bikeEntity.getDisplayManager().updateDisplayLerped(geoBone, bikeEntity.getCurrentDisplayStat(), 0.25f, bikeEntity);
+            if (geoBone.getName().matches("(Display[1-6]|TypeScreen)")) {
+                bikeEntity.getDisplayManager().updateDisplayLerped(geoBone,
+                        DodecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
+                        , 0.25f, bikeEntity);
+            }
+
+            if (geoBone.getName().matches("(UnitDistance|UnitTime|UnitSpeed)")) {
+                bikeEntity.getDisplayManager().updateUnitDisplay(geoBone,
+                        DodecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
+                        , 0.25f, bikeEntity);
             }
         }));
     }

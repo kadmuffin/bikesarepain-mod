@@ -11,6 +11,7 @@ import net.minecraft.client.KeyMapping;
 public class KeybindManager {
     public static boolean alreadyRinging = false;
     public static boolean alreadyBraking = false;
+    public static boolean alreadySwitchedType = false;
 
     public static KeyMapping RING_BELL = new KeyMapping(
             "key.bikesarepain.ring_bell",
@@ -26,9 +27,17 @@ public class KeybindManager {
             "key.categories.bikesarepain"
     );
 
+    public static KeyMapping SWITCHD = new KeyMapping(
+            "key.bikesarepain.switchd",
+            InputConstants.Type.KEYSYM,
+            InputConstants.KEY_N,
+            "key.categories.bikesarepain"
+    );
+
     public static void init() {
         KeyMappingRegistry.register(RING_BELL);
         KeyMappingRegistry.register(BRAKE);
+        KeyMappingRegistry.register(SWITCHD);
 
         ClientTickEvent.CLIENT_POST.register(minecraft -> {
             if (minecraft.player == null) {
@@ -52,6 +61,11 @@ public class KeybindManager {
             if (BRAKE.isDown() != alreadyBraking) {
                 alreadyBraking = !alreadyBraking;
                 NetworkManager.sendToServer(new PacketManager.KeypressPacket(alreadyBraking, PacketManager.KeyPress.BRAKE));
+            }
+
+            if (SWITCHD.isDown() != alreadySwitchedType) {
+                alreadySwitchedType = !alreadySwitchedType;
+                NetworkManager.sendToServer(new PacketManager.KeypressPacket(alreadySwitchedType, PacketManager.KeyPress.SWITCHD));
             }
         });
     }

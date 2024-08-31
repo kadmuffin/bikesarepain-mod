@@ -1,11 +1,15 @@
 package com.kadmuffin.bikesarepain.server.entity;
 
+import com.kadmuffin.bikesarepain.client.helper.DodecagonDisplayManager;
 import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -44,6 +48,20 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private int ticksSinceLastClick = 0;
     private int ticksSinceLastBrake = 0;
     private SoundType soundType = SoundType.WOOD;
+    private final DodecagonDisplayManager displayManager = new DodecagonDisplayManager();
+    private int ticksPedalling = 0;
+    private float distanceMoved = 0;
+
+    private static final EntityDataAccessor<Integer> DISPLAYSTAT = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DIGITCOUNT = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> CACHED_TARGET = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DISPLAY_1 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DISPLAY_2 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DISPLAY_3 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DISPLAY_4 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DISPLAY_5 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DISPLAY_6 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+
 
     protected static final RawAnimation DIE_ANIM = RawAnimation.begin().thenPlayAndHold("bike.die");
     protected static final RawAnimation RING_BELL_ANIM = RawAnimation.begin().thenPlay("bike.bell");
@@ -58,6 +76,20 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     protected Bicycle(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level);
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DISPLAY_1, -1);
+        builder.define(DISPLAY_2, -1);
+        builder.define(DISPLAY_3, -1);
+        builder.define(DISPLAY_4, -1);
+        builder.define(DISPLAY_5, -1);
+        builder.define(DISPLAY_6, -1);
+        builder.define(CACHED_TARGET, -1);
+        builder.define(DIGITCOUNT, 0);
+        builder.define(DISPLAYSTAT, 0);
     }
 
     // Reads the nbt data
@@ -80,7 +112,15 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             if (this.ticksSinceLastRing <= 6) {
                 this.ticksSinceLastRing++;
             }
+            this.updateDisplayTarget();
+
         }
+    }
+
+    @Override
+    public @NotNull Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
+        this.ticksPedalling = 0;
+        return super.getDismountLocationForPassenger(passenger);
     }
 
     @Override
@@ -127,6 +167,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             boolean isReverse = g < 0.0F;
 
             if (speed > 0.05) {
+                ticksPedalling++;
+
+                // Calculate the distance moved in meters
+                // 1 block = 1 meter
+                this.distanceMoved += (float) (Math.abs(this.getSpeed()) * 20 / 3.6);
+
                 // Depending on the speed, we'll scale the volume and pitch
                 // with a sprinkle of randomness
                 final float pitch = 0.85F + Math.min(speed, 2.0F) + (float) Math.random() * 0.1F * this.soundType.getPitch();
@@ -446,5 +492,119 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     public void setRingAlreadyPressed(boolean ringAlreadyPressed) {
         this.ringAlreadyPressed = ringAlreadyPressed;
+    }
+
+    public DodecagonDisplayManager getDisplayManager() {
+        return displayManager;
+    }
+
+    public int getCurrentDisplayStat() {
+        return this.entityData.get(DISPLAYSTAT);
+    }
+
+    public void setCurrentDisplayStat(int currentDisplayStat) {
+        // In range of 0-4
+        this.entityData.set(DISPLAYSTAT, currentDisplayStat % 4);
+    }
+
+    public void chooseNextDisplayStat() {
+        // In range of 0-3
+        // 0: Distance
+        // 1: Time in minutes
+        // 2: Speed
+        // 3: Calories
+        int stat = (this.getCurrentDisplayStat() + 1) % 4;
+
+        // Check if JSC is active
+        if (this.getFirstPassenger() instanceof Player player) {
+            PlayerAccessor mixPlayer = (PlayerAccessor) player;
+            if (!mixPlayer.bikesarepain$isJSCActive()) {
+                // If it is not active, skip the calories (id 3)
+                if (stat == 3) {
+                    stat = 0;
+                }
+            }
+        }
+
+        this.setCurrentDisplayStat(stat);
+    }
+
+    public float getMinutesPedalled() {
+        return this.ticksPedalling / 20F / 60F;
+    }
+
+    public float getDistanceMoved() {
+        return this.distanceMoved;
+    }
+
+    public float getTargetDisplayScore() {
+        if (this.getFirstPassenger() instanceof Player player) {
+            PlayerAccessor mixPlayer = (PlayerAccessor) player;
+            if (mixPlayer.bikesarepain$isJSCActive()) {
+                switch (this.getCurrentDisplayStat()) {
+                    case 0:
+                        return mixPlayer.bikesarepain$getJSCDistance();
+                    case 1:
+                        return this.getMinutesPedalled();
+                    case 2:
+                        return mixPlayer.bikesarepain$getJSCSpeed();
+                    case 3:
+                        return mixPlayer.bikesarepain$getJSCCalories();
+                }
+            } else {
+                switch (this.getCurrentDisplayStat()) {
+                    case 0:
+                        return this.getDistanceMoved();
+                    case 1:
+                        return this.getMinutesPedalled();
+                    case 2:
+                        return this.getSpeed();
+                }
+            }
+        }
+        return 0;
+    }
+
+    public void updateDisplayTarget() {
+        this.displayManager.preprocessTarget((int)this.getTargetDisplayScore(), this);
+    }
+
+    public int getCachedIntDisplay(int displayIndex) {
+        return switch (displayIndex) {
+            case 0 -> this.entityData.get(DISPLAY_1);
+            case 1 -> this.entityData.get(DISPLAY_2);
+            case 2 -> this.entityData.get(DISPLAY_3);
+            case 3 -> this.entityData.get(DISPLAY_4);
+            case 4 -> this.entityData.get(DISPLAY_5);
+            case 5 -> this.entityData.get(DISPLAY_6);
+            default -> -1;
+        };
+    }
+
+    public void setCachedIntDisplay(int displayIndex, int value) {
+        switch (displayIndex) {
+            case 0 -> this.entityData.set(DISPLAY_1, value);
+            case 1 -> this.entityData.set(DISPLAY_2, value);
+            case 2 -> this.entityData.set(DISPLAY_3, value);
+            case 3 -> this.entityData.set(DISPLAY_4, value);
+            case 4 -> this.entityData.set(DISPLAY_5, value);
+            case 5 -> this.entityData.set(DISPLAY_6, value);
+        }
+    }
+
+    public int getCachedTarget() {
+        return this.entityData.get(CACHED_TARGET);
+    }
+
+    public void setCachedTarget(int target) {
+        this.entityData.set(CACHED_TARGET, target);
+    }
+
+    public int getDigitCount() {
+        return this.entityData.get(DIGITCOUNT);
+    }
+
+    public void setDigitCount(int count) {
+        this.entityData.set(DIGITCOUNT, count);
     }
 }

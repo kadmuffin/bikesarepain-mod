@@ -18,7 +18,8 @@ import static com.kadmuffin.bikesarepain.BikesArePain.MOD_ID;
 public class PacketManager {
     public static enum KeyPress {
         RING_BELL(0),
-        BRAKE(1);
+        BRAKE(1),
+        SWITCHD(2);
 
         private final int type;
 
@@ -56,6 +57,18 @@ public class PacketManager {
             }
         }
 
+        public void switchDisplay(boolean isPressed, NetworkManager.PacketContext context) {
+            Player player = context.getPlayer();
+            if (player != null) {
+                Bicycle bike = player.getVehicle() instanceof Bicycle ? (Bicycle) player.getVehicle() : null;
+                if (bike != null) {
+                    if (isPressed) {
+                        bike.chooseNextDisplayStat();
+                    }
+                }
+            }
+        }
+
         public void brake(boolean isPressed, NetworkManager.PacketContext context) {
             Player player = context.getPlayer();
             if (player != null) {
@@ -76,6 +89,9 @@ public class PacketManager {
                     break;
                 case BRAKE:
                     brake(isPressed, context);
+                    break;
+                case SWITCHD:
+                    switchDisplay(isPressed, context);
                     break;
             }
         }

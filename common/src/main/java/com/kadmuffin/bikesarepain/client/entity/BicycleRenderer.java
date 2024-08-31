@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
+import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import software.bernie.geckolib.renderer.layer.FastBoneFilterGeoLayer;
@@ -14,11 +15,15 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
-    public Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF", "Display");
+    public Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF", "Display",
+            "Display1", "Display2", "Display3", "Display4", "Display5", "Display6",
+            "TypeScreen"
+    );
 
     public BicycleRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new DefaultedEntityGeoModel<>(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle")));
         addRenderLayer(new FastBoneFilterGeoLayer<>(this, bones, (geoBone, bikeEntity, aFloat) -> {
+
             if (geoBone.getName().equals("ActualWheel")) {
                 geoBone.setRotZ(bikeEntity.getBackWheelRotation());
             }
@@ -36,10 +41,6 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
             }
             if (geoBone.getName().equals("Handlebar")) {
                 geoBone.setRotY(bikeEntity.getSteeringYaw());
-            }
-
-            if (geoBone.getName().equals("Display")) {
-                geoBone.setHidden(false);
             }
 
             if (geoBone.getName().equals("ActualWheel2")) {
@@ -65,6 +66,10 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
                 bikeEntity.bikePitch = Math.max(0, bikeEntity.bikePitch - 0.4F);
             }
 
+            // Check via regex if it matches s[1-9]{1,2}
+            if (geoBone.getName().matches("Display[1-6]") || geoBone.getName().equals("TypeScreen")) {
+                bikeEntity.getDisplayManager().updateDisplayLerped(geoBone, bikeEntity.getCurrentDisplayStat(), 0.25f, bikeEntity);
+            }
         }));
     }
 
@@ -74,4 +79,6 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
 
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
     }
+
+
 }

@@ -58,13 +58,13 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     private static final EntityDataAccessor<Integer> DISPLAYSTAT = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DIGITCOUNT = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> CACHED_TARGET = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> DISPLAY_1 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> DISPLAY_2 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> DISPLAY_3 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> DISPLAY_4 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> DISPLAY_5 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> DISPLAY_6 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Float> CACHED_TARGET = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DISPLAY_1 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DISPLAY_2 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DISPLAY_3 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DISPLAY_4 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DISPLAY_5 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> DISPLAY_6 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
 
 
     protected static final RawAnimation DIE_ANIM = RawAnimation.begin().thenPlayAndHold("bike.die");
@@ -85,13 +85,13 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
-        builder.define(DISPLAY_1, -1);
-        builder.define(DISPLAY_2, -1);
-        builder.define(DISPLAY_3, -1);
-        builder.define(DISPLAY_4, -1);
-        builder.define(DISPLAY_5, -1);
-        builder.define(DISPLAY_6, -1);
-        builder.define(CACHED_TARGET, -1);
+        builder.define(DISPLAY_1, -1F);
+        builder.define(DISPLAY_2, -1F);
+        builder.define(DISPLAY_3, -1F);
+        builder.define(DISPLAY_4, -1F);
+        builder.define(DISPLAY_5, -1F);
+        builder.define(DISPLAY_6, -1F);
+        builder.define(CACHED_TARGET, -1F);
         builder.define(DIGITCOUNT, 0);
         builder.define(DISPLAYSTAT, 0);
     }
@@ -593,7 +593,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     public Pair<DodecagonDisplayManager.DisplayType, Float> autoCastUnitTime(float timeInTicks) {
         DodecagonDisplayManager.DisplayType displayType = DodecagonDisplayManager.DisplayType.TIME_SEC;
-        float time = timeInTicks / 20F;
+        float time = (float) Math.floor(timeInTicks / 20F);
         if (time > 60) {
             displayType = DodecagonDisplayManager.DisplayType.TIME_MIN;
             time /= 60;
@@ -606,8 +606,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 }
             }
         }
-
-        System.out.println("Time: " + time + " " + displayType);
 
         return new Pair<>(displayType, time);
     }
@@ -635,13 +633,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     public void updateDisplayTarget() {
         Pair<DodecagonDisplayManager.DisplayType, Float> result = this.getTargetDisplayScore();
-        int value = (int) Math.floor(result.getB());
 
         this.setCurrentDisplayStat(result.getA().getType());
-        this.displayManager.preprocessTarget(value, this);
+        this.displayManager.preprocessTarget(result.getB(), this);
     }
 
-    public int getCachedIntDisplay(int displayIndex) {
+    public float getCachedFloatDisplay(int displayIndex) {
         return switch (displayIndex) {
             case 0 -> this.entityData.get(DISPLAY_1);
             case 1 -> this.entityData.get(DISPLAY_2);
@@ -653,7 +650,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         };
     }
 
-    public void setCachedIntDisplay(int displayIndex, int value) {
+    public void setCachedFloatDisplay(int displayIndex, float value) {
         switch (displayIndex) {
             case 0 -> this.entityData.set(DISPLAY_1, value);
             case 1 -> this.entityData.set(DISPLAY_2, value);
@@ -664,11 +661,11 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         }
     }
 
-    public int getCachedTarget() {
+    public float getCachedTarget() {
         return this.entityData.get(CACHED_TARGET);
     }
 
-    public void setCachedTarget(int target) {
+    public void setCachedTarget(float target) {
         this.entityData.set(CACHED_TARGET, target);
     }
 

@@ -1,16 +1,17 @@
 package com.kadmuffin.bikesarepain.client.helper;
 
-import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
 import software.bernie.geckolib.cache.object.GeoBone;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class DodecagonDisplayManager {
     private static final int MAX_DISPLAYS = 6;
+    private static final int MAX_UNITS = 3;
+    private static final float DECIMAL_PRECISION = 100;
     private static final int[] POWERS_OF_10 = {1, 10, 100, 1000, 10000, 100000};
     private static final float[] ROTATION_ANGLES = {
             0f,    // Nothing
@@ -139,11 +140,14 @@ public class DodecagonDisplayManager {
     private final float[] currentUnitRotations = new float[3];
     private float typeScreenRotation = 0;
 
-    public void preprocessTarget(int target, Bicycle bicycle) {
-        if (target < 0 || target > 999999) {
+    public void preprocessTarget(float target, Bicycle bicycle) {
+        if (target < 0 || target > 999999F) {
             System.out.println("Invalid target number: " + target);
             return;
         }
+
+        // Round to two decimal places
+        target = Math.round(target * DECIMAL_PRECISION) / DECIMAL_PRECISION;
 
         if (target != bicycle.getCachedTarget()) {
             bicycle.setCachedTarget(target);
@@ -185,16 +189,21 @@ public class DodecagonDisplayManager {
     }
 
     private float getNewRotation(float lerpFactor, int displayIndex, Bicycle bicycle) {
-        int digit = (displayIndex < bicycle.getDigitCount()) ? bicycle.getCachedIntDisplay(displayIndex) : -1;
+        // float digit = (displayIndex < bicycle.getDigitCount()) ? bicycle.getCachedFloatDisplay(displayIndex) : -1;
+        float digit;
+        System.out.println("Display index: " + displayIndex + ", Digit count: " + bicycle.getDigitCount());
+        if (displayIndex < bicycle.getDigitCount()) {
+            digit = bicycle.getCachedFloatDisplay(displayIndex);
+        } else {
+            digit = -1;
+        }
         float targetRotation = getRotationAngle(digit);
         float currentRotation = currentRotations[displayIndex];
 
-        // Determine the shortest rotation path
         float rotationDiff = targetRotation - currentRotation;
         if (rotationDiff > Math.PI) rotationDiff -= (float) (2 * Math.PI);
         else if (rotationDiff < -Math.PI) rotationDiff += (float) (2 * Math.PI);
 
-        // If the change is too big, snap faster
         if (Math.abs(rotationDiff) > Math.PI / 2) {
             return currentRotation + rotationDiff * lerpFactor * 2;
         }
@@ -203,22 +212,69 @@ public class DodecagonDisplayManager {
     }
 
     private void updateCachedDigits(Bicycle bicycle) {
-        int remainingTarget = bicycle.getCachedTarget();
-        for (int i = 0; i < bicycle.getDigitCount(); i++) {
-            bicycle.setCachedIntDisplay(i, remainingTarget % 10);
-            remainingTarget /= 10;
+        float target = bicycle.getCachedTarget();
+        int integerPart = (int) target;
+        int fractionalPart = (int) ((target - integerPart) * DECIMAL_PRECISION);
+        float[] digits = new float[MAX_DISPLAYS];
+
+        // fill with -1
+        Arrays.fill(digits, -1);
+
+        // Correctly calculate the number of decimal digits in the integer part
+        int integerDigits = integerPart == 0 ? 1 : (int) Math.log10(integerPart) + 1;
+        int maxDecimalPlaces = Math.min(2, MAX_DISPLAYS - integerDigits);
+
+        int digitCount = integerDigits + maxDecimalPlaces;
+        bicycle.setDigitCount(digitCount);
+
+        int displayIndex = 0;
+
+        // Handle integer part
+        int integerIndex = 0;
+        while (integerPart > 0) {
+            int digit = integerPart % 10;
+            digits[integerDigits - 1 - integerIndex++] = digit;
+            integerPart /= 10;
         }
-        for (int i = bicycle.getDigitCount(); i < MAX_DISPLAYS; i++) {
-            bicycle.setCachedIntDisplay(i, -1);
+
+        // Add decimal point if we have space
+        if (maxDecimalPlaces > 0) {
+            digits[integerDigits] = -0.5f;
         }
+
+        // Handle the float part
+        List<Float> reversed = new ArrayList<>();
+        int floatIndex = integerDigits+1;
+        for (int j = 0; j < maxDecimalPlaces; j++) {
+            int digit = fractionalPart % 10;
+            reversed.add((float) digit);
+            fractionalPart /= 10;
+        }
+
+        Collections.reverse(reversed);
+
+        // Add the decimal part digits to the result array
+        for (float digit : reversed) {
+            digits[floatIndex++] = digit;
+        }
+
+        // Set the digits
+        for (int i = 0; i < MAX_DISPLAYS; i++) {
+            bicycle.setCachedFloatDisplay(i, digits[i]);
+        }
+
     }
 
     private int getDisplayIndex(String boneName) {
-        // Just use regex instead
-        if (boneName.matches("Display[1-6]")) {
-            return boneName.charAt(7) - '1';
-        }
-        return -1;
+        return switch (boneName) {
+            case "Display1" -> 5;
+            case "Display2" -> 4;
+            case "Display3" -> 3;
+            case "Display4" -> 2;
+            case "Display5" -> 1;
+            case "Display6" -> 0;
+            default -> -1;
+        };
     }
 
     private int getUnitIndex(String boneName) {
@@ -230,12 +286,16 @@ public class DodecagonDisplayManager {
         };
     }
 
-    private float getRotationAngle(int digit) {
+    private float getRotationAngle(float digit) {
+        if (digit == -0.5f) {
+            return ROTATION_ANGLES[1]; // Decimal point
+        }
+
         if (digit < 0 || digit > 9) {
             return ROTATION_ANGLES[0]; // Nothing
         }
 
-        return switch (digit) {
+        return switch ((int) digit) {
             case 0 -> ROTATION_ANGLES[2];
             case 1 -> ROTATION_ANGLES[11];
             case 2 -> ROTATION_ANGLES[10];

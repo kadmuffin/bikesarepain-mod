@@ -175,28 +175,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public void tick() {
         super.tick();
         if (this.getFirstPassenger() instanceof Player playerEntity) {
-            if (!this.level().isClientSide()) {
-
-                if (((PlayerAccessor) playerEntity).bikesarepain$isJSCActive()) {
-                    // Display colored message
-                    // "Speed": red, "Distance": green, "Kcalories": blue
-                    playerEntity.displayClientMessage(Component.literal("Speed: ").withColor(CommonColors.GREEN)
-                            .append(Component.literal(
-                                            ((float) Math.round(
-                                                    ((PlayerAccessor) playerEntity).bikesarepain$getJSCSpeed()
-                                                    *100))/100 + " km/h "
-                                            ).withColor(CommonColors.RED)
-                                    .append(Component.literal("Distance: ").withColor(CommonColors.GREEN)
-                                            .append(Component.literal(((float) Math.round(
-                                                            ((PlayerAccessor) playerEntity).bikesarepain$getJSCDistance()
-                                                    *100))/100 + " meters ").withColor(CommonColors.BLUE)
-                                                    .append(Component.literal("Calories Spent: ").withColor(CommonColors.GREEN)
-                                                            .append(Component.literal(
-                                                                    ((float) Math.round(
-                                                                            ((PlayerAccessor) playerEntity).bikesarepain$getJSCCalories()
-                                                                            *100))/100 + " kcal").withColor(CommonColors.BLUE)))))), true);
-                }
-            }
             if (!this.isSaddled()) {
                 playerEntity.hurt(new DamageSources(this.registryAccess()).sting(this), 0.5F);
             }

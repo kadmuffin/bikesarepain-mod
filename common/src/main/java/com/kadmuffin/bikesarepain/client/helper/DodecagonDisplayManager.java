@@ -11,7 +11,7 @@ import java.util.List;
 public class DodecagonDisplayManager {
     private static final int MAX_DISPLAYS = 6;
     private static final int MAX_UNITS = 3;
-    private static final float DECIMAL_PRECISION = 100;
+    private static final float DECIMAL_PRECISION = 1000;
     private static final int[] POWERS_OF_10 = {1, 10, 100, 1000, 10000, 100000};
     private static final float[] ROTATION_ANGLES = {
             0f,    // Nothing
@@ -191,7 +191,6 @@ public class DodecagonDisplayManager {
     private float getNewRotation(float lerpFactor, int displayIndex, Bicycle bicycle) {
         // float digit = (displayIndex < bicycle.getDigitCount()) ? bicycle.getCachedFloatDisplay(displayIndex) : -1;
         float digit;
-        System.out.println("Display index: " + displayIndex + ", Digit count: " + bicycle.getDigitCount());
         if (displayIndex < bicycle.getDigitCount()) {
             digit = bicycle.getCachedFloatDisplay(displayIndex);
         } else {
@@ -222,7 +221,9 @@ public class DodecagonDisplayManager {
 
         // Correctly calculate the number of decimal digits in the integer part
         int integerDigits = integerPart == 0 ? 1 : (int) Math.log10(integerPart) + 1;
-        int maxDecimalPlaces = Math.min(2, MAX_DISPLAYS - integerDigits);
+        int maxDecimalPlaces = Math.min(Math.max(
+                0, (int) Math.log10(fractionalPart) + 1
+        ), MAX_DISPLAYS - integerDigits);
 
         int digitCount = integerDigits + maxDecimalPlaces;
         bicycle.setDigitCount(digitCount);
@@ -231,6 +232,9 @@ public class DodecagonDisplayManager {
 
         // Handle integer part
         int integerIndex = 0;
+        if (integerPart == 0) {
+            digits[integerDigits - 1] = 0;
+        }
         while (integerPart > 0) {
             int digit = integerPart % 10;
             digits[integerDigits - 1 - integerIndex++] = digit;
@@ -240,22 +244,22 @@ public class DodecagonDisplayManager {
         // Add decimal point if we have space
         if (maxDecimalPlaces > 0) {
             digits[integerDigits] = -0.5f;
-        }
 
-        // Handle the float part
-        List<Float> reversed = new ArrayList<>();
-        int floatIndex = integerDigits+1;
-        for (int j = 0; j < maxDecimalPlaces; j++) {
-            int digit = fractionalPart % 10;
-            reversed.add((float) digit);
-            fractionalPart /= 10;
-        }
+            // Handle the float part
+            List<Float> reversed = new ArrayList<>();
+            int floatIndex = integerDigits+1;
+            for (int j = 0; j < maxDecimalPlaces; j++) {
+                int digit = fractionalPart % 10;
+                reversed.add((float) digit);
+                fractionalPart /= 10;
+            }
 
-        Collections.reverse(reversed);
+            Collections.reverse(reversed);
 
-        // Add the decimal part digits to the result array
-        for (float digit : reversed) {
-            digits[floatIndex++] = digit;
+            // Add the decimal part digits to the result array
+            for (float digit : reversed) {
+                digits[floatIndex++] = digit;
+            }
         }
 
         // Set the digits

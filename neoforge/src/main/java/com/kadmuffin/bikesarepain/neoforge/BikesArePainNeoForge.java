@@ -2,12 +2,14 @@ package com.kadmuffin.bikesarepain.neoforge;
 
 import com.kadmuffin.bikesarepain.BikesArePain;
 import com.kadmuffin.bikesarepain.client.SerialReader;
+import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import dev.architectury.event.events.client.ClientCommandRegistrationEvent;
+import dev.architectury.networking.NetworkManager;
 import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
 import dev.architectury.registry.client.level.entity.forge.EntityRendererRegistryImpl;
 import net.minecraft.client.Minecraft;
@@ -119,7 +121,23 @@ public final class BikesArePainNeoForge {
                                                                 })
                                                         )
                                         )
-                                );
+                                )
+                                        .then(ClientCommandRegistrationEvent.literal("unit")
+                                                .then(ClientCommandRegistrationEvent.literal("imperial")
+                                                        .executes(context -> {
+                                                            NetworkManager.sendToServer(new PacketManager.UnitSystemPacket(true));
+                                                            context.getSource().arch$sendSuccess(() -> Component.literal("Set unit system to imperial"), false);
+                                                            return 1;
+                                                        })
+                                                )
+                                                .then(ClientCommandRegistrationEvent.literal("metric")
+                                                        .executes(context -> {
+                                                            NetworkManager.sendToServer(new PacketManager.UnitSystemPacket(false));
+                                                            context.getSource().arch$sendSuccess(() -> Component.literal("Set unit system to metric"), false);
+                                                            return 1;
+                                                        })
+                                                )
+                                        );
 
                 dispatcher.register(command);
             });

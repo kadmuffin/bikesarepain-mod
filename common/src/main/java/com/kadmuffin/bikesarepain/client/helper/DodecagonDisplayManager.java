@@ -223,7 +223,7 @@ public class DodecagonDisplayManager {
         int integerDigits = integerPart == 0 ? 1 : (int) Math.log10(integerPart) + 1;
         int maxDecimalPlaces = Math.min(Math.max(
                 0, (int) Math.log10(fractionalPart) + 1
-        ), MAX_DISPLAYS - integerDigits);
+        ), MAX_DISPLAYS - integerDigits - 1);
 
         int digitCount = integerDigits + maxDecimalPlaces;
         bicycle.setDigitCount(digitCount);
@@ -258,6 +258,9 @@ public class DodecagonDisplayManager {
 
             // Add the decimal part digits to the result array
             for (float digit : reversed) {
+                if (floatIndex >= MAX_DISPLAYS) {
+                    break;
+                }
                 digits[floatIndex++] = digit;
             }
         }

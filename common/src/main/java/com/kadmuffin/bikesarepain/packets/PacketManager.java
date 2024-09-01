@@ -170,6 +170,25 @@ public class PacketManager {
         }
     }
 
+    public record UnitSystemPacket(boolean useImperial) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<UnitSystemPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "unit_system"));
+        public static final StreamCodec<FriendlyByteBuf, UnitSystemPacket> CODEC = StreamCodec.of((buf, obj) -> {
+            buf.writeBoolean(obj.useImperial);
+        }, buf -> new UnitSystemPacket(buf.readBoolean()));
+
+        public static final NetworkManager.NetworkReceiver<UnitSystemPacket> RECEIVER = (packet, contextSupplier) -> {
+            Player player = contextSupplier.getPlayer();
+            if (player != null) {
+                ((PlayerAccessor) player).bikesarepain$setAmericaUnitsPls(packet.useImperial);
+            }
+        };
+
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
     public static void init() {
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeypressPacket.TYPE, KeypressPacket.CODEC, KeypressPacket.RECEIVER);
         NetworkManager.registerReceiver(
@@ -177,5 +196,10 @@ public class PacketManager {
                 PacketManager.ArduinoData.TYPE,
                 PacketManager.ArduinoData.CODEC,
                 PacketManager.ArduinoData.RECEIVER);
+        NetworkManager.registerReceiver(
+                NetworkManager.c2s(),
+                PacketManager.UnitSystemPacket.TYPE,
+                PacketManager.UnitSystemPacket.CODEC,
+                PacketManager.UnitSystemPacket.RECEIVER);
     }
 }

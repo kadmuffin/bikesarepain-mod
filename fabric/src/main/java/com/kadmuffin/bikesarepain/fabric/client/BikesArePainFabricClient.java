@@ -1,16 +1,19 @@
 package com.kadmuffin.bikesarepain.fabric.client;
 
 import com.kadmuffin.bikesarepain.client.SerialReader;
+import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.mojang.authlib.minecraft.client.MinecraftClient;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import dev.architectury.networking.NetworkManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
 public final class BikesArePainFabricClient implements ClientModInitializer {
     private final SerialReader reader = new SerialReader();
@@ -101,6 +104,21 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
                                 return 1;
                             })
                     )
+            ).then(
+                    ClientCommandManager.literal("unit").then(
+                            ClientCommandManager.literal("imperial").executes(context -> {
+                                NetworkManager.sendToServer(new PacketManager.UnitSystemPacket(true));
+                                context.getSource().sendFeedback(Component.literal("Set to imperial"));
+                                return 1;
+                            })
+                    )
+                            .then(
+                                    ClientCommandManager.literal("metric").executes(context -> {
+                                        NetworkManager.sendToServer(new PacketManager.UnitSystemPacket(false));
+                                        context.getSource().sendFeedback(Component.literal("Set to metric"));
+                                        return 1;
+                                    })
+                            )
             ));
         });
     }

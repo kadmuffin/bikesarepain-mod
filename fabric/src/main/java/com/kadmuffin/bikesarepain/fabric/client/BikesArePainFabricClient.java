@@ -3,6 +3,7 @@ package com.kadmuffin.bikesarepain.fabric.client;
 import com.kadmuffin.bikesarepain.client.SerialReader;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
+import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import com.mojang.authlib.minecraft.client.MinecraftClient;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -10,10 +11,13 @@ import dev.architectury.networking.NetworkManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 
 public final class BikesArePainFabricClient implements ClientModInitializer {
     private final SerialReader reader = new SerialReader();
@@ -121,5 +125,6 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
                             )
             ));
         });
+
     }
 }

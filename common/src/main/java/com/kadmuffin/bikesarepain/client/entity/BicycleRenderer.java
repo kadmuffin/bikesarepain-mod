@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
     public Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF", "Display",
             "Display1", "Display2", "Display3", "Display4", "Display5", "Display6",
-            "TypeScreen", "UnitDistance", "UnitTime", "UnitSpeed"
+            "TypeScreen", "UnitDistance", "UnitTime", "UnitSpeed", "MonitorRoot"
     );
 
     public BicycleRenderer(EntityRendererProvider.Context renderManager) {
@@ -79,6 +79,7 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
                         DodecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
                         , 0.25f, bikeEntity);
             }
+
         }));
     }
 

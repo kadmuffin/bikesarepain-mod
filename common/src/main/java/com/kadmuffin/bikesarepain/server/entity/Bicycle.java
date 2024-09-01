@@ -5,7 +5,10 @@ import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
+import dev.architectury.injectables.annotations.ExpectPlatform;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -32,6 +35,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 import oshi.util.tuples.Pair;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -117,6 +121,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             this.updateDisplayTarget();
 
         }
+
     }
 
     @Override
@@ -685,5 +690,44 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     public void setDigitCount(int count) {
         this.entityData.set(DIGITCOUNT, count);
+    }
+
+    public Vec3 getDisplayPos() {
+        return new Vec3(0,
+                1.07 * this.getModelScalingFactor(),
+                0.45F * this.getModelScalingFactor());
+    }
+
+    public Vec3 getSeatPos() {
+        return new Vec3(0, 0.9F * this.getModelScalingFactor(), -0.4F * this.getModelScalingFactor());
+    }
+
+    // Used for zooming into the display
+    // When the player is looking at the display, we want to zoom in
+    public float modifyFOV(AbstractClientPlayer player, float fov) {
+        Vec3 seat = this.modeltoWorldPos(this.getSeatPos());
+        Vec3 camera = new Vec3(seat.x, seat.y + player.getEyeHeight()*0.96F, seat.z);
+        Vec3 displayPos = this.modeltoWorldPos(this.getDisplayPos());
+
+        float pitch = (float) Math.toRadians(player.getXRot());
+        float yaw = (float) Math.toRadians(player.getYRot());
+
+        Vec3 viewDir = new Vec3(
+                -Math.sin(yaw) * Math.cos(pitch),
+                -Math.sin(pitch),
+                Math.cos(yaw) * Math.cos(pitch)
+        ).normalize();
+
+        Vec3 targetDir = displayPos.subtract(camera).normalize();
+
+        // arcos dot product of viewDir and targetDir
+        float angle = (float) Math.acos(viewDir.dot(targetDir));
+
+        // 7.5 degrees -> 0.1309 radians
+        if (angle < 0.1309) {
+            return fov * 0.6F;
+        }
+
+        return fov;
     }
 }

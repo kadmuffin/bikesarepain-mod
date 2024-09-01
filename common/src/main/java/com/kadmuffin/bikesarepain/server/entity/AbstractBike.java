@@ -447,7 +447,12 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     public float getInternalSpeed() {
         if (this.isHealthAffectingSpeed()) {
-            return this.entityData.get(INTERNAL_SPEED) * this.getHealth() / this.getMaxHealth();
+            float healthMultiplier = this.getHealth() / this.getMaxHealth();
+            if (healthMultiplier < 0.9F) {
+                healthMultiplier += this.random.nextFloat() * 0.4F;
+            }
+
+            return this.entityData.get(INTERNAL_SPEED) * healthMultiplier;
         }
 
         return this.entityData.get(INTERNAL_SPEED);
@@ -599,6 +604,24 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     public void setHealthAffectsSpeed(boolean healthAffectsSpeed) {
         this.entityData.set(HEALTH_AFF_SPEED, healthAffectsSpeed);
+    }
+
+    public float getRadianYRot() {
+        return (float) Math.toRadians(this.getYRot());
+    }
+
+    public Vec3 modeltoWorldPos(Vec3 pos) {
+        float angle = this.getRadianYRot();
+        float cos = (float) Math.cos(angle);
+        float sin = (float) Math.sin(angle);
+        // Rotate the position by the entity's rotation
+        Vec3 posRot = new Vec3(
+                pos.x() * cos - pos.z() * sin,
+                pos.y(),
+                pos.x() * sin + pos.z() * cos
+        );
+
+        return this.position().add(posRot);
     }
 
 }

@@ -23,6 +23,10 @@ public class ItemManager {
             ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "saddled"),
             () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
     );
+    public static final RegistrySupplier<DataComponentType<Boolean>> HEALTH_AFFECTS_SPEED = BikesArePain.DATA_COMPONENTS.register(
+            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "health_affect_speed"),
+            () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
+    );
     public static final RegistrySupplier<DataComponentType<Boolean>> SAVE_TIME = BikesArePain.DATA_COMPONENTS.register(
             ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "save_time"),
             () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
@@ -53,6 +57,7 @@ public class ItemManager {
                             .component(SAVE_DISTANCE.get(), true)
                             .component(DISTANCE_MOVED.get(), 0.0F)
                             .component(TICKS_MOVED.get(), 0)
+                            .component(HEALTH_AFFECTS_SPEED.get(), true)
             )
     );
 

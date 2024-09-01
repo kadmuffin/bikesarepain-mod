@@ -115,6 +115,12 @@ public class BikeItem extends Item implements GeoItem {
                     entity.setSaveDistance(true);
                 }
 
+                if (itemStack.has(ItemManager.HEALTH_AFFECTS_SPEED.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HEALTH_AFFECTS_SPEED.get()))) {
+                    entity.setHealthAffectsSpeed(true);
+                } else {
+                    entity.setHealthAffectsSpeed(false);
+                }
+
                 // Make the bike look the same direction as the player
                 if (context.getPlayer() != null) {
                     entity.setYRot(context.getPlayer().getYRot());

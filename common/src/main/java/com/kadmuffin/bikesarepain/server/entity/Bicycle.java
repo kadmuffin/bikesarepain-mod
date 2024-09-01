@@ -186,7 +186,17 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 // System.out.printf("Speed: %f, Volume: %f, Pitch: %f, TicksPerClick: %f\n", speed, volume, pitch, ticksPerClick);
 
                 if (this.getSpeed() > 0.1F) {
-                    this.playSound(SoundManager.BICYCLE_MOVEMENT.get(), this.getSpeed() * this.soundType.getVolume(), Mth.nextFloat(this.random, 0.8F, 1.3F) * this.soundType.getPitch());
+                    float minPitch = 0.8F;
+                    float maxPitch = 1.3F;
+
+                    // Make the range a bit higher depending on our health, if it is 100%, then we have the default range
+                    if (this.getHealth() < this.getMaxHealth()) {
+                        float healthPercentage = this.getHealth() / this.getMaxHealth();
+                        minPitch = 0.8F + healthPercentage * 0.5F;
+                        maxPitch = 1.3F - healthPercentage * 0.3F;
+                    }
+
+                    this.playSound(SoundManager.BICYCLE_MOVEMENT.get(), this.getSpeed() * this.soundType.getVolume(), Mth.nextFloat(this.random, minPitch, maxPitch) * this.soundType.getPitch());
                 }
 
                 if (this.ticksSinceLastClick > ticksPerClick && speed > 0.05F) {
@@ -389,6 +399,8 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             itemStack.set(ItemManager.DISTANCE_MOVED.get(), (float) Math.round(this.getBlocksTravelled() * 100) / 100);
         }
 
+        itemStack.set(ItemManager.HEALTH_AFFECTS_SPEED.get(), this.isHealthAffectingSpeed());
+
         return itemStack;
     }
 
@@ -540,6 +552,9 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 }
             }
         }
+
+        // Play the sound
+        this.playSound(SoundEvents.BOOK_PAGE_TURN, 0.3F, Math.max(1.65F, (float) Math.random() * 2F));
 
         DodecagonDisplayManager.DisplayType type = DodecagonDisplayManager.DisplayType.fromSubType(
                 DodecagonDisplayManager.DisplaySubType.fromType(stat % 4)

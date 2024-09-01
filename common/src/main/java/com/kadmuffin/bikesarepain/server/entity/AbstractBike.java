@@ -55,6 +55,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private static final EntityDataAccessor<Float> LAST_SPEED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> INTERNAL_SPEED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> BRAKING = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> HEALTH_AFF_SPEED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.BOOLEAN);
+
 
     protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level);
@@ -75,6 +77,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         compound.putBoolean("HasChest", this.hasChest);
         compound.putFloat("BlocksTravelled", this.blocksTravelled);
         compound.putInt("TicksTravelled", this.ticksTravelled);
+        compound.putBoolean("HealthAffectsSpeed", this.isHealthAffectingSpeed());
     }
 
     @Override
@@ -85,6 +88,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.hasChest = compound.getBoolean("HasChest");
         this.blocksTravelled = compound.getFloat("BlocksTravelled");
         this.ticksTravelled = compound.getInt("TicksTravelled");
+        this.setHealthAffectsSpeed(compound.getBoolean("HealthAffectsSpeed"));
     }
 
     @Override
@@ -97,6 +101,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         builder.define(LAST_SPEED, 0.0F);
         builder.define(INTERNAL_SPEED, 0.0F);
         builder.define(BRAKING, false);
+        builder.define(HEALTH_AFF_SPEED, false);
     }
 
     @Override
@@ -440,7 +445,13 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public float getLastSpeed() { return this.entityData.get(LAST_SPEED);}
     public void setLastSpeed(float lastSpeed) { this.entityData.set(LAST_SPEED, lastSpeed);}
 
-    public float getInternalSpeed() { return this.entityData.get(INTERNAL_SPEED);}
+    public float getInternalSpeed() {
+        if (this.isHealthAffectingSpeed()) {
+            return this.entityData.get(INTERNAL_SPEED) * this.getHealth() / this.getMaxHealth();
+        }
+
+        return this.entityData.get(INTERNAL_SPEED);
+    }
     public void setInternalSpeed(float internalSpeed) { this.entityData.set(INTERNAL_SPEED, internalSpeed);}
 
     public boolean isBraking() { return this.entityData.get(BRAKING);}
@@ -580,6 +591,14 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     public boolean isSavingDistance() {
         return this.saveDistance;
+    }
+
+    public boolean isHealthAffectingSpeed() {
+        return this.entityData.get(HEALTH_AFF_SPEED);
+    }
+
+    public void setHealthAffectsSpeed(boolean healthAffectsSpeed) {
+        this.entityData.set(HEALTH_AFF_SPEED, healthAffectsSpeed);
     }
 
 }

@@ -1,7 +1,6 @@
 package com.kadmuffin.bikesarepain.mixin;
 
 import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
-import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;

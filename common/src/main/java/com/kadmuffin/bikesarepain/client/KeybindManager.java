@@ -13,21 +13,21 @@ public class KeybindManager {
     public static boolean alreadyBraking = false;
     public static boolean alreadySwitchedType = false;
 
-    public static KeyMapping RING_BELL = new KeyMapping(
+    public static final KeyMapping RING_BELL = new KeyMapping(
             "key.bikesarepain.ring_bell",
             InputConstants.Type.KEYSYM,
             InputConstants.KEY_B,
             "key.categories.bikesarepain"
     );
 
-    public static KeyMapping BRAKE = new KeyMapping(
+    public static final KeyMapping BRAKE = new KeyMapping(
             "key.bikesarepain.brake",
             InputConstants.Type.KEYSYM,
             InputConstants.KEY_X,
             "key.categories.bikesarepain"
     );
 
-    public static KeyMapping SWITCHD = new KeyMapping(
+    public static final KeyMapping SWITCHD = new KeyMapping(
             "key.bikesarepain.switchd",
             InputConstants.Type.KEYSYM,
             InputConstants.KEY_N,
@@ -44,14 +44,9 @@ public class KeybindManager {
                 return;
             }
 
-            if (minecraft.player.getVehicle() == null || !(minecraft.player.getVehicle() instanceof AbstractBike vehicle)) {
+            if (minecraft.player.getVehicle() == null || !(minecraft.player.getVehicle() instanceof AbstractBike)) {
                 return;
             }
-
-            /*if (RING_BELL.consumeClick()) {
-                NetworkManager.sendToServer(new PacketManager.KeypressPacket(true, PacketManager.KeyPress.RING_BELL));
-            }
-             */
 
             if (RING_BELL.isDown() != alreadyRinging) {
                 alreadyRinging = !alreadyRinging;

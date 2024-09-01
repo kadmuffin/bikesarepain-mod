@@ -5,10 +5,8 @@ import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
-import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -26,7 +24,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -35,7 +32,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
-import org.joml.Vector3f;
 import oshi.util.tuples.Pair;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -45,8 +41,6 @@ import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.ClientUtil;
 import software.bernie.geckolib.util.GeckoLibUtil;
-
-import java.util.Map;
 
 public class Bicycle extends AbstractBike implements GeoEntity {
     public boolean showGears = false;
@@ -186,9 +180,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                     volume *= 1.5F;
                     ticksPerClick /= 2F;
                 }
-
-                // ticksPerClick = Math.max(1, ticksPerClick);
-                // System.out.printf("Speed: %f, Volume: %f, Pitch: %f, TicksPerClick: %f\n", speed, volume, pitch, ticksPerClick);
 
                 if (this.getSpeed() > 0.1F) {
                     float minPitch = 0.8F;

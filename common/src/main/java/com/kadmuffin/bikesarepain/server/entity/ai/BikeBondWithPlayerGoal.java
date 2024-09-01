@@ -7,7 +7,7 @@ import net.minecraft.world.entity.ai.goal.RunAroundLikeCrazyGoal;
 import net.minecraft.world.entity.player.Player;
 
 public class BikeBondWithPlayerGoal extends RunAroundLikeCrazyGoal {
-    public AbstractBike bike;
+    public final AbstractBike bike;
 
     public BikeBondWithPlayerGoal(AbstractBike bikeEntity, double speed) {
         super(bikeEntity, speed);

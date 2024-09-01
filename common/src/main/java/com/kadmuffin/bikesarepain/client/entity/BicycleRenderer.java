@@ -7,7 +7,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
-import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import software.bernie.geckolib.renderer.layer.FastBoneFilterGeoLayer;
@@ -16,7 +15,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
-    public Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF", "Display",
+    public final Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF", "Display",
             "Display1", "Display2", "Display3", "Display4", "Display5", "Display6",
             "TypeScreen", "UnitDistance", "UnitTime", "UnitSpeed", "MonitorRoot"
     );
@@ -77,7 +76,7 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
             if (geoBone.getName().matches("(UnitDistance|UnitTime|UnitSpeed)")) {
                 bikeEntity.getDisplayManager().updateUnitDisplay(geoBone,
                         DodecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
-                        , 0.25f, bikeEntity);
+                        , 0.25f);
             }
 
         }));

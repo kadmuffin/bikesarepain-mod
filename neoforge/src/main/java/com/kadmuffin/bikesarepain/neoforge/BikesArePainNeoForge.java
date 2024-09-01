@@ -7,15 +7,10 @@ import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import dev.architectury.event.events.client.ClientCommandRegistrationEvent;
 import dev.architectury.networking.NetworkManager;
-import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
-import dev.architectury.registry.client.level.entity.forge.EntityRendererRegistryImpl;
 import net.minecraft.client.Minecraft;
-import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 
 import static com.kadmuffin.bikesarepain.BikesArePain.MOD_ID;

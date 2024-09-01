@@ -2,7 +2,6 @@ package com.kadmuffin.bikesarepain.server.item;
 
 import com.kadmuffin.bikesarepain.client.item.BikeItemRenderer;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
-import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -10,19 +9,16 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.animatable.SingletonGeoAnimatable;
 import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
@@ -115,11 +111,7 @@ public class BikeItem extends Item implements GeoItem {
                     entity.setSaveDistance(true);
                 }
 
-                if (itemStack.has(ItemManager.HEALTH_AFFECTS_SPEED.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HEALTH_AFFECTS_SPEED.get()))) {
-                    entity.setHealthAffectsSpeed(true);
-                } else {
-                    entity.setHealthAffectsSpeed(false);
-                }
+                entity.setHealthAffectsSpeed(itemStack.has(ItemManager.HEALTH_AFFECTS_SPEED.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HEALTH_AFFECTS_SPEED.get())));
 
                 // Make the bike look the same direction as the player
                 if (context.getPlayer() != null) {

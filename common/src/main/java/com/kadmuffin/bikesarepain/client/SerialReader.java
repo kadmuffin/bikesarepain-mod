@@ -4,21 +4,11 @@ import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
-import com.mojang.authlib.minecraft.client.MinecraftClient;
 import dev.architectury.networking.NetworkManager;
-import net.minecraft.client.Minecraft;
-
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SerialReader {
-    // private final AtomicBoolean running = new AtomicBoolean(false);
     private final StringBuilder buffer = new StringBuilder();
     private boolean markerFound = false;
     private SerialPort serialPort;
@@ -142,13 +132,10 @@ public class SerialReader {
         this.updateServerData(true);
         this.serialPort.openPort();
         this.speedQueue = new LinkedList<>();
-        //Thread worker = new Thread(this);
-        //worker.start();
         return true;
     }
 
     public boolean stop() {
-        //running.set(false);
         if (this.serialPort == null) {
             return false;
         }

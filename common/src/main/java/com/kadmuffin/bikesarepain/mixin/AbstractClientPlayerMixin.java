@@ -2,11 +2,8 @@ package com.kadmuffin.bikesarepain.mixin;
 
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

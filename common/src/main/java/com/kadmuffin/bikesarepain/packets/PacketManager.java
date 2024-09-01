@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.kadmuffin.bikesarepain.BikesArePain.MOD_ID;
 
 public class PacketManager {
-    public static enum KeyPress {
+    public enum KeyPress {
         RING_BELL(0),
         BRAKE(1),
         SWITCHD(2);
@@ -160,9 +160,7 @@ public class PacketManager {
             buf.writeEnum(obj.keyEnum);
         }, buf -> new KeypressPacket(buf.readBoolean(), buf.readEnum(KeyPress.class)));
 
-        public static final NetworkManager.NetworkReceiver<KeypressPacket> RECEIVER = (packet, contextSupplier) -> {
-            packet.keyEnum.run(packet.isPressed, contextSupplier);
-        };
+        public static final NetworkManager.NetworkReceiver<KeypressPacket> RECEIVER = (packet, contextSupplier) -> packet.keyEnum.run(packet.isPressed, contextSupplier);
 
         @Override
         public @NotNull Type<? extends CustomPacketPayload> type() {
@@ -172,9 +170,7 @@ public class PacketManager {
 
     public record UnitSystemPacket(boolean useImperial) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<UnitSystemPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "unit_system"));
-        public static final StreamCodec<FriendlyByteBuf, UnitSystemPacket> CODEC = StreamCodec.of((buf, obj) -> {
-            buf.writeBoolean(obj.useImperial);
-        }, buf -> new UnitSystemPacket(buf.readBoolean()));
+        public static final StreamCodec<FriendlyByteBuf, UnitSystemPacket> CODEC = StreamCodec.of((buf, obj) -> buf.writeBoolean(obj.useImperial), buf -> new UnitSystemPacket(buf.readBoolean()));
 
         public static final NetworkManager.NetworkReceiver<UnitSystemPacket> RECEIVER = (packet, contextSupplier) -> {
             Player player = contextSupplier.getPlayer();

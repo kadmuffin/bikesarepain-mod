@@ -10,9 +10,7 @@ import java.util.List;
 
 public class DodecagonDisplayManager {
     private static final int MAX_DISPLAYS = 6;
-    private static final int MAX_UNITS = 3;
     private static final float DECIMAL_PRECISION = 1000;
-    private static final int[] POWERS_OF_10 = {1, 10, 100, 1000, 10000, 100000};
     private static final float[] ROTATION_ANGLES = {
             0f,    // Nothing
             (float) Math.toRadians(-30f),  // .
@@ -133,7 +131,7 @@ public class DodecagonDisplayManager {
             };
         }
 
-    };
+    }
 
 
     private final float[] currentRotations = new float[MAX_DISPLAYS];
@@ -227,8 +225,6 @@ public class DodecagonDisplayManager {
 
         int digitCount = integerDigits + maxDecimalPlaces;
         bicycle.setDigitCount(digitCount);
-
-        int displayIndex = 0;
 
         // Handle integer part
         int integerIndex = 0;
@@ -331,16 +327,10 @@ public class DodecagonDisplayManager {
         return type.getSubType().shouldHide(unitIndex);
     }
 
-    // Checks if the unit is rotating, and if so, wait until we are at 45 degrees
-    // of the current unit rotation until hiding
-    public boolean shouldHideUnitRot(DisplayType type, int unitIndex, float currentUnitRotation) {
-        return shouldHideUnit(type, unitIndex) && Math.abs(currentUnitRotation - TYPE_SCREEN_ROT[type.getType()][1]) < Math.PI / 4;
-    }
-
     // Automatically hides the unit display based on the type and current rotation
     // That is, it won't switch the unit being display unless we are halfway through the target rotation
     // of the new unit. Automatically lerps the unit rotation
-    public void updateUnitDisplay(GeoBone bone, DisplayType type, float lerpFactor, Bicycle bicycle) {
+    public void updateUnitDisplay(GeoBone bone, DisplayType type, float lerpFactor) {
         String boneName = bone.getName();
         int unitIndex = getUnitIndex(boneName);
 

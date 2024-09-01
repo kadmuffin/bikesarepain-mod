@@ -7,6 +7,7 @@ import dev.architectury.injectables.annotations.ExpectPlatform;
 import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.*;
@@ -22,6 +23,23 @@ public class ItemManager {
             ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "saddled"),
             () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
     );
+    public static final RegistrySupplier<DataComponentType<Boolean>> SAVE_TIME = BikesArePain.DATA_COMPONENTS.register(
+            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "save_time"),
+            () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
+    );
+    public static final RegistrySupplier<DataComponentType<Boolean>> SAVE_DISTANCE = BikesArePain.DATA_COMPONENTS.register(
+            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "save_distance"),
+            () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
+    );
+    public static final RegistrySupplier<DataComponentType<Float>> DISTANCE_MOVED = BikesArePain.DATA_COMPONENTS.register(
+            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "distance_moved"),
+            () -> DataComponentType.<Float>builder().persistent(Codec.FLOAT).build()
+    );
+    public static final RegistrySupplier<DataComponentType<Integer>> TICKS_MOVED = BikesArePain.DATA_COMPONENTS.register(
+            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "ticks_ridden"),
+            () -> DataComponentType.<Integer>builder().persistent(Codec.INT).build()
+    );
+
     public static final RegistrySupplier<Item> BICYCLE_ITEM = BikesArePain.ITEMS.register("bicycle_item", () ->
             new BikeItem(EntityManager.BICYCLE.get(),
                     ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_item"),
@@ -31,6 +49,10 @@ public class ItemManager {
                             .durability(100)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
                             .component(SADDLED.get(), false)
+                            .component(SAVE_TIME.get(), true)
+                            .component(SAVE_DISTANCE.get(), true)
+                            .component(DISTANCE_MOVED.get(), 0.0F)
+                            .component(TICKS_MOVED.get(), 0)
             )
     );
 

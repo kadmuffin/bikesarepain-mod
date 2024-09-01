@@ -52,8 +52,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private int ticksSinceLastBrake = 0;
     private SoundType soundType = SoundType.WOOD;
     private final DodecagonDisplayManager displayManager = new DodecagonDisplayManager();
-    private int ticksPedalling = 0;
-    private float distanceMoved = 0;
 
 
     private static final EntityDataAccessor<Integer> DISPLAYSTAT = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
@@ -123,7 +121,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     public @NotNull Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
-        this.ticksPedalling = 0;
         return super.getDismountLocationForPassenger(passenger);
     }
 
@@ -171,12 +168,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             boolean isReverse = g < 0.0F;
 
             if (speed > 0.05) {
-                ticksPedalling++;
-
-                // Calculate the distance moved in meters
-                // 1 block = 1 meter
-                this.distanceMoved += (float) (Math.abs(this.getSpeed()) * 20 / 3.6);
-
                 // Depending on the speed, we'll scale the volume and pitch
                 // with a sprinkle of randomness
                 final float pitch = 0.85F + Math.min(speed, 2.0F) + (float) Math.random() * 0.1F * this.soundType.getPitch();
@@ -386,6 +377,18 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         if (includeSaddle) {
             itemStack.set(ItemManager.SADDLED.get(), this.isSaddled());
         }
+
+        if (this.isSavingTime()) {
+            itemStack.set(ItemManager.SAVE_TIME.get(), true);
+            itemStack.set(ItemManager.TICKS_MOVED.get(), this.getTicksTravelled());
+        }
+
+        if (this.isSavingDistance()) {
+            itemStack.set(ItemManager.SAVE_DISTANCE.get(), true);
+            // Save up to two decimal places
+            itemStack.set(ItemManager.DISTANCE_MOVED.get(), (float) Math.round(this.getBlocksTravelled() * 100) / 100);
+        }
+
         return itemStack;
     }
 
@@ -545,14 +548,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         this.setCurrentDisplayStat(type.getType());
     }
 
-    public float getTicksPedalled() {
-        return this.ticksPedalling;
-    }
-
-    public float getDistanceMoved() {
-        return this.distanceMoved;
-    }
-
     public Pair<DodecagonDisplayManager.DisplayType, Float> autoCastUnitDistance(float distance) {
         DodecagonDisplayManager.DisplayType displayType = DodecagonDisplayManager.DisplayType.DISTANCE_METERS;
         if (distance > 1000) {
@@ -617,7 +612,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             if (mixPlayer.bikesarepain$isJSCActive()) {
                 return switch (subType) {
                     case DISTANCE -> this.autoCastUnitDistance(mixPlayer.bikesarepain$getJSCDistance());
-                    case TIME -> this.autoCastUnitTime(this.getTicksPedalled());
+                    case TIME -> this.autoCastUnitTime(this.getTicksTravelled());
                     case SPEED -> this.autoCastUnitSpeed(mixPlayer.bikesarepain$getJSCSpeed(), true);
                     case CALORIES ->
                             new Pair<>(DodecagonDisplayManager.DisplayType.CALORIES_KCAL, mixPlayer.bikesarepain$getJSCCalories());
@@ -625,8 +620,8 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             }
         }
         return switch (subType) {
-            case DISTANCE -> this.autoCastUnitDistance(this.getDistanceMoved());
-            case TIME -> this.autoCastUnitTime(this.getTicksPedalled());
+            case DISTANCE -> this.autoCastUnitDistance(this.getBlocksTravelled());
+            case TIME -> this.autoCastUnitTime(this.getTicksTravelled());
             default -> this.autoCastUnitSpeed(this.getSpeedInMetersPerSecond(), false);
         };
     }

@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -35,9 +36,16 @@ import org.joml.Vector3f;
 
 public abstract class AbstractBike extends AbstractHorse implements PlayerRideableJumping, Saddleable {
     protected boolean jumping;
+
+    private boolean saveTime = false;
+    private boolean saveDistance = false;
+
     public boolean hasChest = false;
     public float bikePitch = 0.0F;
     private float rearWheelSpeed = 0.0F;
+
+    private float blocksTravelled = 0.0F;
+    private int ticksTravelled = 0;
 
     // DataParameters for commented out variables
     private static final EntityDataAccessor<Float> TILT = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
@@ -57,6 +65,26 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.22499999403953552)
                 .add(Attributes.FALL_DAMAGE_MULTIPLIER, 0.4D);
+    }
+
+    @Override
+    public void addAdditionalSaveData(CompoundTag compound) {
+        super.addAdditionalSaveData(compound);
+        compound.putBoolean("SaveTime", this.saveTime);
+        compound.putBoolean("SaveDistance", this.saveDistance);
+        compound.putBoolean("HasChest", this.hasChest);
+        compound.putFloat("BlocksTravelled", this.blocksTravelled);
+        compound.putInt("TicksTravelled", this.ticksTravelled);
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundTag compound) {
+        super.readAdditionalSaveData(compound);
+        this.saveTime = compound.getBoolean("SaveTime");
+        this.saveDistance = compound.getBoolean("SaveDistance");
+        this.hasChest = compound.getBoolean("HasChest");
+        this.blocksTravelled = compound.getFloat("BlocksTravelled");
+        this.ticksTravelled = compound.getInt("TicksTravelled");
     }
 
     @Override
@@ -142,24 +170,27 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public void tick() {
         super.tick();
         if (this.getFirstPassenger() instanceof Player playerEntity) {
-            if (((PlayerAccessor) playerEntity).bikesarepain$isJSCActive() && !this.level().isClientSide()) {
-                // Display colored message
-                // "Speed": red, "Distance": green, "Kcalories": blue
-                playerEntity.displayClientMessage(Component.literal("Speed: ").withColor(CommonColors.GREEN)
-                        .append(Component.literal(
-                                        ((float) Math.round(
-                                                ((PlayerAccessor) playerEntity).bikesarepain$getJSCSpeed()
-                                                *100))/100 + " km/h "
-                                        ).withColor(CommonColors.RED)
-                                .append(Component.literal("Distance: ").withColor(CommonColors.GREEN)
-                                        .append(Component.literal(((float) Math.round(
-                                                        ((PlayerAccessor) playerEntity).bikesarepain$getJSCDistance()
-                                                *100))/100 + " meters ").withColor(CommonColors.BLUE)
-                                                .append(Component.literal("Calories Spent: ").withColor(CommonColors.GREEN)
-                                                        .append(Component.literal(
-                                                                ((float) Math.round(
-                                                                        ((PlayerAccessor) playerEntity).bikesarepain$getJSCCalories()
-                                                                        *100))/100 + " kcal").withColor(CommonColors.BLUE)))))), true);
+            if (!this.level().isClientSide()) {
+
+                if (((PlayerAccessor) playerEntity).bikesarepain$isJSCActive()) {
+                    // Display colored message
+                    // "Speed": red, "Distance": green, "Kcalories": blue
+                    playerEntity.displayClientMessage(Component.literal("Speed: ").withColor(CommonColors.GREEN)
+                            .append(Component.literal(
+                                            ((float) Math.round(
+                                                    ((PlayerAccessor) playerEntity).bikesarepain$getJSCSpeed()
+                                                    *100))/100 + " km/h "
+                                            ).withColor(CommonColors.RED)
+                                    .append(Component.literal("Distance: ").withColor(CommonColors.GREEN)
+                                            .append(Component.literal(((float) Math.round(
+                                                            ((PlayerAccessor) playerEntity).bikesarepain$getJSCDistance()
+                                                    *100))/100 + " meters ").withColor(CommonColors.BLUE)
+                                                    .append(Component.literal("Calories Spent: ").withColor(CommonColors.GREEN)
+                                                            .append(Component.literal(
+                                                                    ((float) Math.round(
+                                                                            ((PlayerAccessor) playerEntity).bikesarepain$getJSCCalories()
+                                                                            *100))/100 + " kcal").withColor(CommonColors.BLUE)))))), true);
+                }
             }
             if (!this.isSaddled()) {
                 playerEntity.hurt(new DamageSources(this.registryAccess()).sting(this), 0.5F);
@@ -376,6 +407,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     protected @NotNull Vec3 getRiddenInput(Player controllingPlayer, Vec3 movementInput) {
         this.updateMovement(controllingPlayer.xxa, controllingPlayer.zza);
 
+        if (this.getSpeed() > 0.05F) {
+            this.blocksTravelled += this.getSpeed();
+            this.ticksTravelled++;
+        }
+
         return new Vec3(0.0, 0.0, 1.0F);
     }
 
@@ -512,6 +548,38 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     public Player getRider() {
         return this.getControllingPassenger() instanceof Player ? (Player) this.getControllingPassenger() : null;
+    }
+
+    public float getBlocksTravelled() {
+        return this.blocksTravelled;
+    }
+
+    public int getTicksTravelled() {
+        return this.ticksTravelled;
+    }
+
+    public void setBlocksTravelled(float blocksTravelled) {
+        this.blocksTravelled = blocksTravelled;
+    }
+
+    public void setTicksTravelled(int ticksTravelled) {
+        this.ticksTravelled = ticksTravelled;
+    }
+
+    public void setSaveTime(boolean saveTime) {
+        this.saveTime = saveTime;
+    }
+
+    public void setSaveDistance(boolean saveDistance) {
+        this.saveDistance = saveDistance;
+    }
+
+    public boolean isSavingTime() {
+        return this.saveTime;
+    }
+
+    public boolean isSavingDistance() {
+        return this.saveDistance;
     }
 
 }

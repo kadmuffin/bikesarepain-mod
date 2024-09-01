@@ -105,6 +105,16 @@ public class BikeItem extends Item implements GeoItem {
                     entity.equipSaddle(saddle, null);
                 }
 
+                if (itemStack.has(ItemManager.SAVE_TIME.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SAVE_TIME.get()))) {
+                    entity.setTicksTravelled(Objects.requireNonNullElse(itemStack.get(ItemManager.TICKS_MOVED.get()), 0));
+                    entity.setSaveTime(true);
+                }
+
+                if (itemStack.has(ItemManager.SAVE_DISTANCE.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SAVE_DISTANCE.get()))) {
+                    entity.setBlocksTravelled(Objects.requireNonNullElse(itemStack.get(ItemManager.DISTANCE_MOVED.get()), 0.0F));
+                    entity.setSaveDistance(true);
+                }
+
                 // Make the bike look the same direction as the player
                 if (context.getPlayer() != null) {
                     entity.setYRot(context.getPlayer().getYRot());

@@ -2,6 +2,7 @@ package com.kadmuffin.bikesarepain.server.item;
 
 import com.kadmuffin.bikesarepain.client.item.BikeItemRenderer;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
+import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -109,6 +110,10 @@ public class BikeItem extends Item implements GeoItem {
                 if (itemStack.has(ItemManager.SAVE_DISTANCE.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SAVE_DISTANCE.get()))) {
                     entity.setBlocksTravelled(Objects.requireNonNullElse(itemStack.get(ItemManager.DISTANCE_MOVED.get()), 0.0F));
                     entity.setSaveDistance(true);
+                }
+
+                if (entity instanceof Bicycle && itemStack.has(ItemManager.HAS_BALLOON.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HAS_BALLOON.get()))) {
+                    ((Bicycle) entity).setHasBalloon(true);
                 }
 
                 entity.setHealthAffectsSpeed(itemStack.has(ItemManager.HEALTH_AFFECTS_SPEED.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HEALTH_AFFECTS_SPEED.get())));

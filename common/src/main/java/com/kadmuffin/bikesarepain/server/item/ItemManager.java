@@ -41,6 +41,10 @@ public class ItemManager {
             ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "ticks_ridden"),
             () -> DataComponentType.<Integer>builder().persistent(Codec.INT).build()
     );
+    public static final RegistrySupplier<DataComponentType<Boolean>> HAS_BALLOON = BikesArePain.DATA_COMPONENTS.register(
+            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "has_balloon"),
+            () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
+    );
 
     public static final RegistrySupplier<Item> BICYCLE_ITEM = BikesArePain.ITEMS.register("bicycle_item", () ->
             new BikeItem(EntityManager.BICYCLE.get(),
@@ -56,6 +60,7 @@ public class ItemManager {
                             .component(DISTANCE_MOVED.get(), 0.0F)
                             .component(TICKS_MOVED.get(), 0)
                             .component(HEALTH_AFFECTS_SPEED.get(), true)
+                            .component(HAS_BALLOON.get(), true)
             )
     );
 

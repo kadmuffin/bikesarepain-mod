@@ -17,7 +17,7 @@ import java.util.function.Supplier;
 public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
     public final Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF", "Display",
             "Display1", "Display2", "Display3", "Display4", "Display5", "Display6",
-            "TypeScreen", "UnitDistance", "UnitTime", "UnitSpeed", "MonitorRoot"
+            "TypeScreen", "UnitDistance", "UnitTime", "UnitSpeed", "MonitorRoot", "Propellers", "SpinningThing", "SpinningThing2"
     );
 
     public BicycleRenderer(EntityRendererProvider.Context renderManager) {
@@ -56,6 +56,7 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
             }
 
             if (geoBone.getName().equals("ActualRoot")) {
+                // TODO: Switch hacky old way to using radians directly
                 float pitch = bikeEntity.bikePitch - 0.4F;
                 pitch = Math.max(0, pitch);
 
@@ -64,6 +65,10 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
                 }
 
                 bikeEntity.bikePitch = Math.max(0, bikeEntity.bikePitch - 0.4F);
+            }
+
+            if (geoBone.getName().equals("Propellers")) {
+                geoBone.setHidden(!bikeEntity.hasBalloon());
             }
 
             // Check via regex if it matches s[1-9]{1,2}
@@ -77,6 +82,10 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
                 bikeEntity.getDisplayManager().updateUnitDisplay(geoBone,
                         DodecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
                         , 0.25f);
+            }
+
+            if (geoBone.getName().matches("SpinningThing|SpinningThing2")) {
+                geoBone.setRotZ(bikeEntity.getBackWheelRotation());
             }
 
         }));

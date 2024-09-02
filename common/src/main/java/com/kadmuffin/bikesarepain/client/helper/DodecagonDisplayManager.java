@@ -156,7 +156,6 @@ public class DodecagonDisplayManager {
 
     public void updateDisplayLerped(GeoBone bone, DisplayType type, float lerpFactor, Bicycle bicycle) {
         if (bicycle.getCachedTarget() == -1) {
-            System.out.println("No target number has been preprocessed.");
             return;
         }
 

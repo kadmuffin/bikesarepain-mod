@@ -23,7 +23,7 @@ public class KeybindManager {
     public static final KeyMapping BRAKE = new KeyMapping(
             "key.bikesarepain.brake",
             InputConstants.Type.KEYSYM,
-            InputConstants.KEY_X,
+            InputConstants.KEY_V,
             "key.categories.bikesarepain"
     );
 

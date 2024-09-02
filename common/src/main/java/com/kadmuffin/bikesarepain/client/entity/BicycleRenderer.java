@@ -17,7 +17,8 @@ import java.util.function.Supplier;
 public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
     public final Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF", "Display",
             "Display1", "Display2", "Display3", "Display4", "Display5", "Display6",
-            "TypeScreen", "UnitDistance", "UnitTime", "UnitSpeed", "MonitorRoot", "Propellers", "SpinningThing", "SpinningThing2"
+            "TypeScreen", "UnitDistance", "UnitTime", "UnitSpeed", "MonitorRoot", "Propellers", "SpinningThing", "SpinningThing2",
+            "Chest"
     );
 
     public BicycleRenderer(EntityRendererProvider.Context renderManager) {
@@ -86,6 +87,10 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
 
             if (geoBone.getName().matches("SpinningThing|SpinningThing2")) {
                 geoBone.setRotZ(bikeEntity.getBackWheelRotation());
+            }
+
+            if (geoBone.getName().equals("Chest")) {
+                geoBone.setHidden(!bikeEntity.hasChest());
             }
 
         }));

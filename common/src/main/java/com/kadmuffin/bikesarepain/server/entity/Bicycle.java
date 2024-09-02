@@ -14,9 +14,11 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
@@ -52,6 +54,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private SoundType soundType = SoundType.WOOD;
     private final DodecagonDisplayManager displayManager = new DodecagonDisplayManager();
 
+    private static final EntityDataAccessor<Boolean> HAS_CHEST = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> HAS_BALLOON = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> TICKS_OUT_OF_WATER = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> BALLOON_INFLATED = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
@@ -97,6 +100,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         builder.define(DISPLAYSTAT, 0);
         builder.define(BALLOON_INFLATED, false);
         builder.define(HAS_BALLOON, false);
+        builder.define(HAS_CHEST, false);
         builder.define(TICKS_OUT_OF_WATER, 0);
     }
 
@@ -105,6 +109,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         super.addAdditionalSaveData(compound);
         compound.putBoolean("ShowGears", this.showGears);
         compound.putBoolean("HasBalloon", this.hasBalloon());
+        compound.putBoolean("HasChest", this.hasChest());
 
     }
 
@@ -114,6 +119,19 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         super.readAdditionalSaveData(compound);
         this.showGears = compound.getBoolean("ShowGears");
         this.setHasBalloon(compound.getBoolean("HasBalloon"));
+        this.setChested(compound.getBoolean("HasChest"));
+    }
+
+    @Override
+    public int getInventoryColumns() {
+        if (!this.hasChest()) {
+            return 0;
+        }
+        return 5;
+    }
+
+    public static EntityDataAccessor<Boolean> getHasChest() {
+        return HAS_CHEST;
     }
 
     @Override
@@ -275,7 +293,10 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                         this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 1.0F);
                     } else {
                         // Play the repair sound (the lower the health, the lower the pitch)
-                        this.playSound(SoundEvents.ANVIL_USE, 1.0F, 1.8F * healthPercentage);
+                        float maxPitch = 1.28F;
+                        float minPitch = 0.8F;
+                        float pitch = minPitch + healthPercentage * (maxPitch - minPitch);
+                        this.playSound(SoundEvents.ANVIL_USE, 1.0F, pitch);
                     }
 
                     // Do some particles
@@ -284,7 +305,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                     return InteractionResult.sidedSuccess(this.level().isClientSide());
                 }
 
-                return InteractionResult.PASS;
+                return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
             if (player.getItemInHand(hand).getItem() == Items.STICK) {
@@ -301,13 +322,39 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
-            if (player.getItemInHand(hand).getItem() == Items.SADDLE) {
+            if (player.getItemInHand(hand).getItem() == Items.CHEST) {
+                if (this.hasChest()) {
+                    return InteractionResult.sidedSuccess(this.level().isClientSide());
+                }
+                this.setChested(true);
+                this.playSound(SoundEvents.CHEST_CLOSE, 1.0F, 1.0F);
+                this.createInventory();
+
+                if (!player.isCreative()) {
+                    player.getItemInHand(hand).shrink(1);
+                }
+
+                return InteractionResult.sidedSuccess(this.level().isClientSide());
+            }
+
+            if (player.getItemInHand(hand).getItem() != Items.AIR) {
                 this.openCustomInventoryScreen(player);
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
+            this.playSound(SoundEvents.ITEM_FRAME_BREAK, 1.0F, 1.6F);
+
             // Summon an item
             this.spawnAtLocation(this.getBicycleItem(true));
+
+            // Remove saddle so it doesn't drop twice
+            this.equipSaddle(ItemStack.EMPTY, null);
+
+            if (this.hasChest()) {
+                this.spawnAtLocation(Items.CHEST);
+            }
+
+            this.dropEquipment();
             this.remove(RemovalReason.DISCARDED);
 
             return InteractionResult.sidedSuccess(this.level().isClientSide());
@@ -395,10 +442,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         if (this.hasBalloon()) {
             if (this.isInWater()) {
                 event.setAndContinue(BALLOON_INFLATE_ANIM);
+                this.playSound(SoundEvents.ANVIL_PLACE, 0.5F, 1.7F);
                 this.setTicksOutOfWater(0);
             } else if (this.isBalloonInflated()) {
                 if (this.getTicksOutOfWater() > 20) {
                     event.setAndContinue(BALLOON_DEFLATE_ANIM);
+                    this.playSound(SoundEvents.ANVIL_HIT, 0.5F, 0.4F);
                     this.setBalloonInflated(false);
                 }
                 this.setTicksOutOfWater(this.getTicksOutOfWater() + 1);
@@ -454,7 +503,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     @Override
     protected float getWaterSlowDown() {
         if (this.isBalloonInflated()) {
-            return 0.9F;
+            return 0.94F;
         }
 
         return super.getWaterSlowDown();
@@ -790,6 +839,14 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     public int getTicksOutOfWater() {
         return this.entityData.get(TICKS_OUT_OF_WATER);
+    }
+
+    public boolean hasChest() {
+        return this.entityData.get(HAS_CHEST);
+    }
+
+    public void setChested(boolean hasChest) {
+        this.entityData.set(HAS_CHEST, hasChest);
     }
 
     public Vec3 getDisplayPos() {

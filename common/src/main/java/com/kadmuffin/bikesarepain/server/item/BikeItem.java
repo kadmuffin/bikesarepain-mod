@@ -131,6 +131,7 @@ public class BikeItem extends Item implements GeoItem {
                     entity.setOwnerUUID(context.getPlayer().getUUID());
                     entity.setTamed(true);
                 }
+
             }
 
             return InteractionResult.CONSUME;

@@ -13,8 +13,8 @@
   "item.bikesarepain.bicycle_item.tooltip.saddled": "Is Saddled: ",
   "item.bikesarepain.bicycle_item.tooltip.save_time": "Remembers Biked Time: ",
   "item.bikesarepain.bicycle_item.tooltip.save_distance": "Remembers Distance: ",
-  "item.bikesarepain.bicycle_item.tooltip.distance_moved": "Distance Moved: ",
-    "item.bikesarepain.bicycle_item.tooltip.time_ridden": "Time Ridden: ",
+  "item.bikesarepain.bicycle_item.tooltip.distance_moved": "Distance Pedalled: ",
+  "item.bikesarepain.bicycle_item.tooltip.time_ridden": "Time Ridden: ",
   "item.bikesarepain.bicycle_item.tooltip.yes": "Yes",
   "item.bikesarepain.bicycle_item.tooltip.no": "No",
 

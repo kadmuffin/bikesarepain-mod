@@ -62,9 +62,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     public static AttributeSupplier.@NotNull Builder createBaseHorseAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 20.0D)
+                .add(Attributes.MAX_HEALTH, 30.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.22499999403953552)
-                .add(Attributes.FALL_DAMAGE_MULTIPLIER, 0.4D);
+                .add(Attributes.FALL_DAMAGE_MULTIPLIER, 0.8D);
     }
 
     @Override
@@ -126,6 +126,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     @Override
     public boolean canEatGrass() {
         return false;
+    }
+
+    @Override
+    protected void createInventory() {
+        super.createInventory();
     }
 
     @Override
@@ -388,7 +393,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.updateMovement(controllingPlayer.xxa, controllingPlayer.zza);
 
         if (this.getSpeed() > 0.05F) {
-            this.blocksTravelled += this.getSpeed();
+            this.blocksTravelled += this.getSpeed() / this.getWheelRadius();
             this.ticksTravelled++;
         }
 

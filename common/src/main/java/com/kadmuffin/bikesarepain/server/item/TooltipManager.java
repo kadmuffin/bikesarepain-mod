@@ -2,6 +2,7 @@ package com.kadmuffin.bikesarepain.server.item;
 
 import dev.architectury.event.events.client.ClientTooltipEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.CommonColors;
 import software.bernie.geckolib.util.Color;
 
@@ -64,13 +65,22 @@ public class TooltipManager {
                 if (stack.has(ItemManager.SAVE_DISTANCE.get()) && Boolean.TRUE.equals(stack.get(ItemManager.SAVE_DISTANCE.get()))) {
                     if (stack.has(ItemManager.DISTANCE_MOVED.get())) {
                         float distanceMoved = Objects.requireNonNullElse(stack.get(ItemManager.DISTANCE_MOVED.get()), 0.0F);
-                        lines.add(
-                                Component.translatable("item.bikesarepain.bicycle_item.tooltip.distance_moved")
-                                        .withColor(CommonColors.GRAY)
-                                        .append(Component.literal(distanceMoved + "m")
-                                                .withColor(CommonColors.GREEN))
-                        );
+                        MutableComponent msg = Component.translatable("item.bikesarepain.bicycle_item.tooltip.distance_moved")
+                                .withColor(CommonColors.GRAY);
 
+                        if (distanceMoved >= 1000) {
+                            int km = (int) (distanceMoved / 1000);
+                            int m = (int) (distanceMoved % 1000);
+                            lines.add(
+                                    msg.append(Component.literal(km + "km " + m + "m")
+                                            .withColor(CommonColors.GREEN))
+                            );
+                        } else {
+                            lines.add(
+                                    msg.append(Component.literal(distanceMoved + "m")
+                                            .withColor(CommonColors.GREEN))
+                            );
+                        }
                     }
                 }
 

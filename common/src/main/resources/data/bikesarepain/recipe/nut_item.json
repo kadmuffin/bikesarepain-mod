@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "group": "iron_ingot",
+  "pattern": [
+    "nn",
+    "nn"
+  ],
+  "key": {
+    "i": {
+      "item": "minecraft:iron_nugget"
+    }
+  },
+  "result": {
+    "id": "bikesarepain:nut_item",
+    "count": 1
+  },
+  "show_notification": true
+}

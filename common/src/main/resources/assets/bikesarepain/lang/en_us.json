@@ -6,6 +6,8 @@
   "key.bikesarepain.brake": "Brake",
   "key.bikesarepain.switchd": "Display Stat Switch",
 
+  "item.bikesarepain.nut_item": "Nut",
+  "item.bikesarepain.wrench_item": "Wrench",
   "item.bikesarepain.bicycle_item": "Bicycle",
   "item.bikesarepain.bicycle_item.tooltip.brand_new": "A brand new bicycle.",
   "item.bikesarepain.bicycle_item.tooltip.repair": "Repair with iron nuggets with an anvil.",

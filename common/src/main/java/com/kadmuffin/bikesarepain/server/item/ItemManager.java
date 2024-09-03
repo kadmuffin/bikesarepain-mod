@@ -60,7 +60,24 @@ public class ItemManager {
                             .component(DISTANCE_MOVED.get(), 0.0F)
                             .component(TICKS_MOVED.get(), 0)
                             .component(HEALTH_AFFECTS_SPEED.get(), true)
-                            .component(HAS_BALLOON.get(), true)
+                            .component(HAS_BALLOON.get(), false)
+            )
+    );
+
+    public static final RegistrySupplier<Item> NUT_ITEM = BikesArePain.ITEMS.register("nut_item", () ->
+            new NutItem(new Item.Properties()
+                    .stacksTo(64)
+                    .rarity(Rarity.COMMON)
+                    .arch$tab(ItemManager.BIKES_MOD_TAB)
+            )
+    );
+
+    public static final RegistrySupplier<Item> WRENCH_ITEM = BikesArePain.ITEMS.register("wrench_item", () ->
+            new WrenchItem(new Item.Properties()
+                    .stacksTo(1)
+                    .rarity(Rarity.UNCOMMON)
+                    .arch$tab(ItemManager.BIKES_MOD_TAB)
+                    .durability(100)
             )
     );
 

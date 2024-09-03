@@ -54,7 +54,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private SoundType soundType = SoundType.WOOD;
     private final DodecagonDisplayManager displayManager = new DodecagonDisplayManager();
 
-    private static final EntityDataAccessor<Boolean> HAS_CHEST = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> HAS_BALLOON = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> TICKS_OUT_OF_WATER = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> BALLOON_INFLATED = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
@@ -100,7 +99,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         builder.define(DISPLAYSTAT, 0);
         builder.define(BALLOON_INFLATED, false);
         builder.define(HAS_BALLOON, false);
-        builder.define(HAS_CHEST, false);
         builder.define(TICKS_OUT_OF_WATER, 0);
     }
 
@@ -109,7 +107,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         super.addAdditionalSaveData(compound);
         compound.putBoolean("ShowGears", this.showGears);
         compound.putBoolean("HasBalloon", this.hasBalloon());
-        compound.putBoolean("HasChest", this.hasChest());
 
     }
 
@@ -119,7 +116,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         super.readAdditionalSaveData(compound);
         this.showGears = compound.getBoolean("ShowGears");
         this.setHasBalloon(compound.getBoolean("HasBalloon"));
-        this.setChested(compound.getBoolean("HasChest"));
     }
 
     @Override
@@ -128,10 +124,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             return 0;
         }
         return 5;
-    }
-
-    public static EntityDataAccessor<Boolean> getHasChest() {
-        return HAS_CHEST;
     }
 
     @Override
@@ -278,47 +270,46 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         if (!this.getPassengers().isEmpty() && !this.canAddPassenger(player)){
             return super.mobInteract(player, hand);
         } else if (player.isShiftKeyDown()) {
-            // Each nugget repairs 1 health
-            if (player.getItemInHand(hand).getItem() == Items.IRON_NUGGET) {
-                if (this.showGears
-                        && this.getHealth() < this.getMaxHealth()) {
-                    if (!player.isCreative()) {
-                        player.getItemInHand(hand).shrink(1);
+            if (player.getItemInHand(hand).getItem() == ItemManager.WRENCH_ITEM.get()) {
+                if (player.getOffhandItem().getItem() == ItemManager.NUT_ITEM.get()) {
+                    if (this.showGears
+                            && this.getHealth() < this.getMaxHealth()) {
+                        if (!player.isCreative()) {
+                            player.getOffhandItem().shrink(1);
+                            player.getItemInHand(hand).hurtAndBreak(1, player, EquipmentSlot.OFFHAND);
+                        }
+
+                        this.actuallyHeal(1.0F);
+                        float healthPercentage = (this.getHealth() / this.getMaxHealth());
+
+                        if (this.getHealth() == this.getMaxHealth()) {
+                            this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 1.0F);
+                        } else {
+                            // Play the repair sound (the lower the health, the lower the pitch)
+                            float maxPitch = 1.28F;
+                            float minPitch = 0.8F;
+                            float pitch = minPitch + healthPercentage * (maxPitch - minPitch);
+                            this.playSound(SoundEvents.ANVIL_USE, 1.0F, pitch);
+                        }
+
+                        // Do some particles
+                        this.level().broadcastEntityEvent(this, (byte) 7);
+
+                        return InteractionResult.sidedSuccess(this.level().isClientSide());
                     }
 
-                    this.actuallyHeal(1.0F);
-                    float healthPercentage = (this.getHealth() / this.getMaxHealth());
+                } else {
+                    // Toggle the showGears state
+                    this.showGears = !this.showGears;
 
-                    if (this.getHealth() == this.getMaxHealth()) {
-                        this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 1.0F);
-                    } else {
-                        // Play the repair sound (the lower the health, the lower the pitch)
-                        float maxPitch = 1.28F;
-                        float minPitch = 0.8F;
-                        float pitch = minPitch + healthPercentage * (maxPitch - minPitch);
-                        this.playSound(SoundEvents.ANVIL_USE, 1.0F, pitch);
-                    }
+                    // Determine the sound to play based on the new state
+                    SoundEvent soundEvent = this.showGears ? SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF : SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON;
 
-                    // Do some particles
-                    this.level().broadcastEntityEvent(this, (byte) 7);
+                    // Play the corresponding sound
+                    this.playSound(soundEvent, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
 
-                    return InteractionResult.sidedSuccess(this.level().isClientSide());
+                    // Return the interaction result
                 }
-
-                return InteractionResult.sidedSuccess(this.level().isClientSide());
-            }
-
-            if (player.getItemInHand(hand).getItem() == Items.STICK) {
-                // Toggle the showGears state
-                this.showGears = !this.showGears;
-
-                // Determine the sound to play based on the new state
-                SoundEvent soundEvent = this.showGears ? SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF : SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON;
-
-                // Play the corresponding sound
-                this.playSound(soundEvent, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
-
-                // Return the interaction result
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
@@ -839,14 +830,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     public int getTicksOutOfWater() {
         return this.entityData.get(TICKS_OUT_OF_WATER);
-    }
-
-    public boolean hasChest() {
-        return this.entityData.get(HAS_CHEST);
-    }
-
-    public void setChested(boolean hasChest) {
-        this.entityData.set(HAS_CHEST, hasChest);
     }
 
     public Vec3 getDisplayPos() {

@@ -436,7 +436,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 this.playSound(SoundEvents.ANVIL_PLACE, 0.5F, 1.7F);
                 this.setTicksOutOfWater(0);
             } else if (this.isBalloonInflated()) {
-                if (this.getTicksOutOfWater() > 20) {
+                if (this.getTicksOutOfWater() > 20 || this.getPassengers().isEmpty()) {
                     event.setAndContinue(BALLOON_DEFLATE_ANIM);
                     this.playSound(SoundEvents.ANVIL_HIT, 0.5F, 0.4F);
                     this.setBalloonInflated(false);

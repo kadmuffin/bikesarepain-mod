@@ -114,7 +114,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     @Override
     protected boolean canAddPassenger(Entity passenger) {
-        return this.getPassengers().size() < 2 && !this.hasChest();
+        return this.getPassengers().isEmpty() || (this.getPassengers().size() < 2 && !this.hasChest());
     }
 
     @Override

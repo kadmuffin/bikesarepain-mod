@@ -110,7 +110,9 @@ public class SerialReader {
                                         lastKcalories = kcalories;
                                         lastWheelCircumference = wheelCircumference;
 
-                                        updateServerData(true);
+                                        updateServerData(true, false);
+                                    } else {
+                                        updateServerData(true, true);
                                     }
                                 }
 
@@ -129,7 +131,7 @@ public class SerialReader {
         if (this.serialPort == null) {
             return false;
         }
-        this.updateServerData(true);
+        this.updateServerData(true, true);
         this.serialPort.openPort();
         this.speedQueue = new LinkedList<>();
         return true;
@@ -139,13 +141,18 @@ public class SerialReader {
         if (this.serialPort == null) {
             return false;
         }
-        updateServerData(false);
+        updateServerData(false, true);
         this.serialPort.closePort();
         return true;
     }
 
-    public void updateServerData(boolean enabled) {
+    public void updateServerData(boolean enabled, boolean empty) {
         if (this.serialPort == null) {
+            return;
+        }
+
+        if (empty) {
+            NetworkManager.sendToServer(new PacketManager.EmptyArduinoData(enabled));
             return;
         }
 

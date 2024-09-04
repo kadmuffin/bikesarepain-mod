@@ -97,6 +97,30 @@ public class PacketManager {
         }
     }
 
+    public record EmptyArduinoData(boolean enabled) implements CustomPacketPayload {
+        public static final CustomPacketPayload.Type<EmptyArduinoData> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "empty_arduino_data"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, EmptyArduinoData> CODEC = StreamCodec.of(
+                (buf, obj) -> buf.writeBoolean(obj.enabled),
+                buf -> new EmptyArduinoData(buf.readBoolean())
+        );
+
+        public static final NetworkManager.NetworkReceiver<EmptyArduinoData> RECEIVER = (packet, context) -> {
+            Player player = context.getPlayer();
+            if (player != null){
+                if (player.getVehicle() instanceof AbstractBike bike) {
+                    PlayerAccessor playerAcc = ((PlayerAccessor) player);
+                    playerAcc.bikesarepain$setJSCActive(packet.enabled);
+                    playerAcc.bikesarepain$setJSCSinceUpdate(0);
+                }
+            }
+        };
+
+        @Override
+        public @NotNull Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
     public record ArduinoData(boolean enabled, float speed, float distanceMoved, float kcalories, float wheelCircumference, float scaleFactor) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<ArduinoData> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "arduino_data"));
         public static final StreamCodec<RegistryFriendlyByteBuf, ArduinoData> CODEC = StreamCodec.of(
@@ -156,7 +180,7 @@ public class PacketManager {
         }
     }
 
-        public record KeypressPacket(boolean isPressed, KeyPress keyEnum) implements CustomPacketPayload {
+    public record KeypressPacket(boolean isPressed, KeyPress keyEnum) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<KeypressPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "ringbell_click"));
         public static final StreamCodec<FriendlyByteBuf, KeypressPacket> CODEC = StreamCodec.of((buf, obj) -> {
             buf.writeBoolean(obj.isPressed);

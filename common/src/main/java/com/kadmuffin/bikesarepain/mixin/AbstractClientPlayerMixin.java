@@ -16,8 +16,8 @@ public class AbstractClientPlayerMixin {
     public void inGetFieldOfViewModifier(CallbackInfoReturnable<Float> cir, @Local float f) {
         AbstractClientPlayer playerAbs = ((AbstractClientPlayer) (Object) this);
         Entity vehicle = playerAbs.getVehicle();
-        if (vehicle instanceof Bicycle) {
-            float fov = ((Bicycle) vehicle).modifyFOV(playerAbs, f);
+        if (vehicle instanceof Bicycle bicycle && bicycle.hasDisplay()) {
+            float fov = bicycle.modifyFOV(playerAbs, f);
             cir.setReturnValue(fov);
         }
     }

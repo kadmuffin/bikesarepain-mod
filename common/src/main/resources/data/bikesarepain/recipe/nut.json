@@ -7,12 +7,12 @@
     "nn"
   ],
   "key": {
-    "i": {
+    "n": {
       "item": "minecraft:iron_nugget"
     }
   },
   "result": {
-    "id": "bikesarepain:nut_item",
+    "id": "bikesarepain:nut",
     "count": 1
   },
   "show_notification": true

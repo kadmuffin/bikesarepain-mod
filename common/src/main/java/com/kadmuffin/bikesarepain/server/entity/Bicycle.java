@@ -51,9 +51,11 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private int ticksSinceLastRing = 0;
     private int ticksSinceLastClick = 0;
     private int ticksSinceLastBrake = 0;
+    private int ticksLookingAtDisplay = 0;
     private SoundType soundType = SoundType.WOOD;
     private final DodecagonDisplayManager displayManager = new DodecagonDisplayManager();
 
+    private static final EntityDataAccessor<Boolean> HAS_DISPLAY = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> HAS_BALLOON = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> TICKS_OUT_OF_WATER = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> BALLOON_INFLATED = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
@@ -72,6 +74,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     protected static final RawAnimation RING_BELL_ANIM = RawAnimation.begin().thenPlay("bike.bell");
     protected static final RawAnimation BALLOON_INFLATE_ANIM = RawAnimation.begin().thenPlay("bike.balloon.inflate");
     protected static final RawAnimation BALLOON_DEFLATE_ANIM = RawAnimation.begin().thenPlay("bike.balloon.deflate");
+    protected static final RawAnimation SCREEN_POPUP = RawAnimation.begin().thenPlay("bike.screen.popup");
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private final CenterMass centerMass = new CenterMass(
@@ -97,6 +100,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         builder.define(CACHED_TARGET, -1F);
         builder.define(DIGITCOUNT, 0);
         builder.define(DISPLAYSTAT, 0);
+        builder.define(HAS_DISPLAY, false);
         builder.define(BALLOON_INFLATED, false);
         builder.define(HAS_BALLOON, false);
         builder.define(TICKS_OUT_OF_WATER, 0);
@@ -107,7 +111,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         super.addAdditionalSaveData(compound);
         compound.putBoolean("ShowGears", this.showGears);
         compound.putBoolean("HasBalloon", this.hasBalloon());
-
+        compound.putBoolean("HasDisplay", this.hasDisplay());
     }
 
     // Reads the nbt data
@@ -116,6 +120,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         super.readAdditionalSaveData(compound);
         this.showGears = compound.getBoolean("ShowGears");
         this.setHasBalloon(compound.getBoolean("HasBalloon"));
+        this.setHasDisplay(compound.getBoolean("HasDisplay"));
     }
 
     @Override
@@ -328,6 +333,22 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
+            if (player.getItemInHand(hand).getItem() == ItemManager.PEDOMETER_ITEM.get()) {
+                if (this.hasDisplay()) {
+                    return InteractionResult.sidedSuccess(this.level().isClientSide());
+                }
+
+                this.triggerAnim("finalAnim", "screen");
+                this.setHasDisplay(true);
+                this.playSound(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.0F, 1.0F);
+
+                if (!player.isCreative()) {
+                    player.getItemInHand(hand).shrink(1);
+                }
+
+                return InteractionResult.sidedSuccess(this.level().isClientSide());
+            }
+
             if (player.getItemInHand(hand).getItem() != Items.AIR) {
                 this.openCustomInventoryScreen(player);
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
@@ -421,6 +442,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                             }
                         }
                 )
+                .triggerableAnim("screen", SCREEN_POPUP)
         );
 
         controllers.add(new AnimationController<>(this, "inflate", 5, this::inflateAnimation)
@@ -484,6 +506,10 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
         if (this.hasBalloon()) {
             itemStack.set(ItemManager.HAS_BALLOON.get(), true);
+        }
+
+        if (this.hasDisplay()) {
+            itemStack.set(ItemManager.HAS_DISPLAY.get(), true);
         }
 
         itemStack.set(ItemManager.HEALTH_AFFECTS_SPEED.get(), this.isHealthAffectingSpeed());
@@ -832,6 +858,14 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         return this.entityData.get(TICKS_OUT_OF_WATER);
     }
 
+    public boolean hasDisplay() {
+        return this.entityData.get(HAS_DISPLAY);
+    }
+
+    public void setHasDisplay(boolean hasDisplay) {
+        this.entityData.set(HAS_DISPLAY, hasDisplay);
+    }
+
     public Vec3 getDisplayPos() {
         return new Vec3(0,
                 1.07 * this.getModelScalingFactor(),
@@ -865,7 +899,13 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
         // 7.5 degrees -> 0.1309 radians
         if (angle < 0.1309) {
-            return fov * 0.6F;
+            ticksLookingAtDisplay++;
+            if (ticksLookingAtDisplay > 7) {
+                ticksLookingAtDisplay = 7;
+                return fov * 0.9F / this.getModelScalingFactor();
+            }
+        } else {
+            ticksLookingAtDisplay = 0;
         }
 
         return fov;

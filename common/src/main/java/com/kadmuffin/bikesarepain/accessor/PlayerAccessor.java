@@ -13,6 +13,8 @@ public interface PlayerAccessor {
     void bikesarepain$setJSCCalories(float calories);
     float bikesarepain$getJSCWheelRadius();
     void bikesarepain$setJSCWheelRadius(float wheelRadius);
+    int bikesarepain$getJSCSinceUpdate();
+    void bikesarepain$setJSCSinceUpdate(int sinceUpdate);
     boolean bikesarepain$wantsAmericaUnits();
     void bikesarepain$setAmericaUnitsPls(boolean americaUnitsPls);
 }

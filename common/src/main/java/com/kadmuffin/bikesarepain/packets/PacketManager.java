@@ -114,7 +114,8 @@ public class PacketManager {
             Player player = context.getPlayer();
             if (player != null){
                 if (player.getVehicle() instanceof AbstractBike bike) {
-                    System.out.println("Received data from Arduino: " + packet.speed + " " + packet.distanceMoved + " " + packet.kcalories + " " + packet.wheelCircumference);
+                    PlayerAccessor playerAcc = ((PlayerAccessor) player);
+
                     // Scale factor is controlled by the player by running
                     // /bikes scale set <factor1> block is <factor2> meter
                     // The physics code for the bike work on the basis of 1 block is 1 meter
@@ -137,12 +138,14 @@ public class PacketManager {
                         scaleFactor = bike.level().getGameRules().getRule(GameRuleManager.MIN_BIKE_SCALING).get()/10F;
                     }
 
-                    ((PlayerAccessor) player).bikesarepain$setJSCActive(packet.enabled);
-                    ((PlayerAccessor) player).bikesarepain$setJSCSpeed(packet.speed * scaleFactor);
-                    ((PlayerAccessor) player).bikesarepain$setJSCRealSpeed(packet.speed);
-                    ((PlayerAccessor) player).bikesarepain$setJSCDistance(packet.distanceMoved);
-                    ((PlayerAccessor) player).bikesarepain$setJSCCalories(packet.kcalories);
-                    ((PlayerAccessor) player).bikesarepain$setJSCWheelRadius(packet.wheelCircumference * scaleFactor);
+                    playerAcc.bikesarepain$setJSCActive(packet.enabled);
+                    playerAcc.bikesarepain$setJSCSpeed(packet.speed * scaleFactor);
+                    playerAcc.bikesarepain$setJSCRealSpeed(packet.speed);
+                    playerAcc.bikesarepain$setJSCDistance(packet.distanceMoved);
+                    playerAcc.bikesarepain$setJSCCalories(packet.kcalories);
+                    playerAcc.bikesarepain$setJSCWheelRadius(packet.wheelCircumference * scaleFactor);
+
+                    playerAcc.bikesarepain$setJSCSinceUpdate(0);
                 }
             }
         };

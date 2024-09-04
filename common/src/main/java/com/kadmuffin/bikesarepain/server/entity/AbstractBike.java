@@ -8,6 +8,7 @@ import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -43,6 +44,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     private float blocksTravelled = 0.0F;
     private int ticksTravelled = 0;
+    private BlockPos lastPos = null;
 
     private static final EntityDataAccessor<Boolean> HAS_CHEST = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> TILT = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
@@ -303,14 +305,23 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         boolean isJSerialCommActive = false;
 
         if (this.getControllingPassenger() instanceof Player player) {
-            if (((PlayerAccessor) player).bikesarepain$isJSCActive()) {
-                isJSerialCommActive = true;
-                movSpeed = ((PlayerAccessor) player).bikesarepain$getJSCSpeed() / 3.6F;
-                // Minecraft runs at 20 ticks per second
-                movSpeed /= 20F;
+            PlayerAccessor playerAcc = (PlayerAccessor) player;
+            if (playerAcc.bikesarepain$isJSCActive()) {
+                playerAcc.bikesarepain$setJSCSinceUpdate(playerAcc.bikesarepain$getJSCSinceUpdate() + 1);
+                if (playerAcc.bikesarepain$getJSCSinceUpdate() <= 40) {
+                    isJSerialCommActive = true;
+                    movSpeed = ((PlayerAccessor) player).bikesarepain$getJSCSpeed() / 3.6F;
+                    // Minecraft runs at 20 ticks per second
+                    movSpeed /= 20F;
 
-                if (g < 0F) {
-                    movSpeed *= -1;
+                    if (g < 0F) {
+                        movSpeed *= -1;
+                    }
+                } else {
+                    // Warn the player that the JSerialComm is not active
+                    player.sendSystemMessage(Component.translatable("bikesarepain.jserialcomm.timeout"));
+
+                    playerAcc.bikesarepain$setJSCActive(false);
                 }
             }
         }
@@ -397,9 +408,12 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     protected @NotNull Vec3 getRiddenInput(Player controllingPlayer, Vec3 movementInput) {
         this.updateMovement(controllingPlayer.xxa, controllingPlayer.zza);
 
-        if (this.getSpeed() > 0.05F) {
+        BlockPos currentPos = new BlockPos((int) this.getX(), (int) this.getY(), (int) this.getZ());
+
+        if (this.getSpeed() > 0.05F && this.isSavingDistance() && (this.lastPos == null || !this.lastPos.equals(currentPos))) {
             this.blocksTravelled += this.getSpeed() / this.getWheelRadius();
             this.ticksTravelled++;
+            this.lastPos = currentPos;
         }
 
         return new Vec3(0.0, 0.0, 1.0F);

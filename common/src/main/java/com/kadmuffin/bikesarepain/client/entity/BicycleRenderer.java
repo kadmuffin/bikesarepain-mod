@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
-    public final Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF", "Display",
+    public final Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF", "MonitorRoot", "Display",
             "Display1", "Display2", "Display3", "Display4", "Display5", "Display6",
             "TypeScreen", "UnitDistance", "UnitTime", "UnitSpeed", "MonitorRoot", "Propellers", "SpinningThing", "SpinningThing2",
             "Chest"
@@ -72,17 +72,26 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
                 geoBone.setHidden(!bikeEntity.hasBalloon());
             }
 
-            // Check via regex if it matches s[1-9]{1,2}
-            if (geoBone.getName().matches("(Display[1-6]|TypeScreen)")) {
-                bikeEntity.getDisplayManager().updateDisplayLerped(geoBone,
-                        DodecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
-                        , 0.25f, bikeEntity);
-            }
+            if (bikeEntity.hasDisplay()) {
+                if (geoBone.getName().matches("MonitorRoot")) {
+                    geoBone.setHidden(false);
+                }
+                // Check via regex if it matches s[1-9]{1,2}
+                if (geoBone.getName().matches("(Display[1-6]|TypeScreen)")) {
+                    bikeEntity.getDisplayManager().updateDisplayLerped(geoBone,
+                            DodecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
+                            , 0.25f, bikeEntity);
+                }
 
-            if (geoBone.getName().matches("(UnitDistance|UnitTime|UnitSpeed)")) {
-                bikeEntity.getDisplayManager().updateUnitDisplay(geoBone,
-                        DodecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
-                        , 0.25f);
+                if (geoBone.getName().matches("(UnitDistance|UnitTime|UnitSpeed)")) {
+                    bikeEntity.getDisplayManager().updateUnitDisplay(geoBone,
+                            DodecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
+                            , 0.25f);
+                }
+            } else {
+                if (geoBone.getName().matches("MonitorRoot")) {
+                    geoBone.setHidden(true);
+                }
             }
 
             if (geoBone.getName().matches("SpinningThing|SpinningThing2")) {

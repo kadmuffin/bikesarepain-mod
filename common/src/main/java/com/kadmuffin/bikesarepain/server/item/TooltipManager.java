@@ -19,21 +19,21 @@ public class TooltipManager {
                 int durabilityPercentage = (int) (100 - (((float) durability / (float) maxDurability) * 100));
 
                 if (durabilityPercentage == 100) {
-                    lines.add(Component.translatable("item.bikesarepain.bicycle_item.tooltip.brand_new")
+                    lines.add(Component.translatable("item.bikesarepain.bicycle.tooltip.brand_new")
                             .withColor(CommonColors.GREEN));
                 } else {
-                    lines.add(Component.translatable("item.bikesarepain.bicycle_item.tooltip.repair")
+                    lines.add(Component.translatable("item.bikesarepain.bicycle.tooltip.repair")
                             .withColor(CommonColors.GREEN));
                 }
 
                 // Check if contains a saddle
                 if (stack.has(ItemManager.SADDLED.get()) && Boolean.TRUE.equals(stack.get(ItemManager.SADDLED.get()))) {
-                    lines.add(Component.translatable("item.bikesarepain.bicycle_item.tooltip.saddled")
-                            .withColor(CommonColors.GRAY).append(Component.translatable("item.bikesarepain.bicycle_item.tooltip.yes")
+                    lines.add(Component.translatable("item.bikesarepain.bicycle.tooltip.saddled")
+                            .withColor(CommonColors.GRAY).append(Component.translatable("item.bikesarepain.bicycle.tooltip.yes")
                                     .withColor(Color.ofRGB(255, 149, 0).argbInt())));
                 } else {
-                    lines.add(Component.translatable("item.bikesarepain.bicycle_item.tooltip.saddled")
-                            .withColor(CommonColors.GRAY).append(Component.translatable("item.bikesarepain.bicycle_item.tooltip.no")
+                    lines.add(Component.translatable("item.bikesarepain.bicycle.tooltip.saddled")
+                            .withColor(CommonColors.GRAY).append(Component.translatable("item.bikesarepain.bicycle.tooltip.no")
                                     .withColor(CommonColors.RED)));
                 }
 
@@ -46,14 +46,14 @@ public class TooltipManager {
                             int minutes = (int) (ticksMoved / 60);
                             int seconds = (int) (ticksMoved % 60);
                             lines.add(
-                                    Component.translatable("item.bikesarepain.bicycle_item.tooltip.time_ridden")
+                                    Component.translatable("item.bikesarepain.bicycle.tooltip.time_ridden")
                                             .withColor(CommonColors.GRAY)
                                             .append(Component.literal(minutes + "m " + seconds + "s")
                                                     .withColor(CommonColors.GREEN))
                             );
                         } else {
                             lines.add(
-                                    Component.translatable("item.bikesarepain.bicycle_item.tooltip.time_ridden")
+                                    Component.translatable("item.bikesarepain.bicycle.tooltip.time_ridden")
                                             .withColor(CommonColors.GRAY)
                                             .append(Component.literal(ticksMoved + "s")
                                                     .withColor(CommonColors.GREEN))
@@ -65,7 +65,7 @@ public class TooltipManager {
                 if (stack.has(ItemManager.SAVE_DISTANCE.get()) && Boolean.TRUE.equals(stack.get(ItemManager.SAVE_DISTANCE.get()))) {
                     if (stack.has(ItemManager.DISTANCE_MOVED.get())) {
                         float distanceMoved = Objects.requireNonNullElse(stack.get(ItemManager.DISTANCE_MOVED.get()), 0.0F);
-                        MutableComponent msg = Component.translatable("item.bikesarepain.bicycle_item.tooltip.distance_moved")
+                        MutableComponent msg = Component.translatable("item.bikesarepain.bicycle.tooltip.distance_moved")
                                 .withColor(CommonColors.GRAY);
 
                         if (distanceMoved >= 1000) {
@@ -84,7 +84,7 @@ public class TooltipManager {
                     }
                 }
 
-                lines.add(2, Component.translatable("item.bikesarepain.bicycle_item.tooltip.health")
+                lines.add(2, Component.translatable("item.bikesarepain.bicycle.tooltip.health")
                                 .withColor(CommonColors.GRAY)
                         .append(Component.literal(durabilityPercentage + "%")
                                 .withStyle(durabilityPercentage == 100 ? net.minecraft.ChatFormatting.GREEN

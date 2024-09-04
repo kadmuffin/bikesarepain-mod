@@ -17,6 +17,10 @@ public class ItemManager {
                     () -> new ItemStack(ItemManager.BICYCLE_ITEM.get())
             )
     );
+    public static final RegistrySupplier<DataComponentType<Boolean>> HAS_DISPLAY = BikesArePain.DATA_COMPONENTS.register(
+            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "has_display"),
+            () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
+    );
     public static final RegistrySupplier<DataComponentType<Boolean>> SADDLED = BikesArePain.DATA_COMPONENTS.register(
             ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "saddled"),
             () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
@@ -46,9 +50,9 @@ public class ItemManager {
             () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
     );
 
-    public static final RegistrySupplier<Item> BICYCLE_ITEM = BikesArePain.ITEMS.register("bicycle_item", () ->
+    public static final RegistrySupplier<Item> BICYCLE_ITEM = BikesArePain.ITEMS.register("bicycle", () ->
             new BikeItem(EntityManager.BICYCLE.get(),
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_item"),
+                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle"),
                     new BikeItem.Properties()
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
@@ -61,10 +65,11 @@ public class ItemManager {
                             .component(TICKS_MOVED.get(), 0)
                             .component(HEALTH_AFFECTS_SPEED.get(), true)
                             .component(HAS_BALLOON.get(), false)
+                            .component(HAS_DISPLAY.get(), false)
             )
     );
 
-    public static final RegistrySupplier<Item> NUT_ITEM = BikesArePain.ITEMS.register("nut_item", () ->
+    public static final RegistrySupplier<Item> NUT_ITEM = BikesArePain.ITEMS.register("nut", () ->
             new NutItem(new Item.Properties()
                     .stacksTo(64)
                     .rarity(Rarity.COMMON)
@@ -72,12 +77,20 @@ public class ItemManager {
             )
     );
 
-    public static final RegistrySupplier<Item> WRENCH_ITEM = BikesArePain.ITEMS.register("wrench_item", () ->
+    public static final RegistrySupplier<Item> WRENCH_ITEM = BikesArePain.ITEMS.register("wrench", () ->
             new WrenchItem(new Item.Properties()
                     .stacksTo(1)
                     .rarity(Rarity.UNCOMMON)
                     .arch$tab(ItemManager.BIKES_MOD_TAB)
                     .durability(100)
+            )
+    );
+
+    public static final RegistrySupplier<Item> PEDOMETER_ITEM = BikesArePain.ITEMS.register("pedometer", () ->
+            new PedometerItem(new Item.Properties()
+                    .stacksTo(1)
+                    .rarity(Rarity.UNCOMMON)
+                    .arch$tab(ItemManager.BIKES_MOD_TAB)
             )
     );
 

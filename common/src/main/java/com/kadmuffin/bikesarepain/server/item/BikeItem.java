@@ -116,10 +116,14 @@ public class BikeItem extends Item implements GeoItem {
                     ((Bicycle) entity).setHasBalloon(true);
                 }
 
+                if (entity instanceof Bicycle && itemStack.has(ItemManager.HAS_DISPLAY.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HAS_DISPLAY.get()))) {
+                    ((Bicycle) entity).setHasDisplay(true);
+                }
+
                 entity.setHealthAffectsSpeed(itemStack.has(ItemManager.HEALTH_AFFECTS_SPEED.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HEALTH_AFFECTS_SPEED.get())));
 
                 // Make the bike look the same direction as the player
-                if (context.getPlayer() != null) {
+                if (context.getPlayer() != null && entity.isSaddled()) {
                     entity.setYRot(context.getPlayer().getYRot());
                 }
             }

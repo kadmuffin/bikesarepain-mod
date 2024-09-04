@@ -30,7 +30,7 @@ public class NutItem extends Item implements GeoItem {
             public BlockEntityWithoutLevelRenderer getGeoItemRenderer() {
                 if (this.renderer == null)
                     this.renderer = new GeoItemRenderer<NutItem>(
-                            new DefaultedItemGeoModel<>(ResourceLocation.fromNamespaceAndPath("bikesarepain", "nut_item"))
+                            new DefaultedItemGeoModel<>(ResourceLocation.fromNamespaceAndPath("bikesarepain", "nut"))
                     );
 
                 return this.renderer;

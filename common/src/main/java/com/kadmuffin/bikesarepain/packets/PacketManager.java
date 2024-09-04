@@ -224,5 +224,10 @@ public class PacketManager {
                 PacketManager.UnitSystemPacket.TYPE,
                 PacketManager.UnitSystemPacket.CODEC,
                 PacketManager.UnitSystemPacket.RECEIVER);
+        NetworkManager.registerReceiver(
+                NetworkManager.c2s(),
+                PacketManager.EmptyArduinoData.TYPE,
+                PacketManager.EmptyArduinoData.CODEC,
+                PacketManager.EmptyArduinoData.RECEIVER);
     }
 }

@@ -307,8 +307,10 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         if (this.getControllingPassenger() instanceof Player player) {
             PlayerAccessor playerAcc = (PlayerAccessor) player;
             if (playerAcc.bikesarepain$isJSCActive()) {
-                playerAcc.bikesarepain$setJSCSinceUpdate(playerAcc.bikesarepain$getJSCSinceUpdate() + 1);
-                if (playerAcc.bikesarepain$getJSCSinceUpdate() <= 40) {
+                if (!this.level().isClientSide()) {
+                    playerAcc.bikesarepain$setJSCSinceUpdate(playerAcc.bikesarepain$getJSCSinceUpdate() + 1);
+                }
+                if (playerAcc.bikesarepain$getJSCSinceUpdate() < 80) {
                     isJSerialCommActive = true;
                     movSpeed = ((PlayerAccessor) player).bikesarepain$getJSCSpeed() / 3.6F;
                     // Minecraft runs at 20 ticks per second
@@ -609,7 +611,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return (float) Math.toRadians(this.getYRot());
     }
 
-    public Vec3 modeltoWorldPos(Vec3 pos) {
+    public Vec3 modelToWorldPos(Vec3 pos) {
         float angle = this.getRadianYRot();
         float cos = (float) Math.cos(angle);
         float sin = (float) Math.sin(angle);

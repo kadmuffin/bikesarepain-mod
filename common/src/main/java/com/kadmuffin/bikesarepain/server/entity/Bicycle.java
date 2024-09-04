@@ -14,11 +14,9 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
@@ -879,9 +877,9 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     // Used for zooming into the display
     // When the player is looking at the display, we want to zoom in
     public float modifyFOV(AbstractClientPlayer player, float fov) {
-        Vec3 seat = this.modeltoWorldPos(this.getSeatPos());
+        Vec3 seat = this.modelToWorldPos(this.getSeatPos());
         Vec3 camera = new Vec3(seat.x, seat.y + player.getEyeHeight()*0.96F, seat.z);
-        Vec3 displayPos = this.modeltoWorldPos(this.getDisplayPos());
+        Vec3 displayPos = this.modelToWorldPos(this.getDisplayPos());
 
         float pitch = (float) Math.toRadians(player.getXRot());
         float yaw = (float) Math.toRadians(player.getYRot());
@@ -902,7 +900,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             ticksLookingAtDisplay++;
             if (ticksLookingAtDisplay > 7) {
                 ticksLookingAtDisplay = 7;
-                return fov * 0.9F / this.getModelScalingFactor();
+                return fov * 0.35F * this.getModelScalingFactor();
             }
         } else {
             ticksLookingAtDisplay = 0;

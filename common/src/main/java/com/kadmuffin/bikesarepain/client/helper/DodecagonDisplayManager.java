@@ -213,10 +213,6 @@ public class DodecagonDisplayManager {
         float fractionalPart = target - integerPart;
         float[] digits = new float[MAX_DISPLAYS];
 
-        System.out.println("Debug: target = " + target);
-        System.out.println("Debug: integerPart = " + integerPart);
-        System.out.println("Debug: fractionalPart = " + fractionalPart);
-
         Arrays.fill(digits, -1);
 
         int integerDigits = integerPart == 0 ? 1 : (int) Math.log10(integerPart) + 1;
@@ -224,13 +220,8 @@ public class DodecagonDisplayManager {
         // Calculate max decimal places
         int maxDecimalPlaces = Math.min(MAX_DISPLAYS - integerDigits - 1, 3); // Limit to 3 decimal places
 
-        System.out.println("Debug: integerDigits = " + integerDigits);
-        System.out.println("Debug: maxDecimalPlaces = " + maxDecimalPlaces);
-
         int digitCount = integerDigits + (maxDecimalPlaces > 0 ? maxDecimalPlaces + 1 : 0);
         bicycle.setDigitCount(digitCount);
-
-        System.out.println("Debug: digitCount = " + digitCount);
 
         // Handle integer part
         for (int i = integerDigits - 1; i >= 0; i--) {
@@ -242,25 +233,17 @@ public class DodecagonDisplayManager {
         if (maxDecimalPlaces > 0) {
             digits[integerDigits] = -0.5f;
 
-            List<Float> reversed = new ArrayList<>();
             for (int j = 0; j < maxDecimalPlaces; j++) {
                 fractionalPart *= 10;
                 int digit = (int) fractionalPart;
-                reversed.add((float) digit);
+                digits[integerDigits + 1 + j] = (float) digit;
                 fractionalPart -= digit;
             }
-
-            for (int i = 0; i < reversed.size(); i++) {
-                digits[integerDigits + 1 + i] = reversed.get(i);
-            }
         }
 
-        System.out.print("Debug: final digits = [");
         for (int i = 0; i < MAX_DISPLAYS; i++) {
             bicycle.setCachedFloatDisplay(i, digits[i]);
-            System.out.print(digits[i] + ", ");
         }
-        System.out.println("]");
     }
 
     private int getDisplayIndex(String boneName) {

@@ -569,7 +569,10 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         if (this.getFirstPassenger() instanceof Player player) {
             PlayerAccessor mixPlayer = (PlayerAccessor) player;
             if (mixPlayer.bikesarepain$isJSCActive()) {
-                return mixPlayer.bikesarepain$getJSCWheelRadius();
+                float radius = mixPlayer.bikesarepain$getJSCWheelRadius();
+                if (radius > 0) {
+                    return radius;
+                }
             }
         }
         // 0.5F means the wheel measures 1 block

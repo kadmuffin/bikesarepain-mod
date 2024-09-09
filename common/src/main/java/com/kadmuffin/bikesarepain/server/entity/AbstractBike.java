@@ -392,7 +392,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             }
         }
 
-        boolean pressingForward = (g > 0 && !isJSerialCommActive) || (isJSerialCommActive && movSpeed > 0);
+        boolean pressingForward = (Math.abs(g) > 0 && !isJSerialCommActive) || (isJSerialCommActive && movSpeed > 0);
 
         // Run event listeners
         for (TriConsumer<AbstractBike, Float, Boolean> listener : onMoveListeners) {

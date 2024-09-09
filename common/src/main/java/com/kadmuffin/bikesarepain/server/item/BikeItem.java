@@ -103,7 +103,7 @@ public class BikeItem extends Item implements GeoItem {
                 }
 
                 if (itemStack.has(ItemManager.SAVE_TIME.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SAVE_TIME.get()))) {
-                    entity.setTicksTravelled(Objects.requireNonNullElse(itemStack.get(ItemManager.TICKS_MOVED.get()), 0));
+                    entity.setTicksPedalled(Objects.requireNonNullElse(itemStack.get(ItemManager.TICKS_MOVED.get()), 0));
                     entity.setSaveTime(true);
                 }
 

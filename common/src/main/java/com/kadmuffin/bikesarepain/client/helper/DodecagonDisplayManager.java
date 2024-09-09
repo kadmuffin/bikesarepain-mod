@@ -210,29 +210,31 @@ public class DodecagonDisplayManager {
     private void updateCachedDigits(Bicycle bicycle) {
         float target = bicycle.getCachedTarget();
         int integerPart = (int) target;
-        int fractionalPart = (int) ((target - integerPart) * DECIMAL_PRECISION);
+        float fractionalPart = target - integerPart;
         float[] digits = new float[MAX_DISPLAYS];
 
-        // fill with -1
+        System.out.println("Debug: target = " + target);
+        System.out.println("Debug: integerPart = " + integerPart);
+        System.out.println("Debug: fractionalPart = " + fractionalPart);
+
         Arrays.fill(digits, -1);
 
-        // Correctly calculate the number of decimal digits in the integer part
         int integerDigits = integerPart == 0 ? 1 : (int) Math.log10(integerPart) + 1;
-        int maxDecimalPlaces = Math.min(Math.max(
-                0, (int) Math.log10(fractionalPart) + 1
-        ), MAX_DISPLAYS - integerDigits - 1);
 
-        int digitCount = integerDigits + maxDecimalPlaces;
+        // Calculate max decimal places
+        int maxDecimalPlaces = Math.min(MAX_DISPLAYS - integerDigits - 1, 3); // Limit to 3 decimal places
+
+        System.out.println("Debug: integerDigits = " + integerDigits);
+        System.out.println("Debug: maxDecimalPlaces = " + maxDecimalPlaces);
+
+        int digitCount = integerDigits + (maxDecimalPlaces > 0 ? maxDecimalPlaces + 1 : 0);
         bicycle.setDigitCount(digitCount);
 
+        System.out.println("Debug: digitCount = " + digitCount);
+
         // Handle integer part
-        int integerIndex = 0;
-        if (integerPart == 0) {
-            digits[integerDigits - 1] = 0;
-        }
-        while (integerPart > 0) {
-            int digit = integerPart % 10;
-            digits[integerDigits - 1 - integerIndex++] = digit;
+        for (int i = integerDigits - 1; i >= 0; i--) {
+            digits[i] = integerPart % 10;
             integerPart /= 10;
         }
 
@@ -240,31 +242,25 @@ public class DodecagonDisplayManager {
         if (maxDecimalPlaces > 0) {
             digits[integerDigits] = -0.5f;
 
-            // Handle the float part
             List<Float> reversed = new ArrayList<>();
-            int floatIndex = integerDigits+1;
             for (int j = 0; j < maxDecimalPlaces; j++) {
-                int digit = fractionalPart % 10;
+                fractionalPart *= 10;
+                int digit = (int) fractionalPart;
                 reversed.add((float) digit);
-                fractionalPart /= 10;
+                fractionalPart -= digit;
             }
 
-            Collections.reverse(reversed);
-
-            // Add the decimal part digits to the result array
-            for (float digit : reversed) {
-                if (floatIndex >= MAX_DISPLAYS) {
-                    break;
-                }
-                digits[floatIndex++] = digit;
+            for (int i = 0; i < reversed.size(); i++) {
+                digits[integerDigits + 1 + i] = reversed.get(i);
             }
         }
 
-        // Set the digits
+        System.out.print("Debug: final digits = [");
         for (int i = 0; i < MAX_DISPLAYS; i++) {
             bicycle.setCachedFloatDisplay(i, digits[i]);
+            System.out.print(digits[i] + ", ");
         }
-
+        System.out.println("]");
     }
 
     private int getDisplayIndex(String boneName) {

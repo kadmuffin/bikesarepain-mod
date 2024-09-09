@@ -46,14 +46,14 @@ public class TooltipManager {
                             int minutes = (int) (ticksMoved / 60);
                             int seconds = (int) (ticksMoved % 60);
                             lines.add(
-                                    Component.translatable("item.bikesarepain.bicycle.tooltip.time_ridden")
+                                    Component.translatable("item.bikesarepain.bicycle.tooltip.time_pedalled")
                                             .withColor(CommonColors.GRAY)
                                             .append(Component.literal(minutes + "m " + seconds + "s")
                                                     .withColor(CommonColors.GREEN))
                             );
                         } else {
                             lines.add(
-                                    Component.translatable("item.bikesarepain.bicycle.tooltip.time_ridden")
+                                    Component.translatable("item.bikesarepain.bicycle.tooltip.time_pedalled")
                                             .withColor(CommonColors.GRAY)
                                             .append(Component.literal(ticksMoved + "s")
                                                     .withColor(CommonColors.GREEN))

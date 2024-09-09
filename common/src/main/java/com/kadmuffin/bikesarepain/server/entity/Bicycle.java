@@ -493,7 +493,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
         if (this.isSavingTime()) {
             itemStack.set(ItemManager.SAVE_TIME.get(), true);
-            itemStack.set(ItemManager.TICKS_MOVED.get(), this.getTicksTravelled());
+            itemStack.set(ItemManager.TICKS_MOVED.get(), this.getTicksPedalled());
         }
 
         if (this.isSavingDistance()) {
@@ -772,7 +772,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             if (mixPlayer.bikesarepain$isJSCActive()) {
                 return switch (subType) {
                     case DISTANCE -> this.autoCastUnitDistance(mixPlayer.bikesarepain$getJSCDistance());
-                    case TIME -> this.autoCastUnitTime(this.getTicksTravelled());
+                    case TIME -> this.autoCastUnitTime(this.getTicksPedalled());
                     case SPEED -> this.autoCastUnitSpeed(mixPlayer.bikesarepain$getJSCRealSpeed(), true);
                     case CALORIES ->
                             new Pair<>(DodecagonDisplayManager.DisplayType.CALORIES_KCAL, mixPlayer.bikesarepain$getJSCCalories());
@@ -781,7 +781,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         }
         return switch (subType) {
             case DISTANCE -> this.autoCastUnitDistance(this.getBlocksTravelled());
-            case TIME -> this.autoCastUnitTime(this.getTicksTravelled());
+            case TIME -> this.autoCastUnitTime(this.getTicksPedalled());
             default -> this.autoCastUnitSpeed(this.getSpeedInMetersPerSecond(), false);
         };
     }

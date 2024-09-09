@@ -279,10 +279,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         float diff = this.getYRot() - playerRot.y;
         diff = Mth.wrapDegrees(diff);
 
-        float steeringYaw = (float) Math.toRadians(diff);
-        steeringYaw = Math.clamp(steeringYaw, -this.getMaxSteeringAngle(), this.getMaxSteeringAngle());
-        this.setSteeringYaw(steeringYaw);
-
+        if (!this.level().isClientSide()) {
+            float steeringYaw = (float) Math.toRadians(diff);
+            steeringYaw = Math.clamp(steeringYaw, -this.getMaxSteeringAngle(), this.getMaxSteeringAngle());
+            this.setSteeringYaw(steeringYaw);
+        }
         // System.out.printf("Rot; Is client side: %b, Is controlled by local instance: %b\n", this.level().isClientSide(), this.isControlledByLocalInstance());
 
         return new Vec2(playerRot.x, calculatedYaw);

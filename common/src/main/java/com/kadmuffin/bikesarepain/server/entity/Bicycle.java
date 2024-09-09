@@ -736,11 +736,11 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         } else if (speed > 3.6F) {
             displayType = DodecagonDisplayManager.DisplayType.SPEED_KMH;
             speed *= 3.6F;
-        }
 
-        if (this.getRiderPlayerAccessor() instanceof PlayerAccessor mixPlayer && mixPlayer.bikesarepain$wantsAmericaUnits()) {
-            displayType = DodecagonDisplayManager.DisplayType.SPEED_MPH;
-            speed *= 0.621371F;
+            if (this.getRiderPlayerAccessor() instanceof PlayerAccessor mixPlayer && mixPlayer.bikesarepain$wantsAmericaUnits()) {
+                displayType = DodecagonDisplayManager.DisplayType.SPEED_MPH;
+                speed *= 0.621371F;
+            }
         }
 
         return new Pair<>(displayType, speed);

@@ -18,27 +18,43 @@ public class SerialReader {
     private float lastSpeed = 0;
     private float lastDistance = 0;
     private float lastKcalories = 0;
-    private float lastWheelCircumference = 0;
-    private float scaleBlock = 1;
-    private float scaleMeter = 1;
-    private float scaleFactor = 1;
+    private float lastWheelRadius = 0;
+    private float scaleBlockWheel = 1;
+    private float scaleMeterWheel = 1;
+    private float scaleBlockSpeed = 1;
+    private float scaleMeterSpeed = 1;
+    private float scaleFactorWheel = 1;
+    private float scaleFactorSpeed = 1;
 
     public SerialPort getSerial() {
         return this.serialPort;
     }
 
-    public void setScaleFactor(float scaleBlock, float scaleMeter) {
-        this.scaleBlock = scaleBlock;
-        this.scaleMeter = scaleMeter;
-        this.scaleFactor = scaleBlock / scaleMeter;
-    }
-
-    public float getScaleFactor() {
-        return this.scaleFactor;
+    public void setScaleFactor(float scaleBlock, float scaleMeter, int applyScaleTo) {
+        switch (applyScaleTo) {
+            case 0:
+                this.scaleBlockSpeed = scaleBlock;
+                this.scaleMeterSpeed = scaleMeter;
+                this.scaleBlockWheel = scaleBlock;
+                this.scaleMeterWheel = scaleMeter;
+                this.scaleFactorSpeed = scaleBlock / scaleMeter;
+                this.scaleFactorWheel = this.scaleFactorSpeed;
+                break;
+            case 1:
+                this.scaleBlockSpeed = scaleBlock;
+                this.scaleMeterSpeed = scaleMeter;
+                this.scaleFactorSpeed = scaleBlock / scaleMeter;
+                break;
+            case 2:
+                this.scaleBlockWheel = scaleBlock;
+                this.scaleMeterWheel = scaleMeter;
+                this.scaleFactorWheel = scaleBlock / scaleMeter;
+                break;
+        }
     }
 
     public String getScaleFactorString() {
-        return this.scaleBlock + " block is " + this.scaleMeter + " meter";
+        return String.format("Speed is set to %.2f block is %.2f meters; Wheel is set to %.2f block is %.2f meters.", this.scaleBlockSpeed, this.scaleMeterSpeed, this.scaleBlockWheel, this.scaleMeterWheel);
     }
 
     public void setSerial(String port) {
@@ -86,7 +102,7 @@ public class SerialReader {
                                     float speed = Float.parseFloat(data[0]);
                                     float totalDistance = Float.parseFloat(data[1]);
                                     float kcalories = Float.parseFloat(data[2]);
-                                    float wheelCircumference = Float.parseFloat(data[3]);
+                                    float wheelRadius = Float.parseFloat(data[3]);
 
                                     // Now calculate average speed
                                     speedQueue.add(speed);
@@ -104,11 +120,11 @@ public class SerialReader {
                                     // Round to last two decimal places
                                     avgSpeed = (float) (Math.round(avgSpeed * 100.0) / 100.0);
 
-                                    if (avgSpeed != lastSpeed || totalDistance != lastDistance || kcalories != lastKcalories || wheelCircumference != lastWheelCircumference) {
+                                    if (avgSpeed != lastSpeed || totalDistance != lastDistance || kcalories != lastKcalories || lastWheelRadius != wheelRadius) {
                                         lastSpeed = avgSpeed;
                                         lastDistance = totalDistance;
                                         lastKcalories = kcalories;
-                                        lastWheelCircumference = wheelCircumference;
+                                        lastWheelRadius = wheelRadius;
 
                                         updateServerData(true, false);
                                     } else {
@@ -161,8 +177,9 @@ public class SerialReader {
                 lastSpeed,
                 lastDistance,
                 lastKcalories,
-                lastWheelCircumference,
-                scaleFactor
+                lastWheelRadius,
+                this.scaleFactorWheel,
+                this.scaleFactorSpeed
         ));
     }
 

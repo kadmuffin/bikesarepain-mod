@@ -46,6 +46,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private int ticksTravelled = 0;
     private BlockPos lastPos = null;
 
+    private static final EntityDataAccessor<Float> LAST_ROT_Y = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
+
     private static final EntityDataAccessor<Boolean> HAS_CHEST = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> TILT = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> STEERING_YAW = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
@@ -102,6 +104,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         builder.define(BRAKING, false);
         builder.define(HEALTH_AFF_SPEED, false);
         builder.define(HAS_CHEST, false);
+        builder.define(LAST_ROT_Y, 0.0F);
 
     }
 
@@ -192,9 +195,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         }
 
         if (!this.level().isClientSide()) {
-            if (this.getPassengers().isEmpty() && this.getSpeed() >= 0.05F && !this.level().isClientSide()) {
+            if (this.getPassengers().isEmpty() && this.getSpeed() >= 0.05F) {
                 // Update manually the speed of the bike
-                Vec2 newRots = this.updateRotations(new Vec2(this.getXRot(), this.getYRot()));
+                Vec2 newRots = this.updateRotations(new Vec2(this.getXRot(), this.getLastRotY()));
 
                 // Apply the new rotations
                 this.setXRot(newRots.x);
@@ -270,11 +273,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     @Override
     protected @NotNull Vec2 getRiddenRotation(LivingEntity controllingPassenger) {
-        if (this.isControlledByLocalInstance()) {
-            return this.updateRotations(new Vec2(controllingPassenger.getXRot()*0.5F, controllingPassenger.getYRot()));
-        }
-
-        return new Vec2(this.getXRot(), this.getYRot());
+        this.setLastRotY(controllingPassenger.getYRot());
+        return this.updateRotations(new Vec2(controllingPassenger.getXRot()*0.5F, controllingPassenger.getYRot()));
     }
 
     public void updateMovement(float sideways, float forward) {
@@ -292,8 +292,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
         // Print all relevant information
         // System.out.printf("Forward: %f, Sideways: %f, Speed: %f, Tilt: %f, Steering: %f, Rear Wheel: %f, Front Wheel: %f\n", f, g, this.getSpeed(), this.tilt, this.steeringYaw, this.backWheelRotation, this.frontWheelRotation);
+        double steerInf = (
+                this.getSteeringYaw() / this.getMaxSteeringAngle() * 0.5F
+        );
 
-        this.getCenterMass().setPlayerOffset(new Vector3d(f,0,0));
+        this.getCenterMass().setPlayerOffset(new Vector3d(f + steerInf,0,0));
 
         // Rotate the wheels based on our speed knowing that
         // the g is a magnitude in blocks
@@ -446,14 +449,17 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public float getLastSpeed() { return this.entityData.get(LAST_SPEED);}
     public void setLastSpeed(float lastSpeed) { this.entityData.set(LAST_SPEED, lastSpeed);}
 
+    public float getSpeedHealthMul(float healthRatio) {
+        return 0.85F;
+    }
+
+    public float getSpeedFactor(float healthRatio) {
+        return Math.clamp(1 - this.getSpeedHealthMul(healthRatio) * (1 - healthRatio) * (1 - healthRatio), 0F, 1F);
+    }
+
     public float getInternalSpeed() {
         if (this.isHealthAffectingSpeed()) {
-            float healthMultiplier = this.getHealth() / this.getMaxHealth();
-            if (healthMultiplier < 0.9F) {
-                healthMultiplier += this.random.nextFloat() * 0.4F;
-            }
-
-            return this.entityData.get(INTERNAL_SPEED) * healthMultiplier;
+            return this.entityData.get(INTERNAL_SPEED) * this.getSpeedFactor(this.getHealth() / this.getMaxHealth());
         }
 
         return this.entityData.get(INTERNAL_SPEED);
@@ -633,4 +639,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.entityData.set(HAS_CHEST, hasChest);
     }
 
+    public float getLastRotY() {
+        return this.entityData.get(LAST_ROT_Y);
+    }
+
+    public void setLastRotY(float lastRotY) {
+        this.entityData.set(LAST_ROT_Y, lastRotY);
+    }
 }

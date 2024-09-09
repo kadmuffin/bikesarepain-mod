@@ -518,7 +518,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     @Override
     protected float getWaterSlowDown() {
         if (this.isBalloonInflated()) {
-            return 0.94F;
+            return 0.96F;
         }
 
         return super.getWaterSlowDown();
@@ -773,7 +773,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 return switch (subType) {
                     case DISTANCE -> this.autoCastUnitDistance(mixPlayer.bikesarepain$getJSCDistance());
                     case TIME -> this.autoCastUnitTime(this.getTicksTravelled());
-                    case SPEED -> this.autoCastUnitSpeed(mixPlayer.bikesarepain$getJSCSpeed(), true);
+                    case SPEED -> this.autoCastUnitSpeed(mixPlayer.bikesarepain$getJSCRealSpeed(), true);
                     case CALORIES ->
                             new Pair<>(DodecagonDisplayManager.DisplayType.CALORIES_KCAL, mixPlayer.bikesarepain$getJSCCalories());
                 };
@@ -900,7 +900,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             ticksLookingAtDisplay++;
             if (ticksLookingAtDisplay > 7) {
                 ticksLookingAtDisplay = 7;
-                return fov * 0.35F * this.getModelScalingFactor();
+                return fov * Math.clamp(0.35F * this.getModelScalingFactor(), 0, 1F);
             }
         } else {
             ticksLookingAtDisplay = 0;

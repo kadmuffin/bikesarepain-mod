@@ -39,8 +39,8 @@ public class DodecagonDisplayManager {
             {(float) Math.PI/2, (float) Math.PI}, // 6 -> Time + hr
             {(float) Math.PI/2, (float) -Math.PI/2}, // 7 -> Time + day
 
-            {(float) Math.PI, (float) Math.PI/2}, // 8 -> Speed + km/h
-            {(float) Math.PI, (float) Math.PI}, // 9 -> Speed + m/s
+            {(float) Math.PI, (float) Math.PI}, // 8 -> Speed + m/s
+            {(float) Math.PI, (float) Math.PI/2}, // 9 -> Speed + km/h
             {(float) Math.PI, (float) -Math.PI/2}, // 10 -> Speed + mph
             {(float) -Math.PI/2, 0f}, // 11 -> Calories + kcal
     };

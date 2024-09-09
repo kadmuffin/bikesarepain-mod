@@ -11,6 +11,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import static com.kadmuffin.bikesarepain.BikesArePain.MOD_ID;
@@ -107,7 +108,7 @@ public class PacketManager {
         public static final NetworkManager.NetworkReceiver<EmptyArduinoData> RECEIVER = (packet, context) -> {
             Player player = context.getPlayer();
             if (player != null){
-                if (player.getVehicle() instanceof AbstractBike bike) {
+                if (player.getVehicle() instanceof AbstractBike) {
                     PlayerAccessor playerAcc = ((PlayerAccessor) player);
                     playerAcc.bikesarepain$setJSCActive(packet.enabled);
                     playerAcc.bikesarepain$setJSCSinceUpdate(0);
@@ -121,7 +122,40 @@ public class PacketManager {
         }
     }
 
-    public record ArduinoData(boolean enabled, float speed, float distanceMoved, float kcalories, float wheelCircumference, float scaleFactor) implements CustomPacketPayload {
+    public static void processArduinoData(ArduinoData packet, Player player, Level level) {
+        PlayerAccessor playerAcc = ((PlayerAccessor) player);
+
+        float scaleFactorWheel = packet.scaleFactorWheel;
+        float scaleFactorSpeed = packet.scaleFactorSpeed;
+        final float maxBikeScaling = level.getGameRules().getRule(GameRuleManager.MAX_BIKE_SCALING).get();
+        final float minBikeScaling = level.getGameRules().getRule(GameRuleManager.MIN_BIKE_SCALING).get()/10F;
+
+        if (maxBikeScaling < scaleFactorWheel) {
+            scaleFactorWheel = maxBikeScaling;
+        }
+        if (minBikeScaling > scaleFactorWheel) {
+            scaleFactorWheel = minBikeScaling;
+        }
+
+        if (maxBikeScaling < scaleFactorSpeed) {
+            scaleFactorSpeed = maxBikeScaling;
+        }
+        if (minBikeScaling > scaleFactorSpeed) {
+            scaleFactorSpeed = minBikeScaling;
+        }
+
+        playerAcc.bikesarepain$setJSCActive(packet.enabled);
+        playerAcc.bikesarepain$setJSCSpeed(packet.speed * scaleFactorSpeed);
+        playerAcc.bikesarepain$setJSCWheelRadius(packet.wheelRadius * scaleFactorWheel);
+
+        playerAcc.bikesarepain$setJSCRealSpeed(packet.speed);
+        playerAcc.bikesarepain$setJSCDistance(packet.distanceMoved);
+        playerAcc.bikesarepain$setJSCCalories(packet.kcalories);
+
+        playerAcc.bikesarepain$setJSCSinceUpdate(0);
+    }
+
+    public record ArduinoData(boolean enabled, float speed, float distanceMoved, float kcalories, float wheelRadius, float scaleFactorWheel, float scaleFactorSpeed) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<ArduinoData> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "arduino_data"));
         public static final StreamCodec<RegistryFriendlyByteBuf, ArduinoData> CODEC = StreamCodec.of(
                 (buf, obj) -> {
@@ -129,17 +163,16 @@ public class PacketManager {
                     buf.writeFloat(obj.speed);
                     buf.writeFloat(obj.distanceMoved);
                     buf.writeFloat(obj.kcalories);
-                    buf.writeFloat(obj.wheelCircumference);
-                    buf.writeFloat(obj.scaleFactor);
+                    buf.writeFloat(obj.wheelRadius);
+                    buf.writeFloat(obj.scaleFactorWheel);
+                    buf.writeFloat(obj.scaleFactorSpeed);
                 },
-                buf -> new ArduinoData(buf.readBoolean(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat())
+                buf -> new ArduinoData(buf.readBoolean(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat())
         );
         public static final NetworkManager.NetworkReceiver<ArduinoData> RECEIVER = (packet, context) -> {
             Player player = context.getPlayer();
             if (player != null){
                 if (player.getVehicle() instanceof AbstractBike bike) {
-                    PlayerAccessor playerAcc = ((PlayerAccessor) player);
-
                     // Scale factor is controlled by the player by running
                     // /bikes scale set <factor1> block is <factor2> meter
                     // The physics code for the bike work on the basis of 1 block is 1 meter
@@ -154,22 +187,7 @@ public class PacketManager {
                     // and calculating a ratio.
 
                     // Read the gamerule limit
-                    float scaleFactor = packet.scaleFactor;
-                    if (bike.level().getGameRules().getRule(GameRuleManager.MAX_BIKE_SCALING).get() < packet.scaleFactor) {
-                        scaleFactor = bike.level().getGameRules().getRule(GameRuleManager.MAX_BIKE_SCALING).get();
-                    }
-                    if (bike.level().getGameRules().getRule(GameRuleManager.MIN_BIKE_SCALING).get() > packet.scaleFactor) {
-                        scaleFactor = bike.level().getGameRules().getRule(GameRuleManager.MIN_BIKE_SCALING).get()/10F;
-                    }
-
-                    playerAcc.bikesarepain$setJSCActive(packet.enabled);
-                    playerAcc.bikesarepain$setJSCSpeed(packet.speed * scaleFactor);
-                    playerAcc.bikesarepain$setJSCRealSpeed(packet.speed);
-                    playerAcc.bikesarepain$setJSCDistance(packet.distanceMoved);
-                    playerAcc.bikesarepain$setJSCCalories(packet.kcalories);
-                    playerAcc.bikesarepain$setJSCWheelRadius(packet.wheelCircumference * scaleFactor);
-
-                    playerAcc.bikesarepain$setJSCSinceUpdate(0);
+                    processArduinoData(packet, player, bike.level());
                 }
             }
         };

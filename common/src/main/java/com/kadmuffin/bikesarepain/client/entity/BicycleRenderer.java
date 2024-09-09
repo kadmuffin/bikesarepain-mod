@@ -57,7 +57,7 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
             }
 
             if (geoBone.getName().equals("ActualRoot")) {
-                // TODO: Switch hacky old way to using radians directly
+                // TODO: Replace hacky old way with just doing radian math
                 float pitch = bikeEntity.bikePitch - 0.4F;
                 pitch = Math.max(0, pitch);
 

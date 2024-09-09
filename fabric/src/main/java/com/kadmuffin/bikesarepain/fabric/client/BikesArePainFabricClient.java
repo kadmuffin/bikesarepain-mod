@@ -5,14 +5,55 @@ import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import dev.architectury.networking.NetworkManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.network.chat.Component;
 
 public final class BikesArePainFabricClient implements ClientModInitializer {
     private final SerialReader reader = new SerialReader();
+
+    private RequiredArgumentBuilder<FabricClientCommandSource, ?> scaleSet(int applyTo) {
+        return ClientCommandManager.argument("scale1", FloatArgumentType.floatArg(
+                GameRuleManager.MIN_BIKE_SCALING_VAL / 10F,
+                GameRuleManager.MAX_BIKE_SCALING_VAL
+        )).then(
+                ClientCommandManager.literal("block").then(
+                        ClientCommandManager.literal("is").then(
+                                ClientCommandManager.argument("scale2", FloatArgumentType.floatArg(
+                                        GameRuleManager.MIN_BIKE_SCALING_VAL / 10F,
+                                        GameRuleManager.MAX_BIKE_SCALING_VAL
+                                )).then(
+                                        ClientCommandManager.literal("meter").executes(context -> {
+                                            float scale1 = FloatArgumentType.getFloat(context, "scale1");
+                                            float scale2 = FloatArgumentType.getFloat(context, "scale2");
+                                            reader.setScaleFactor(scale1, scale2, applyTo);
+                                            context.getSource().sendFeedback(Component.literal("Set scale factor"));
+                                            return 1;
+                                        })
+                                )
+                        )
+                )).then(ClientCommandManager.literal("meter")
+                .then(ClientCommandManager.literal("is")
+                        .then(ClientCommandManager.argument("scale2", FloatArgumentType.floatArg(
+                                GameRuleManager.MIN_BIKE_SCALING_VAL / 10F,
+                                GameRuleManager.MAX_BIKE_SCALING_VAL
+                        )).then(
+                                ClientCommandManager.literal("block").executes(context -> {
+                                    float scale1 = FloatArgumentType.getFloat(context, "scale1");
+                                    float scale2 = FloatArgumentType.getFloat(context, "scale2");
+                                    reader.setScaleFactor(scale2, scale1, applyTo);
+                                    context.getSource().sendFeedback(Component.literal("Set scale factor"));
+                                    return 1;
+                                })
+                        ))
+                )
+        );
+    }
 
     @Override
     public void onInitializeClient() {
@@ -56,43 +97,18 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
         ).then(
                 ClientCommandManager.literal("scale").then(
                         ClientCommandManager.literal("set").then(
-                                ClientCommandManager.argument("scale1", FloatArgumentType.floatArg(
-                                        GameRuleManager.MIN_BIKE_SCALING_VAL / 10F,
-                                        GameRuleManager.MAX_BIKE_SCALING_VAL
-                                )).then(
-                                        ClientCommandManager.literal("block").then(
-                                                ClientCommandManager.literal("is").then(
-                                                        ClientCommandManager.argument("scale2", FloatArgumentType.floatArg(
-                                                                GameRuleManager.MIN_BIKE_SCALING_VAL / 10F,
-                                                                GameRuleManager.MAX_BIKE_SCALING_VAL
-                                                        )).then(
-                                                                ClientCommandManager.literal("meter").executes(context -> {
-                                                                    float scale1 = FloatArgumentType.getFloat(context, "scale1");
-                                                                    float scale2 = FloatArgumentType.getFloat(context, "scale2");
-                                                                    reader.setScaleFactor(scale1, scale2);
-                                                                    context.getSource().sendFeedback(Component.literal("Set scale factor"));
-                                                                    return 1;
-                                                                })
-                                                        )
-                                                )
-                                        )).then(ClientCommandManager.literal("meter")
-                                                .then(ClientCommandManager.literal("is")
-                                                        .then(ClientCommandManager.argument("scale2", FloatArgumentType.floatArg(
-                                                                GameRuleManager.MIN_BIKE_SCALING_VAL / 10F,
-                                                                GameRuleManager.MAX_BIKE_SCALING_VAL
-                                                        )).then(
-                                                                ClientCommandManager.literal("block").executes(context -> {
-                                                                    float scale1 = FloatArgumentType.getFloat(context, "scale1");
-                                                                    float scale2 = FloatArgumentType.getFloat(context, "scale2");
-                                                                    reader.setScaleFactor(scale2, scale1);
-                                                                    context.getSource().sendFeedback(Component.literal("Set scale factor"));
-                                                                    return 1;
-                                                                })
-                                                        ))
-                                                )
-                                        )
-
+                                ClientCommandManager.literal("all").then(scaleSet(0))
                         )
+                                .then(
+                                        ClientCommandManager.literal("wheel").then(
+                                                scaleSet(2)
+                                        )
+                                )
+                                .then(
+                                        ClientCommandManager.literal("speed").then(
+                                                scaleSet(1)
+                                        )
+                                )
                 ).then(ClientCommandManager.literal("get")
                         .executes(context -> {
                             context.getSource().sendFeedback(Component.literal("Scale factor: " + reader.getScaleFactorString()));

@@ -22,7 +22,8 @@
     ]
   },
   "mixins": [
-    "bikesarepain.mixins.json"
+    "bikesarepain.mixins.json",
+    "bikesarepain.fabric.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.16.0",
@@ -31,5 +32,8 @@
     "architectury": ">=13.0.6",
     "fabric-api": "*",
     "geckolib": ">=4.5.0"
+  },
+  "suggest": {
+    "dehydration": ">=1.3.7"
   }
 }

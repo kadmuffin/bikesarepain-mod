@@ -28,10 +28,16 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.function.TriConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public abstract class AbstractBike extends AbstractHorse implements PlayerRideableJumping, Saddleable {
     protected boolean jumping;
@@ -46,8 +52,12 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private int ticksTravelled = 0;
     private BlockPos lastPos = null;
 
-    private static final EntityDataAccessor<Float> LAST_ROT_Y = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
+    // Let devs add event listener for when the bike is moving
+    // This is a list storing those lambdas
+    private static final List<TriConsumer<AbstractBike, Float, Boolean>> onMoveListeners = new ArrayList<>();
 
+    // Entity Data
+    private static final EntityDataAccessor<Float> LAST_ROT_Y = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> HAS_CHEST = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> TILT = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> STEERING_YAW = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
@@ -65,9 +75,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     public static AttributeSupplier.@NotNull Builder createBaseHorseAttributes() {
         return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 30.0D)
+                .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.22499999403953552)
-                .add(Attributes.FALL_DAMAGE_MULTIPLIER, 0.8D);
+                .add(Attributes.FALL_DAMAGE_MULTIPLIER, 0.4D);
     }
 
     @Override
@@ -288,13 +298,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             g = 0F;
         }
 
-        // System.out.printf("MOV; Is client side: %b, Is controlled by local instance: %b\n", this.level().isClientSide(), this.isControlledByLocalInstance());
-
-        // Print all relevant information
-        // System.out.printf("Forward: %f, Sideways: %f, Speed: %f, Tilt: %f, Steering: %f, Rear Wheel: %f, Front Wheel: %f\n", f, g, this.getSpeed(), this.tilt, this.steeringYaw, this.backWheelRotation, this.frontWheelRotation);
-        double steerInf = (
+        double steerInf = this.getSpeed() > 0.05F ? (
                 this.getSteeringYaw() / this.getMaxSteeringAngle() * 0.5F
-        );
+        ) * this.getSpeed() : 0;
 
         this.getCenterMass().setPlayerOffset(new Vector3d(f + steerInf,0,0));
 
@@ -376,7 +382,15 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             }
         }
 
-        if ((g == 0 && !isJSerialCommActive) || (isJSerialCommActive && movSpeed == 0F)) {
+        boolean pressingForward = (g > 0 && !isJSerialCommActive) || (isJSerialCommActive && movSpeed > 0);
+
+        // Run event listeners
+        for (TriConsumer<AbstractBike, Float, Boolean> listener : onMoveListeners) {
+            listener.accept(this, movSpeed, pressingForward);
+        }
+
+
+        if (!pressingForward) {
             movSpeed = lastSpeed * this.inertiaFactor();
             if (movSpeed < 0.05F) {
                 movSpeed = 0;
@@ -426,6 +440,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     @Override
     public float getSpeed() {
+        if (this.isHealthAffectingSpeed()) {
+            return this.getInternalSpeed() * this.getSpeedFactor(this.getHealth() / this.getMaxHealth());
+        }
         return this.getInternalSpeed();
     }
 
@@ -458,10 +475,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     }
 
     public float getInternalSpeed() {
-        if (this.isHealthAffectingSpeed()) {
-            return this.entityData.get(INTERNAL_SPEED) * this.getSpeedFactor(this.getHealth() / this.getMaxHealth());
-        }
-
         return this.entityData.get(INTERNAL_SPEED);
     }
     public void setInternalSpeed(float internalSpeed) { this.entityData.set(INTERNAL_SPEED, internalSpeed);}
@@ -566,7 +579,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     }
 
     public float getSpeedInMetersPerSecond() {
-        return this.getSpeed() * this.getWheelRadius();
+        return this.getSpeed() * 20F * this.getWheelRadius();
     }
 
     public Player getRider() {
@@ -646,4 +659,25 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public void setLastRotY(float lastRotY) {
         this.entityData.set(LAST_ROT_Y, lastRotY);
     }
+
+    // Event listeners
+
+    /**
+     * Adds a listener for when the bike is moving
+     * @param listener A lambda that takes the bike, the speed in meters per tick and if the bike is moving forward
+     */
+    public static void addOnMoveListener(TriConsumer<AbstractBike, Float, Boolean> listener) {
+        onMoveListeners.add(listener);
+    }
+
+    /**
+     * Removes a listener for when the bike is moving
+     * @param listener The listener to remove
+     */
+    public static void removeOnMoveListener(TriConsumer<AbstractBike, Float, Boolean> listener) {
+        onMoveListeners.remove(listener);
+    }
+
+    // Effort calculation
+    // As the
 }

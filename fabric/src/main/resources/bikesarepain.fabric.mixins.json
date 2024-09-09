@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "com.kadmuffin.bikesarepain.fabric.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "client": [
+    "ThirstHudRenderMixin"
+  ],
+  "mixins": [
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

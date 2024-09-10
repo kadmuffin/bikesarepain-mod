@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "bikesarepain.bicycle_frame",
+  "pattern": [
+    "iii",
+    "i i",
+    " i "
+  ],
+  "key": {
+    "i": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "bikesarepain:bicycle_frame",
+    "count": 1
+  },
+  "show_notification": true
+}

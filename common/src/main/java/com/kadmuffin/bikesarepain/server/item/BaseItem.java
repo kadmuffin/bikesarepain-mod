@@ -14,23 +14,25 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.function.Consumer;
 
-public class WrenchItem extends Item implements GeoItem {
+public class BaseItem extends Item implements GeoItem {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private final ResourceLocation model;
 
-    public WrenchItem(Properties properties) {
+    public BaseItem(ResourceLocation model, Properties properties) {
         super(properties);
+        this.model = model;
     }
 
     @Override
     public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
         consumer.accept(new GeoRenderProvider() {
-            private GeoItemRenderer<WrenchItem> renderer;
+            private GeoItemRenderer<BaseItem> renderer;
 
             @Override
             public BlockEntityWithoutLevelRenderer getGeoItemRenderer() {
                 if (this.renderer == null)
-                    this.renderer = new GeoItemRenderer<WrenchItem>(
-                            new DefaultedItemGeoModel<>(ResourceLocation.fromNamespaceAndPath("bikesarepain", "wrench"))
+                    this.renderer = new GeoItemRenderer<BaseItem>(
+                            new DefaultedItemGeoModel<>(model)
                     );
 
                 return this.renderer;

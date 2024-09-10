@@ -1,24 +1,27 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "group": "iron_ingot",
+  "group": "bikesarepain.bicycle",
   "pattern": [
-    "iin",
-    "wiw",
-    "sws"
+    " ih",
+    "ifi",
+    "wgw"
   ],
   "key": {
     "i": {
       "item": "minecraft:iron_ingot"
     },
-    "n": {
-      "item": "minecraft:gold_nugget"
+    "f": {
+      "item": "bikesarepain:bicycle_frame"
+    },
+    "h": {
+      "item": "bikesarepain:bicycle_handlebar"
     },
     "w": {
-      "item": "minecraft:dark_oak_slab"
+      "item": "bikesarepain:bicycle_wheel"
     },
-    "s": {
-      "item": "minecraft:slime_block"
+    "g": {
+      "item": "bikesarepain:bicycle_gearbox"
     }
   },
   "result": {

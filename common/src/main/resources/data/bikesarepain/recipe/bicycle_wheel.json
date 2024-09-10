@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "bikesarepain.bicycle_wheel",
+  "pattern": [
+    "ysy",
+    "sws",
+    "ysy"
+  ],
+  "key": {
+    "y": {
+      "item": "minecraft:yellow_wool"
+    },
+    "w": {
+      "item": "minecraft:dark_oak_planks"
+    },
+    "s": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "id": "bikesarepain:bicycle_wheel",
+    "count": 1
+  },
+  "show_notification": true
+}

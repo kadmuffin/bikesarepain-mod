@@ -70,7 +70,9 @@ public class ItemManager {
     );
 
     public static final RegistrySupplier<Item> NUT_ITEM = BikesArePain.ITEMS.register("nut", () ->
-            new NutItem(new Item.Properties()
+            new BaseItem(
+                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "nut"),
+                    new Item.Properties()
                     .stacksTo(64)
                     .rarity(Rarity.COMMON)
                     .arch$tab(ItemManager.BIKES_MOD_TAB)
@@ -78,7 +80,9 @@ public class ItemManager {
     );
 
     public static final RegistrySupplier<Item> WRENCH_ITEM = BikesArePain.ITEMS.register("wrench", () ->
-            new WrenchItem(new Item.Properties()
+            new BaseItem(
+                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "wrench"),
+                    new Item.Properties()
                     .stacksTo(1)
                     .rarity(Rarity.UNCOMMON)
                     .arch$tab(ItemManager.BIKES_MOD_TAB)
@@ -87,12 +91,55 @@ public class ItemManager {
     );
 
     public static final RegistrySupplier<Item> PEDOMETER_ITEM = BikesArePain.ITEMS.register("pedometer", () ->
-            new PedometerItem(new Item.Properties()
+            new BaseItem(
+                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "pedometer"),
+                    new Item.Properties()
                     .stacksTo(1)
                     .rarity(Rarity.UNCOMMON)
                     .arch$tab(ItemManager.BIKES_MOD_TAB)
             )
     );
+
+    public static final RegistrySupplier<Item> FRAME_ITEM = BikesArePain.ITEMS.register("bicycle_frame", () ->
+            new BaseItem(
+                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_frame"),
+                    new Item.Properties()
+                            .stacksTo(1)
+                            .rarity(Rarity.UNCOMMON)
+                            .arch$tab(ItemManager.BIKES_MOD_TAB)
+            )
+    );
+
+    public static final RegistrySupplier<Item> GEARBOX_ITEM = BikesArePain.ITEMS.register("bicycle_gearbox", () ->
+            new BaseItem(
+                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_gearbox"),
+                    new Item.Properties()
+                            .stacksTo(1)
+                            .rarity(Rarity.UNCOMMON)
+                            .arch$tab(ItemManager.BIKES_MOD_TAB)
+            )
+    );
+
+    public static final RegistrySupplier<Item> HANDLEBAR_ITEM = BikesArePain.ITEMS.register("bicycle_handlebar", () ->
+            new BaseItem(
+                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_handlebar"),
+                    new Item.Properties()
+                            .stacksTo(1)
+                            .rarity(Rarity.UNCOMMON)
+                            .arch$tab(ItemManager.BIKES_MOD_TAB)
+            )
+    );
+
+    public static final RegistrySupplier<Item> WHEEL_ITEM = BikesArePain.ITEMS.register("bicycle_wheel", () ->
+            new BaseItem(
+                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_wheel"),
+                    new Item.Properties()
+                            .stacksTo(2)
+                            .rarity(Rarity.UNCOMMON)
+                            .arch$tab(ItemManager.BIKES_MOD_TAB)
+            )
+    );
+
 
     public static void init() {
         BikesArePain.TABS.register();

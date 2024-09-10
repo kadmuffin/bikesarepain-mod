@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "bikesarepain.bicycle_gearbox",
+  "pattern": [
+    "www",
+    "pip",
+    "www"
+  ],
+  "key": {
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "w": {
+      "item": "minecraft:dark_oak_planks"
+    },
+    "p": {
+      "item": "minecraft:stone_pressure_plate"
+    }
+  },
+  "result": {
+    "id": "bikesarepain:bicycle_frame",
+    "count": 1
+  },
+  "show_notification": true
+}

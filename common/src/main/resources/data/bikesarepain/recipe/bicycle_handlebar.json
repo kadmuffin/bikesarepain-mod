@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "bikesarepain.bicycle_handlebar",
+  "pattern": [
+    "g i",
+    "bib",
+    " i "
+  ],
+  "key": {
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "g": {
+      "item": "minecraft:gold_nugget"
+    },
+    "b": {
+      "item": "minecraft:black_carpet"
+    }
+  },
+  "result": {
+    "id": "bikesarepain:bicycle_handlebar",
+    "count": 1
+  },
+  "show_notification": true
+}

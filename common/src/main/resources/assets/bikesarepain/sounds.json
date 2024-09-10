@@ -31,7 +31,7 @@
   "bicycle_movement": {
     "subtitle": "sound.bikesarepain.bicycle_movement",
     "sounds": [
-        "bikesarepain:bicycle/bicycle_movement_0",
+        "bikesarepain:bicycle/bicycle_movement",
         "bikesarepain:bicycle/bicycle_movement_1",
         "bikesarepain:bicycle/bicycle_movement_2",
         "bikesarepain:bicycle/bicycle_movement_3",

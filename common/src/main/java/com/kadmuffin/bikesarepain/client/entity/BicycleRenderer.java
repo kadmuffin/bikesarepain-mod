@@ -1,7 +1,7 @@
 package com.kadmuffin.bikesarepain.client.entity;
 
 import com.kadmuffin.bikesarepain.BikesArePain;
-import com.kadmuffin.bikesarepain.client.helper.DodecagonDisplayManager;
+import com.kadmuffin.bikesarepain.client.helper.DecagonDisplayManager;
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -79,13 +79,13 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
                 // Check via regex if it matches s[1-9]{1,2}
                 if (geoBone.getName().matches("(Display[1-6]|TypeScreen)")) {
                     bikeEntity.getDisplayManager().updateDisplayLerped(geoBone,
-                            DodecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
+                            DecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
                             , 0.25f, bikeEntity);
                 }
 
                 if (geoBone.getName().matches("(UnitDistance|UnitTime|UnitSpeed)")) {
                     bikeEntity.getDisplayManager().updateUnitDisplay(geoBone,
-                            DodecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
+                            DecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
                             , 0.25f);
                 }
             } else {

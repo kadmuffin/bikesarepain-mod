@@ -3,12 +3,9 @@ package com.kadmuffin.bikesarepain.client.helper;
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import software.bernie.geckolib.cache.object.GeoBone;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
-public class DodecagonDisplayManager {
+public class DecagonDisplayManager {
     private static final int MAX_DISPLAYS = 6;
     private static final float DECIMAL_PRECISION = 1000;
     private static final float[] ROTATION_ANGLES = {

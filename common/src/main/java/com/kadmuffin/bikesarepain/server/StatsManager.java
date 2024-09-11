@@ -17,9 +17,9 @@ public class StatsManager {
         BikesArePain.STATS.register(CALORIES_BURNED_JSC.getPath(), () -> CALORIES_BURNED_JSC);
 
         // Register on StatsScreen
-        Stats.CUSTOM.get(DISTANCE_TRAVELED, StatFormatter.DISTANCE);
-        Stats.CUSTOM.get(DISTANCE_TRAVELED_JSC, StatFormatter.DISTANCE);
-        Stats.CUSTOM.get(CALORIES_BURNED_JSC, StatFormatter.DEFAULT);
+        //Stats.CUSTOM.get(DISTANCE_TRAVELED, StatFormatter.DISTANCE);
+        //Stats.CUSTOM.get(DISTANCE_TRAVELED_JSC, StatFormatter.DISTANCE);
+        //Stats.CUSTOM.get(CALORIES_BURNED_JSC, StatFormatter.DEFAULT);
 
         BikesArePain.STATS.register();
     }

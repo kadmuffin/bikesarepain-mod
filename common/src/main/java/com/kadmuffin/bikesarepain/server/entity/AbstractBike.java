@@ -207,7 +207,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 if (this.getSpeed() > 0.05F && this.isSavingDistance() && (this.lastPos == null || !this.lastPos.equals(currentPos))) {
                     this.blocksTravelled += this.getSpeed() / this.getWheelRadius();
                     this.lastPos = currentPos;
-                    playerEntity.awardStat(StatsManager.DISTANCE_TRAVELED, 1);
                 }
             }
 

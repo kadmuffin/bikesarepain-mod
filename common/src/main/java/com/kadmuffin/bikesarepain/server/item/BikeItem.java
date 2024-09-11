@@ -97,9 +97,7 @@ public class BikeItem extends Item implements GeoItem {
                 entity.setHealth(entity.getMaxHealth() * (itemStack.getMaxDamage() - Math.min(itemStack.getDamageValue(), itemStack.getMaxDamage()-1)) / itemStack.getMaxDamage());
 
                 if (itemStack.has(ItemManager.SADDLED.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SADDLED.get()))) {
-                    ItemStack saddle = new ItemStack(Items.SADDLE);
-                    saddle.setCount(1);
-                    entity.equipSaddle(saddle, null);
+                    entity.equipSaddle(null);
                 }
 
                 if (itemStack.has(ItemManager.SAVE_TIME.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SAVE_TIME.get()))) {

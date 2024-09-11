@@ -14,7 +14,7 @@ public class EntityManager {
     public static final RegistrySupplier<EntityType<Bicycle>> BICYCLE = ENTITIES.register("bicycle", () ->
                     EntityType.Builder.of(Bicycle::new, MobCategory.MISC)
                             .sized(1F, 1F)
-                            .build(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle").toString())
+                            .build(new ResourceLocation(BikesArePain.MOD_ID, "bicycle").toString())
             );
 
     public static void init() {

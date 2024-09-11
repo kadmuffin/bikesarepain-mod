@@ -1,10 +1,12 @@
 package com.kadmuffin.bikesarepain.server.item;
 
 import dev.architectury.event.events.client.ClientTooltipEvent;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.CommonColors;
 import software.bernie.geckolib.util.Color;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Objects;
 
@@ -20,10 +22,10 @@ public class TooltipManager {
 
                 if (durabilityPercentage == 100) {
                     lines.add(Component.translatable("item.bikesarepain.bicycle.tooltip.brand_new")
-                            .withColor(CommonColors.GREEN));
+                            .withStyle(ChatFormatting.GREEN));
                 } else {
                     lines.add(Component.translatable("item.bikesarepain.bicycle.tooltip.repair")
-                            .withColor(CommonColors.GREEN));
+                            .withStyle(ChatFormatting.GOLD));
                 }
 
                 // Check if contains a saddle
@@ -49,14 +51,14 @@ public class TooltipManager {
                                     Component.translatable("item.bikesarepain.bicycle.tooltip.time_pedalled")
                                             .withColor(CommonColors.GRAY)
                                             .append(Component.literal(minutes + "m " + seconds + "s")
-                                                    .withColor(CommonColors.GREEN))
+                                                    .withStyle(ChatFormatting.GREEN))
                             );
                         } else {
                             lines.add(
                                     Component.translatable("item.bikesarepain.bicycle.tooltip.time_pedalled")
                                             .withColor(CommonColors.GRAY)
                                             .append(Component.literal(ticksMoved + "s")
-                                                    .withColor(CommonColors.GREEN))
+                                                    .withStyle(ChatFormatting.GREEN))
                             );
                         }
                     }
@@ -73,12 +75,12 @@ public class TooltipManager {
                             int m = (int) (distanceMoved % 1000);
                             lines.add(
                                     msg.append(Component.literal(km + "km " + m + "m")
-                                            .withColor(CommonColors.GREEN))
+                                            .withStyle(ChatFormatting.GREEN))
                             );
                         } else {
                             lines.add(
                                     msg.append(Component.literal(distanceMoved + "m")
-                                            .withColor(CommonColors.GREEN))
+                                            .withStyle(ChatFormatting.GREEN))
                             );
                         }
                     }

@@ -22,7 +22,7 @@ public class BicycleRenderer extends GeoEntityRenderer<Bicycle> {
     );
 
     public BicycleRenderer(EntityRendererProvider.Context renderManager) {
-        super(renderManager, new DefaultedEntityGeoModel<>(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle")));
+        super(renderManager, new DefaultedEntityGeoModel<>(new ResourceLocation(BikesArePain.MOD_ID, "bicycle")));
         addRenderLayer(new FastBoneFilterGeoLayer<>(this, bones, (geoBone, bikeEntity, aFloat) -> {
 
             if (geoBone.getName().equals("ActualWheel")) {

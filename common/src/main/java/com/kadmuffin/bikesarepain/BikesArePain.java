@@ -4,6 +4,7 @@ import com.kadmuffin.bikesarepain.client.KeybindManager;
 import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
+import com.kadmuffin.bikesarepain.server.StatsManager;
 import com.kadmuffin.bikesarepain.server.entity.EntityManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import com.kadmuffin.bikesarepain.server.item.TooltipManager;
@@ -44,6 +45,7 @@ public final class BikesArePain {
         TooltipManager.init();
         SoundManager.init();
         GameRuleManager.init();
+        StatsManager.init();
 
         CommandRegistrationEvent.EVENT.register((dispatcher, dedicated, commands) -> {
             dispatcher.register(Commands.literal("bikes_ops")

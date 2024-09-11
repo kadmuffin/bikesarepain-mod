@@ -122,9 +122,9 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     }
 
     @Override
-    public int getInventoryColumns() {
+    public int getInventorySize() {
         if (!this.hasChest()) {
-            return 0;
+            return super.getInventorySize();
         }
         return 5;
     }
@@ -156,7 +156,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             if (this.level() instanceof ServerLevel serverLevel) {
                 if (entity == null || entity.killedEntity(serverLevel, this)) {
                     this.gameEvent(GameEvent.ENTITY_DIE);
-                    this.dropAllDeathLoot(serverLevel, damageSource);
+                    this.dropAllDeathLoot(damageSource);
                 }
 
                 this.level().broadcastEntityEvent(this, (byte)3);
@@ -167,7 +167,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     }
 
     @Override
-    protected void dropAllDeathLoot(ServerLevel level, DamageSource damageSource) {
+    protected void dropAllDeathLoot(DamageSource damageSource) {
         this.dropEquipment();
 
         // Summon a bicycle item
@@ -175,7 +175,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
         this.spawnAtLocation(itemStack);
     }
-
 
     @Override
     protected @NotNull Vec3 getRiddenInput(Player controllingPlayer, Vec3 movementInput) {
@@ -358,7 +357,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             this.spawnAtLocation(this.getBicycleItem(true));
 
             // Remove saddle so it doesn't drop twice
-            this.equipSaddle(ItemStack.EMPTY, null);
+            this.inventory.setItem(0, ItemStack.EMPTY);
 
             if (this.hasChest()) {
                 this.spawnAtLocation(Items.CHEST);

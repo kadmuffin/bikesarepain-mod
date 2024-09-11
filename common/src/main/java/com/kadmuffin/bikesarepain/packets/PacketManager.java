@@ -99,7 +99,7 @@ public class PacketManager {
     }
 
     public record EmptyArduinoData(boolean enabled) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<EmptyArduinoData> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "empty_arduino_data"));
+        public static final CustomPacketPayload.Type<EmptyArduinoData> TYPE = new CustomPacketPayload.Type<>(new ResourceLocation(MOD_ID, "empty_arduino_data"));
         public static final StreamCodec<RegistryFriendlyByteBuf, EmptyArduinoData> CODEC = StreamCodec.of(
                 (buf, obj) -> buf.writeBoolean(obj.enabled),
                 buf -> new EmptyArduinoData(buf.readBoolean())
@@ -156,7 +156,7 @@ public class PacketManager {
     }
 
     public record ArduinoData(boolean enabled, float speed, float distanceMoved, float kcalories, float wheelRadius, float scaleFactorWheel, float scaleFactorSpeed) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<ArduinoData> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "arduino_data"));
+        public static final CustomPacketPayload.Type<ArduinoData> TYPE = new CustomPacketPayload.Type<>(new ResourceLocation(MOD_ID, "arduino_data"));
         public static final StreamCodec<RegistryFriendlyByteBuf, ArduinoData> CODEC = StreamCodec.of(
                 (buf, obj) -> {
                     buf.writeBoolean(obj.enabled);
@@ -199,7 +199,7 @@ public class PacketManager {
     }
 
     public record KeypressPacket(boolean isPressed, KeyPress keyEnum) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<KeypressPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "ringbell_click"));
+        public static final CustomPacketPayload.Type<KeypressPacket> TYPE = new CustomPacketPayload.Type<>(new ResourceLocation(MOD_ID, "ringbell_click"));
         public static final StreamCodec<FriendlyByteBuf, KeypressPacket> CODEC = StreamCodec.of((buf, obj) -> {
             buf.writeBoolean(obj.isPressed);
             buf.writeEnum(obj.keyEnum);
@@ -214,7 +214,7 @@ public class PacketManager {
     }
 
     public record UnitSystemPacket(boolean useImperial) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<UnitSystemPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "unit_system"));
+        public static final CustomPacketPayload.Type<UnitSystemPacket> TYPE = new CustomPacketPayload.Type<>(new ResourceLocation(MOD_ID, "unit_system"));
         public static final StreamCodec<FriendlyByteBuf, UnitSystemPacket> CODEC = StreamCodec.of((buf, obj) -> buf.writeBoolean(obj.useImperial), buf -> new UnitSystemPacket(buf.readBoolean()));
 
         public static final NetworkManager.NetworkReceiver<UnitSystemPacket> RECEIVER = (packet, contextSupplier) -> {

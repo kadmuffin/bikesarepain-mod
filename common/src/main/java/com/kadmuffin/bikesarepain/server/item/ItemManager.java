@@ -18,41 +18,41 @@ public class ItemManager {
             )
     );
     public static final RegistrySupplier<DataComponentType<Boolean>> HAS_DISPLAY = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "has_display"),
+            new ResourceLocation(BikesArePain.MOD_ID, "has_display"),
             () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
     );
     public static final RegistrySupplier<DataComponentType<Boolean>> SADDLED = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "saddled"),
+            new ResourceLocation(BikesArePain.MOD_ID, "saddled"),
             () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
     );
     public static final RegistrySupplier<DataComponentType<Boolean>> HEALTH_AFFECTS_SPEED = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "health_affect_speed"),
+            new ResourceLocation(BikesArePain.MOD_ID, "health_affect_speed"),
             () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
     );
     public static final RegistrySupplier<DataComponentType<Boolean>> SAVE_TIME = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "save_time"),
+            new ResourceLocation(BikesArePain.MOD_ID, "save_time"),
             () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
     );
     public static final RegistrySupplier<DataComponentType<Boolean>> SAVE_DISTANCE = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "save_distance"),
+            new ResourceLocation(BikesArePain.MOD_ID, "save_distance"),
             () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
     );
     public static final RegistrySupplier<DataComponentType<Float>> DISTANCE_MOVED = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "distance_moved"),
+            new ResourceLocation(BikesArePain.MOD_ID, "distance_moved"),
             () -> DataComponentType.<Float>builder().persistent(Codec.FLOAT).build()
     );
     public static final RegistrySupplier<DataComponentType<Integer>> TICKS_MOVED = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "ticks_ridden"),
+            new ResourceLocation(BikesArePain.MOD_ID, "ticks_ridden"),
             () -> DataComponentType.<Integer>builder().persistent(Codec.INT).build()
     );
     public static final RegistrySupplier<DataComponentType<Boolean>> HAS_BALLOON = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "has_balloon"),
+            new ResourceLocation(BikesArePain.MOD_ID, "has_balloon"),
             () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
     );
 
     public static final RegistrySupplier<Item> BICYCLE_ITEM = BikesArePain.ITEMS.register("bicycle", () ->
             new BikeItem(EntityManager.BICYCLE.get(),
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle"),
+                    new ResourceLocation(BikesArePain.MOD_ID, "bicycle"),
                     new BikeItem.Properties()
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
@@ -71,7 +71,7 @@ public class ItemManager {
 
     public static final RegistrySupplier<Item> NUT_ITEM = BikesArePain.ITEMS.register("nut", () ->
             new BaseItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "nut"),
+                    new ResourceLocation(BikesArePain.MOD_ID, "nut"),
                     new Item.Properties()
                     .stacksTo(64)
                     .rarity(Rarity.COMMON)
@@ -81,7 +81,7 @@ public class ItemManager {
 
     public static final RegistrySupplier<Item> WRENCH_ITEM = BikesArePain.ITEMS.register("wrench", () ->
             new BaseItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "wrench"),
+                    new ResourceLocation(BikesArePain.MOD_ID, "wrench"),
                     new Item.Properties()
                     .stacksTo(1)
                     .rarity(Rarity.UNCOMMON)
@@ -92,7 +92,7 @@ public class ItemManager {
 
     public static final RegistrySupplier<Item> PEDOMETER_ITEM = BikesArePain.ITEMS.register("pedometer", () ->
             new BaseItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "pedometer"),
+                    new ResourceLocation(BikesArePain.MOD_ID, "pedometer"),
                     new Item.Properties()
                     .stacksTo(1)
                     .rarity(Rarity.UNCOMMON)
@@ -102,7 +102,7 @@ public class ItemManager {
 
     public static final RegistrySupplier<Item> FRAME_ITEM = BikesArePain.ITEMS.register("bicycle_frame", () ->
             new BaseItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_frame"),
+                    new ResourceLocation(BikesArePain.MOD_ID, "bicycle_frame"),
                     new Item.Properties()
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
@@ -112,7 +112,7 @@ public class ItemManager {
 
     public static final RegistrySupplier<Item> GEARBOX_ITEM = BikesArePain.ITEMS.register("bicycle_gearbox", () ->
             new BaseItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_gearbox"),
+                    new ResourceLocation(BikesArePain.MOD_ID, "bicycle_gearbox"),
                     new Item.Properties()
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
@@ -122,7 +122,7 @@ public class ItemManager {
 
     public static final RegistrySupplier<Item> HANDLEBAR_ITEM = BikesArePain.ITEMS.register("bicycle_handlebar", () ->
             new BaseItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_handlebar"),
+                    new ResourceLocation(BikesArePain.MOD_ID, "bicycle_handlebar"),
                     new Item.Properties()
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
@@ -132,7 +132,7 @@ public class ItemManager {
 
     public static final RegistrySupplier<Item> WHEEL_ITEM = BikesArePain.ITEMS.register("bicycle_wheel", () ->
             new BaseItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_wheel"),
+                    new ResourceLocation(BikesArePain.MOD_ID, "bicycle_wheel"),
                     new Item.Properties()
                             .stacksTo(2)
                             .rarity(Rarity.UNCOMMON)

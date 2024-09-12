@@ -12,14 +12,14 @@
       "item": "minecraft:iron_ingot"
     },
     "w": {
-      "item": "minecraft:dark_oak_planks"
+      "item": "bikesarepain:nut"
     },
     "p": {
       "item": "minecraft:stone_pressure_plate"
     }
   },
   "result": {
-    "id": "bikesarepain:bicycle_frame",
+    "id": "bikesarepain:bicycle_gearbox",
     "count": 1
   },
   "show_notification": true

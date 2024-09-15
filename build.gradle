@@ -30,6 +30,19 @@ subprojects {
         archivesName = "$rootProject.archives_name-$project.name"
     }
 
+    jar {
+        from(rootProject.projectDir) {
+            include 'LICENSE.md', 'NOTICE.md'
+            rename { filename -> "${filename.replace('.md', '')}_${rootProject.archives_name}.md" }
+            into '/'
+        }
+
+        from(rootProject.projectDir) {
+            include 'THIRD_PARTY_LICENSES.md', 'vendor/**'
+            into '/META-INF'
+        }
+    }
+
     repositories {
         // Add repositories to retrieve artifacts from in here.
         // You should only use this when depending on other mods because

@@ -1,6 +1,8 @@
 package com.kadmuffin.bikesarepain.neoforge;
 
 import com.kadmuffin.bikesarepain.BikesArePain;
+import com.kadmuffin.bikesarepain.BikesArePainClient;
+import com.kadmuffin.bikesarepain.client.ClientConfig;
 import com.kadmuffin.bikesarepain.client.SerialReader;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
@@ -22,20 +24,20 @@ public final class BikesArePainNeoForge {
 
     private RequiredArgumentBuilder<ClientCommandRegistrationEvent.ClientCommandSourceStack, Float> setScale(int applyTo) {
         return ClientCommandRegistrationEvent.argument("scale1", FloatArgumentType.floatArg(
-                        GameRuleManager.MIN_BIKE_SCALING_VAL / 10F,
-                        GameRuleManager.MAX_BIKE_SCALING_VAL
+                        0.01F,
+                        50F
                 ))
                 .then(ClientCommandRegistrationEvent.literal("block")
                         .then(ClientCommandRegistrationEvent.literal("is")
                                 .then(ClientCommandRegistrationEvent.argument("scale2", FloatArgumentType.floatArg(
-                                                        GameRuleManager.MIN_BIKE_SCALING_VAL / 10F,
-                                                        GameRuleManager.MAX_BIKE_SCALING_VAL
+                                                        0.01F,
+                                                        50F
                                                 ))
                                                 .then(ClientCommandRegistrationEvent.literal("meter")
                                                         .executes(context -> {
                                                             float scale1 = FloatArgumentType.getFloat(context, "scale1");
                                                             float scale2 = FloatArgumentType.getFloat(context, "scale2");
-                                                            reader.setScaleFactor(scale1, scale2, applyTo);
+                                                            BikesArePainClient.getReader().setScaleFactor(scale1, scale2, applyTo);
                                                             context.getSource().arch$sendSuccess(() -> Component.literal("Set scale factor"), false);
                                                             return 1;
                                                         })
@@ -46,13 +48,13 @@ public final class BikesArePainNeoForge {
 
                 .then(ClientCommandRegistrationEvent.literal("meter")
                         .then(ClientCommandRegistrationEvent.argument("scale2", FloatArgumentType.floatArg(
-                                                GameRuleManager.MIN_BIKE_SCALING_VAL / 10F,
-                                                GameRuleManager.MAX_BIKE_SCALING_VAL
+                                            0.01F,
+                                            50F
                                         ))
                                         .executes(context -> {
                                             float scale1 = FloatArgumentType.getFloat(context, "scale1");
                                             float scale2 = FloatArgumentType.getFloat(context, "scale2");
-                                            reader.setScaleFactor(scale1, scale2, applyTo);
+                                            BikesArePainClient.getReader().setScaleFactor(scale1, scale2, applyTo);
                                             context.getSource().arch$sendSuccess(() -> Component.literal("Set scale factor"), false);
                                             return 1;
                                         })
@@ -66,14 +68,32 @@ public final class BikesArePainNeoForge {
 
         // Make sure we are running in the client side
         if (Minecraft.getInstance().level == null) {
-            reader = new SerialReader();
+            BikesArePainClient.init();
 
             ClientCommandRegistrationEvent.EVENT.register((dispatcher, dedicated) -> {
                 LiteralArgumentBuilder<ClientCommandRegistrationEvent.ClientCommandSourceStack> command = ClientCommandRegistrationEvent.literal("bikes")
                         .then(ClientCommandRegistrationEvent.literal("open")
+                                .executes(context -> {
+                                    try {
+                                        if (ClientConfig.CONFIG.instance().getPort().contains("No port")) {
+                                            context.getSource().arch$sendFailure(Component.literal("No port set yet."));
+                                            return 0;
+                                        }
+
+                                        BikesArePainClient.getReader().setSerial();
+                                        BikesArePainClient.getReader().start();
+                                    } catch (Exception e) {
+                                        System.out.println("Failed to open port: " + e);
+                                        context.getSource().arch$sendFailure(Component.literal("Failed to open port: " + e));
+                                        return 0;
+                                    }
+
+                                    context.getSource().arch$sendSuccess(() -> Component.literal("Opened port"), false);
+                                    return 1;
+                                })
                                 .then(ClientCommandRegistrationEvent.argument("port", StringArgumentType.string())
                                         .suggests((context, builder) -> {
-                                            for (String port : reader.getPorts()) {
+                                            for (String port : BikesArePainClient.getReader().getPorts()) {
                                                 builder.suggest(port);
                                             }
                                             return builder.buildFuture();
@@ -81,8 +101,10 @@ public final class BikesArePainNeoForge {
                                         .executes(context -> {
                                             String port = StringArgumentType.getString(context, "port");
                                             try {
-                                                reader.setSerial(port);
-                                                reader.start();
+                                                ClientConfig.CONFIG.instance().setPort(port);
+                                                BikesArePainClient.getReader().setSerial();
+                                                BikesArePainClient.getReader().start();
+                                                ClientConfig.CONFIG.save();
                                             } catch (Exception e) {
                                                 System.out.println("Failed to open port: " + e);
                                                 context.getSource().arch$sendFailure(Component.literal("Failed to open port: " + e));
@@ -97,7 +119,7 @@ public final class BikesArePainNeoForge {
                         .then(ClientCommandRegistrationEvent.literal("close")
                                 .executes(context -> {
                                     try {
-                                        reader.stop();
+                                        BikesArePainClient.getReader().stop();
                                     } catch (Exception e) {
                                         System.out.println("Failed to close port: " + e);
                                         context.getSource().arch$sendFailure(Component.literal("Failed to close port: " + e));
@@ -129,7 +151,7 @@ public final class BikesArePainNeoForge {
                                                 ClientCommandRegistrationEvent.literal("get")
                                                         .then(ClientCommandRegistrationEvent.literal("scale")
                                                                 .executes(context -> {
-                                                                    context.getSource().arch$sendSuccess(() -> Component.literal(reader.getScaleFactorString()), false);
+                                                                    context.getSource().arch$sendSuccess(() -> Component.literal(BikesArePainClient.getReader().getScaleFactorString()), false);
                                                                     return 1;
                                                                 })
                                                         )
@@ -138,14 +160,16 @@ public final class BikesArePainNeoForge {
                                         .then(ClientCommandRegistrationEvent.literal("unit")
                                                 .then(ClientCommandRegistrationEvent.literal("imperial")
                                                         .executes(context -> {
-                                                            NetworkManager.sendToServer(new PacketManager.UnitSystemPacket(true));
+                                                            ClientConfig.CONFIG.instance().setImperial(true);
+                                                            ClientConfig.CONFIG.save();
                                                             context.getSource().arch$sendSuccess(() -> Component.literal("Set unit system to imperial"), false);
                                                             return 1;
                                                         })
                                                 )
                                                 .then(ClientCommandRegistrationEvent.literal("metric")
                                                         .executes(context -> {
-                                                            NetworkManager.sendToServer(new PacketManager.UnitSystemPacket(false));
+                                                            ClientConfig.CONFIG.instance().setImperial(false);
+                                                            ClientConfig.CONFIG.save();
                                                             context.getSource().arch$sendSuccess(() -> Component.literal("Set unit system to metric"), false);
                                                             return 1;
                                                         })

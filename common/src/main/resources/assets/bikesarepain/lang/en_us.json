@@ -30,5 +30,35 @@
   "sound.bikesarepain.bicycle_movement": "Bicycle Sound",
   "sound.bikesarepain.bicycle_land": "Bicycle Landing",
 
-  "bikesarepain.jserialcomm.timeout": "Lost connection to the serial port. Please run /bikes close then /bikes open <port> to connect again."
+  "bikesarepain.jserialcomm.timeout": "Lost connection to the serial port. Please run /bikes open <port> to try again.",
+  "bikesarepain.jserialcomm.port_not_available": "The chosen port is not available. Manually run /bikes open <port> to try again.",
+
+  "config.bikesarepain.visuals.name": "Visuals",
+  "config.bikesarepain.visuals.tooltip": "Visual settings for Bikes Are Pain.",
+  "config.bikesarepain.visuals.pedometer.name": "Pedometer",
+  "config.bikesarepain.visuals.pedometer.tooltip": "Configuration for the visuals aspects of the pedometer item.",
+  "config.bikesarepain.visuals.pedometer.imperial.name": "Use Imperial Units",
+  "config.bikesarepain.visuals.pedometer.imperial.tooltip": "Shows imperial units for any bike you are riding.",
+
+  "config.bikesarepain.serial.name": "Serial",
+  "config.bikesarepain.serial.tooltip": "Settings for connecting with an arduino. Used for reading data from a fitness bike.",
+  "config.bikesarepain.serial.link.name": "Link",
+  "config.bikesarepain.serial.link.tooltip": "Parameters that are used for reading data from the serial port.",
+  "config.bikesarepain.serial.link.autoconnect.name": "Connect on Join",
+  "config.bikesarepain.serial.link.autoconnect.tooltip": "Automatically tries to connect to the serial port when entering the world or a server.",
+  "config.bikesarepain.serial.link.autoconnect_failed.name": "Show Auto Connect Failed",
+  "config.bikesarepain.serial.link.autoconnect_failed.tooltip": "Shows a message when the port chosen isn't available while using \"Connect on Join\".",
+  "config.bikesarepain.serial.link.port.name": "Port",
+  "config.bikesarepain.serial.link.port.tooltip": "The port that the arduino is connected to.",
+  "config.bikesarepain.serial.link.baudrate.name": "Baud Rate",
+  "config.bikesarepain.serial.link.baudrate.tooltip": "The speed of the data transfer. Must match the arduino's baud rate.",
+
+  "config.bikesarepain.serial.scale.name": "Units Scale",
+  "config.bikesarepain.serial.scale.tooltip": "Used to scale the speed and wheel sizes readings before applying them. Can be set more easily with \"/bikes scale set\"",
+  "config.bikesarepain.serial.scale.wheel.name": "Wheel Scale Factor",
+  "config.bikesarepain.serial.scale.wheel.tooltip": "This scales the size of the real wheel to the in-game wheel. This only affects the model visually.",
+  "config.bikesarepain.serial.scale.speed.name": "Speed Scale Factor",
+  "config.bikesarepain.serial.scale.speed.tooltip": "The speed readings from the arduino are multiplied by this value. This is used to make the biking 'feel' faster or slower.",
+
+  "modmenu.summaryTranslation.bikesarepain": "Adds bikes to the game."
 }

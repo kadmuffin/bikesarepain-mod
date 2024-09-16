@@ -1,6 +1,7 @@
 package com.kadmuffin.bikesarepain.server.entity;
 
 import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
+import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.kadmuffin.bikesarepain.server.StatsManager;
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
@@ -413,6 +414,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         } else {
             movSpeed = lastSpeed + (movSpeed - lastSpeed) * (1.15F-this.inertiaFactor());
         }
+        final float maxSpeed = this.level().getGameRules().getRule(GameRuleManager.MAX_BIKE_SPEED).get()/20F;
+        movSpeed = Math.clamp(movSpeed, 0, maxSpeed);
+
         rotation = movSpeed / this.getWheelRadius();
 
         this.setRearWheelSpeed(rotation / (2 * (float) Math.PI));

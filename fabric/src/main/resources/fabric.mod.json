@@ -2,13 +2,13 @@
   "schemaVersion": 1,
   "id": "bikesarepain",
   "version": "${version}",
-  "name": "BikesArePain",
-  "description": "",
+  "name": "Bikes Are Pain",
+  "description": "Adds bikes to the game and allows you to use real fitness bikes to move in-game. Uses JSerialComm under the Apache 2.0 License under the hood.",
   "authors": [
     "KadMuffin"
   ],
   "contact": {
-    "homepage": ""
+    "homepage": "github.com/kadmuffin"
   },
   "license": "MIT",
   "icon": "assets/bikesarepain/icon.png",
@@ -19,6 +19,9 @@
     ],
     "client": [
       "com.kadmuffin.bikesarepain.fabric.client.BikesArePainFabricClient"
+    ],
+    "modmenu": [
+      "com.kadmuffin.bikesarepain.fabric.client.ModMenuIntegration"
     ]
   },
   "mixins": [

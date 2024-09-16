@@ -7,9 +7,11 @@ import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -98,11 +100,14 @@ public class PacketManager {
         }
     }
 
-    public record EmptyArduinoData(boolean enabled) implements CustomPacketPayload {
+    public record EmptyArduinoData(boolean enabled, boolean disconnect) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<EmptyArduinoData> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "empty_arduino_data"));
         public static final StreamCodec<RegistryFriendlyByteBuf, EmptyArduinoData> CODEC = StreamCodec.of(
-                (buf, obj) -> buf.writeBoolean(obj.enabled),
-                buf -> new EmptyArduinoData(buf.readBoolean())
+                (buf, obj) -> {
+                    buf.writeBoolean(obj.enabled);
+                    buf.writeBoolean(obj.disconnect);
+                },
+                buf -> new EmptyArduinoData(buf.readBoolean(), buf.readBoolean())
         );
 
         public static final NetworkManager.NetworkReceiver<EmptyArduinoData> RECEIVER = (packet, context) -> {
@@ -111,7 +116,11 @@ public class PacketManager {
                 if (player.getVehicle() instanceof AbstractBike) {
                     PlayerAccessor playerAcc = ((PlayerAccessor) player);
                     playerAcc.bikesarepain$setJSCActive(packet.enabled);
-                    playerAcc.bikesarepain$setJSCSinceUpdate(0);
+                    if (packet.disconnect) {
+                        playerAcc.bikesarepain$setJSCSinceUpdate(1000);
+                    } else {
+                        playerAcc.bikesarepain$setJSCSinceUpdate(0);
+                    }
                 }
             }
         };
@@ -125,28 +134,18 @@ public class PacketManager {
     public static void processArduinoData(ArduinoData packet, Player player, Level level) {
         PlayerAccessor playerAcc = ((PlayerAccessor) player);
 
-        float scaleFactorWheel = packet.scaleFactorWheel;
-        float scaleFactorSpeed = packet.scaleFactorSpeed;
-        final float maxBikeScaling = level.getGameRules().getRule(GameRuleManager.MAX_BIKE_SCALING).get();
-        final float minBikeScaling = level.getGameRules().getRule(GameRuleManager.MIN_BIKE_SCALING).get()/10F;
+        final float scaleFactorWheel = packet.scaleFactorWheel;
+        final float scaleFactorSpeed = packet.scaleFactorSpeed;
 
-        if (maxBikeScaling < scaleFactorWheel) {
-            scaleFactorWheel = maxBikeScaling;
-        }
-        if (minBikeScaling > scaleFactorWheel) {
-            scaleFactorWheel = minBikeScaling;
-        }
+        final float maxWheelSize = level.getGameRules().getRule(GameRuleManager.MAX_BIKE_WHEEL_SIZE).get();
+        final float minWheelSize = level.getGameRules().getRule(GameRuleManager.MIN_BIKE_WHEEL_SIZE).get()/100F;
 
-        if (maxBikeScaling < scaleFactorSpeed) {
-            scaleFactorSpeed = maxBikeScaling;
-        }
-        if (minBikeScaling > scaleFactorSpeed) {
-            scaleFactorSpeed = minBikeScaling;
-        }
+        float wheelSize = packet.wheelRadius * scaleFactorWheel;
+        wheelSize = Math.min(maxWheelSize, Math.max(minWheelSize, wheelSize));
 
         playerAcc.bikesarepain$setJSCActive(packet.enabled);
         playerAcc.bikesarepain$setJSCSpeed(packet.speed * scaleFactorSpeed);
-        playerAcc.bikesarepain$setJSCWheelRadius(packet.wheelRadius * scaleFactorWheel);
+        playerAcc.bikesarepain$setJSCWheelRadius(wheelSize);
 
         playerAcc.bikesarepain$setJSCRealSpeed(packet.speed);
         playerAcc.bikesarepain$setJSCDistance(packet.distanceMoved);
@@ -213,23 +212,6 @@ public class PacketManager {
         }
     }
 
-    public record UnitSystemPacket(boolean useImperial) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<UnitSystemPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "unit_system"));
-        public static final StreamCodec<FriendlyByteBuf, UnitSystemPacket> CODEC = StreamCodec.of((buf, obj) -> buf.writeBoolean(obj.useImperial), buf -> new UnitSystemPacket(buf.readBoolean()));
-
-        public static final NetworkManager.NetworkReceiver<UnitSystemPacket> RECEIVER = (packet, contextSupplier) -> {
-            Player player = contextSupplier.getPlayer();
-            if (player != null) {
-                ((PlayerAccessor) player).bikesarepain$setAmericaUnitsPls(packet.useImperial);
-            }
-        };
-
-        @Override
-        public @NotNull Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-    }
-
     public static void init() {
         NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeypressPacket.TYPE, KeypressPacket.CODEC, KeypressPacket.RECEIVER);
         NetworkManager.registerReceiver(
@@ -237,11 +219,6 @@ public class PacketManager {
                 PacketManager.ArduinoData.TYPE,
                 PacketManager.ArduinoData.CODEC,
                 PacketManager.ArduinoData.RECEIVER);
-        NetworkManager.registerReceiver(
-                NetworkManager.c2s(),
-                PacketManager.UnitSystemPacket.TYPE,
-                PacketManager.UnitSystemPacket.CODEC,
-                PacketManager.UnitSystemPacket.RECEIVER);
         NetworkManager.registerReceiver(
                 NetworkManager.c2s(),
                 PacketManager.EmptyArduinoData.TYPE,

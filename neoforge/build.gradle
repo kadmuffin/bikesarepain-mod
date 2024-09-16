@@ -29,6 +29,11 @@ repositories {
         name = 'NeoForged'
         url = 'https://maven.neoforged.net/releases'
     }
+
+    maven {
+        name = 'Kotlin for Forge'
+        url = 'https://thedarkcolour.github.io/KotlinForForge/'
+    }
 }
 
 dependencies {
@@ -40,6 +45,9 @@ dependencies {
     shadowBundle project(path: ':common', configuration: 'transformProductionNeoForge')
     modImplementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:$rootProject.geckolib_version"
     forgeRuntimeLibrary "com.fazecast:jSerialComm:[2.0.0,3.0.0)"
+
+    implementation "thedarkcolour:kotlinforforge:${project.kotlin_forge_version}"
+    modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}-neoforge"
 }
 
 processResources {

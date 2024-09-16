@@ -1,5 +1,6 @@
 package com.kadmuffin.bikesarepain.server.entity;
 
+import com.kadmuffin.bikesarepain.client.ClientConfig;
 import com.kadmuffin.bikesarepain.client.helper.DecagonDisplayManager;
 import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
@@ -12,6 +13,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -136,7 +138,8 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             if (this.ticksSinceLastRing <= 6) {
                 this.ticksSinceLastRing++;
             }
-            this.updateDisplayTarget();
+        } else {
+            this.updateDisplayTarget(ClientConfig.CONFIG.instance().isImperial());
         }
 
     }
@@ -711,14 +714,14 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         this.setCurrentDisplayStat(type.getType());
     }
 
-    public Pair<DecagonDisplayManager.DisplayType, Float> autoCastUnitDistance(float distance) {
+    public Pair<DecagonDisplayManager.DisplayType, Float> autoCastUnitDistance(float distance, boolean useImperial) {
         DecagonDisplayManager.DisplayType displayType = DecagonDisplayManager.DisplayType.DISTANCE_METERS;
         if (distance > 1000) {
             displayType = DecagonDisplayManager.DisplayType.DISTANCE_KM;
             distance /= 1000;
         }
 
-        if (this.getRiderPlayerAccessor() instanceof PlayerAccessor mixPlayer && mixPlayer.bikesarepain$wantsAmericaUnits()) {
+        if (useImperial) {
             if (displayType == DecagonDisplayManager.DisplayType.DISTANCE_KM) {
                 displayType = DecagonDisplayManager.DisplayType.DISTANCE_MI;
                 distance *= 0.621371F;
@@ -731,7 +734,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         return new Pair<>(displayType, distance);
     }
 
-    public Pair<DecagonDisplayManager.DisplayType, Float> autoCastUnitSpeed(float speed, boolean forceInitialKMH) {
+    public Pair<DecagonDisplayManager.DisplayType, Float> autoCastUnitSpeed(float speed, boolean useImperial, boolean forceInitialKMH) {
         DecagonDisplayManager.DisplayType displayType = DecagonDisplayManager.DisplayType.SPEED_MS;
 
         if (forceInitialKMH) {
@@ -740,7 +743,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             displayType = DecagonDisplayManager.DisplayType.SPEED_KMH;
             speed *= 3.6F;
 
-            if (this.getRiderPlayerAccessor() instanceof PlayerAccessor mixPlayer && mixPlayer.bikesarepain$wantsAmericaUnits()) {
+            if (useImperial){
                 displayType = DecagonDisplayManager.DisplayType.SPEED_MPH;
                 speed *= 0.621371F;
             }
@@ -768,29 +771,29 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         return new Pair<>(displayType, time);
     }
 
-    public Pair<DecagonDisplayManager.DisplayType, Float> getTargetDisplayScore() {
+    public Pair<DecagonDisplayManager.DisplayType, Float> getTargetDisplayScore(boolean useImperial) {
         DecagonDisplayManager.DisplaySubType subType = DecagonDisplayManager.DisplayType.fromType(this.getCurrentDisplayStat()).getSubType();
         if (this.getFirstPassenger() instanceof Player player) {
             PlayerAccessor mixPlayer = (PlayerAccessor) player;
             if (mixPlayer.bikesarepain$isJSCActive()) {
                 return switch (subType) {
-                    case DISTANCE -> this.autoCastUnitDistance(mixPlayer.bikesarepain$getJSCDistance());
+                    case DISTANCE -> this.autoCastUnitDistance(mixPlayer.bikesarepain$getJSCDistance(), useImperial);
                     case TIME -> this.autoCastUnitTime(this.getTicksPedalled());
-                    case SPEED -> this.autoCastUnitSpeed(mixPlayer.bikesarepain$getJSCRealSpeed(), true);
+                    case SPEED -> this.autoCastUnitSpeed(mixPlayer.bikesarepain$getJSCRealSpeed(), useImperial, true);
                     case CALORIES ->
                             new Pair<>(DecagonDisplayManager.DisplayType.CALORIES_KCAL, mixPlayer.bikesarepain$getJSCCalories());
                 };
             }
         }
         return switch (subType) {
-            case DISTANCE -> this.autoCastUnitDistance(this.getBlocksTravelled());
+            case DISTANCE -> this.autoCastUnitDistance(this.getBlocksTravelled(), useImperial);
             case TIME -> this.autoCastUnitTime(this.getTicksPedalled());
-            default -> this.autoCastUnitSpeed(this.getSpeedInMetersPerSecond(), false);
+            default -> this.autoCastUnitSpeed(this.getSpeedInMetersPerSecond(), useImperial, false);
         };
     }
 
-    public void updateDisplayTarget() {
-        Pair<DecagonDisplayManager.DisplayType, Float> result = this.getTargetDisplayScore();
+    public void updateDisplayTarget(boolean useImperial) {
+        Pair<DecagonDisplayManager.DisplayType, Float> result = this.getTargetDisplayScore(useImperial);
 
         this.setCurrentDisplayStat(result.getA().getType());
         this.displayManager.preprocessTarget(result.getB(), this);

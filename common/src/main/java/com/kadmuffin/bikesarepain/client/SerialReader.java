@@ -5,7 +5,10 @@ import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
 import dev.architectury.networking.NetworkManager;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 public class SerialReader {
@@ -23,8 +26,6 @@ public class SerialReader {
     private float scaleMeterWheel = 1;
     private float scaleBlockSpeed = 1;
     private float scaleMeterSpeed = 1;
-    private float scaleFactorWheel = 1;
-    private float scaleFactorSpeed = 1;
 
     public SerialPort getSerial() {
         return this.serialPort;
@@ -37,34 +38,37 @@ public class SerialReader {
                 this.scaleMeterSpeed = scaleMeter;
                 this.scaleBlockWheel = scaleBlock;
                 this.scaleMeterWheel = scaleMeter;
-                this.scaleFactorSpeed = scaleBlock / scaleMeter;
-                this.scaleFactorWheel = this.scaleFactorSpeed;
+                float scale = scaleBlock / scaleMeter;
+                ClientConfig.CONFIG.instance().setSpeedScaleRatio(scale);
+                ClientConfig.CONFIG.instance().setWheelScaleRatio(scale);
                 break;
             case 1:
                 this.scaleBlockSpeed = scaleBlock;
                 this.scaleMeterSpeed = scaleMeter;
-                this.scaleFactorSpeed = scaleBlock / scaleMeter;
+                ClientConfig.CONFIG.instance().setSpeedScaleRatio(scaleBlock / scaleMeter);
                 break;
             case 2:
                 this.scaleBlockWheel = scaleBlock;
                 this.scaleMeterWheel = scaleMeter;
-                this.scaleFactorWheel = scaleBlock / scaleMeter;
+                ClientConfig.CONFIG.instance().setWheelScaleRatio(scaleBlock / scaleMeter);
                 break;
         }
+        ClientConfig.CONFIG.save();
+
     }
 
     public String getScaleFactorString() {
         return String.format("Speed is set to %.2f block is %.2f meters; Wheel is set to %.2f block is %.2f meters.", this.scaleBlockSpeed, this.scaleMeterSpeed, this.scaleBlockWheel, this.scaleMeterWheel);
     }
 
-    public void setSerial(String port) {
+    public void setSerial() {
         if (this.serialPort != null && this.serialPort.isOpen()) {
             this.serialPort.closePort();
         }
 
 
-        this.serialPort = SerialPort.getCommPort(port);
-        this.serialPort.setComPortParameters(31250, 8, 1, 0);
+        this.serialPort = SerialPort.getCommPort(ClientConfig.CONFIG.instance().getPort());
+        this.serialPort.setComPortParameters(ClientConfig.CONFIG.instance().getBaudRate(), 8, 1, 0);
         this.serialPort.setFlowControl(SerialPort.FLOW_CONTROL_DISABLED);
         this.serialPort.addDataListener(new SerialPortDataListener() {
             @Override
@@ -126,9 +130,9 @@ public class SerialReader {
                                         lastKcalories = kcalories;
                                         lastWheelRadius = wheelRadius;
 
-                                        updateServerData(true, false);
+                                        updateServerData(true, false, false);
                                     } else {
-                                        updateServerData(true, true);
+                                        updateServerData(true, true, false);
                                     }
                                 }
 
@@ -141,34 +145,47 @@ public class SerialReader {
                 }
             }
         });
+
+        // Check for disconnect
+        this.serialPort.addDataListener(new SerialPortDataListener() {
+            @Override
+            public int getListeningEvents() {
+                return SerialPort.LISTENING_EVENT_PORT_DISCONNECTED;
+            }
+
+            @Override
+            public void serialEvent(SerialPortEvent event) {
+                if (event.getEventType() == SerialPort.LISTENING_EVENT_PORT_DISCONNECTED) {
+                    updateServerData(false, true, true);
+                }
+            }
+        });
     }
 
-    public boolean start() {
+    public void start() {
         if (this.serialPort == null) {
-            return false;
+            return;
         }
-        this.updateServerData(true, true);
+        this.updateServerData(true, true, false);
         this.serialPort.openPort();
         this.speedQueue = new LinkedList<>();
-        return true;
     }
 
-    public boolean stop() {
+    public void stop() {
         if (this.serialPort == null) {
-            return false;
+            return;
         }
-        updateServerData(false, true);
+        updateServerData(false, true, false);
         this.serialPort.closePort();
-        return true;
     }
 
-    public void updateServerData(boolean enabled, boolean empty) {
+    public void updateServerData(boolean enabled, boolean empty, boolean disconnect) {
         if (this.serialPort == null) {
             return;
         }
 
         if (empty) {
-            NetworkManager.sendToServer(new PacketManager.EmptyArduinoData(enabled));
+            NetworkManager.sendToServer(new PacketManager.EmptyArduinoData(enabled, disconnect));
             return;
         }
 
@@ -178,17 +195,18 @@ public class SerialReader {
                 lastDistance,
                 lastKcalories,
                 lastWheelRadius,
-                this.scaleFactorWheel,
-                this.scaleFactorSpeed
+                ClientConfig.CONFIG.instance().getSpeedScaleRatio(),
+                ClientConfig.CONFIG.instance().getWheelScaleRatio()
         ));
     }
 
-    public String[] getPorts() {
+    public static List<String> getPorts() {
         SerialPort[] ports = SerialPort.getCommPorts();
-        String[] portNames = new String[ports.length];
-        for (int i = 0; i < ports.length; i++) {
-            portNames[i] = ports[i].getSystemPortName();
+        List<String> portNames = new ArrayList<>();
+        for (SerialPort port : ports) {
+            portNames.add(port.getSystemPortName());
         }
+
         return portNames;
     }
 }

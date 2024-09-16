@@ -28,9 +28,6 @@ public class PlayerMixin implements PlayerAccessor {
     private static final EntityDataAccessor<Float> BAPAIN_JSC_WHEELRADIUS = SynchedEntityData.defineId(Player.class, EntityDataSerializers.FLOAT);
     @Unique
     private static final EntityDataAccessor<Integer> BAPAIN_JSC_TIMESINCEUPDATE = SynchedEntityData.defineId(Player.class, EntityDataSerializers.INT);
-    @Unique
-    private static final EntityDataAccessor<Boolean> BAPAIN_AMERICA_UNITS_PLS = SynchedEntityData.defineId(Player.class, EntityDataSerializers.BOOLEAN);
-
 
 
     @Inject(at = @At("TAIL"), method = "defineSynchedData(Lnet/minecraft/network/syncher/SynchedEntityData$Builder;)V")
@@ -42,7 +39,6 @@ public class PlayerMixin implements PlayerAccessor {
         builder.define(BAPAIN_JSC_CALORIES, 0.0F);
         builder.define(BAPAIN_JSC_WHEELRADIUS, 0.0F);
         builder.define(BAPAIN_JSC_TIMESINCEUPDATE, 0);
-        builder.define(BAPAIN_AMERICA_UNITS_PLS, false);
     }
 
     @Unique
@@ -113,16 +109,6 @@ public class PlayerMixin implements PlayerAccessor {
     @Unique
     public void bikesarepain$setJSCSinceUpdate(int timesinceupdate) {
         ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_TIMESINCEUPDATE, timesinceupdate);
-    }
-
-    @Unique
-    public boolean bikesarepain$wantsAmericaUnits() {
-        return ((Player)(Object)this).getEntityData().get(BAPAIN_AMERICA_UNITS_PLS);
-    }
-
-    @Unique
-    public void bikesarepain$setAmericaUnitsPls(boolean americaUnitsPls) {
-        ((Player)(Object)this).getEntityData().set(BAPAIN_AMERICA_UNITS_PLS, americaUnitsPls);
     }
 }
 

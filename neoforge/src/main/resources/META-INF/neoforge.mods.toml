@@ -8,9 +8,8 @@ modId = "bikesarepain"
 version = "${version}"
 displayName = "BikesArePain"
 authors = "Kadmuffin"
-description = '''
+description = "Adds bikes to the game and allows you to use real fitness bikes to move in-game. Uses JSerialComm under the Apache 2.0 License under the hood."
 
-'''
 #logoFile = ""
 
 [[dependencies.bikesarepain]]
@@ -23,7 +22,7 @@ side = "BOTH"
 [[dependencies.bikesarepain]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21,)"
+versionRange = "[1.21,1.21.1]"
 ordering = "NONE"
 side = "BOTH"
 
@@ -42,7 +41,7 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.bikesarepain]]
-modId = "yaclv3"
+modId = "yet_another_config_lib_v3"
 type = "required"
 versionRange = "[3.5.0,4.0.0)"
 ordering = "AFTER"

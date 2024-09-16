@@ -14,7 +14,9 @@ import dev.architectury.event.events.client.ClientCommandRegistrationEvent;
 import dev.architectury.networking.NetworkManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 import static com.kadmuffin.bikesarepain.BikesArePain.MOD_ID;
 
@@ -70,6 +72,10 @@ public final class BikesArePainNeoForge {
         if (Minecraft.getInstance().level == null) {
             BikesArePainClient.init();
 
+            ModLoadingContext.get().registerExtensionPoint(
+                    IConfigScreenFactory.class,
+                    () -> (client, parent) -> ClientConfig.CONFIG.instance().getScreen(parent));
+
             ClientCommandRegistrationEvent.EVENT.register((dispatcher, dedicated) -> {
                 LiteralArgumentBuilder<ClientCommandRegistrationEvent.ClientCommandSourceStack> command = ClientCommandRegistrationEvent.literal("bikes")
                         .then(ClientCommandRegistrationEvent.literal("open")
@@ -93,7 +99,7 @@ public final class BikesArePainNeoForge {
                                 })
                                 .then(ClientCommandRegistrationEvent.argument("port", StringArgumentType.string())
                                         .suggests((context, builder) -> {
-                                            for (String port : BikesArePainClient.getReader().getPorts()) {
+                                            for (String port : SerialReader.getPorts()) {
                                                 builder.suggest(port);
                                             }
                                             return builder.buildFuture();

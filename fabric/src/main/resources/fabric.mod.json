@@ -8,7 +8,7 @@
     "KadMuffin"
   ],
   "contact": {
-    "homepage": "github.com/kadmuffin"
+    "homepage": ""
   },
   "license": "MIT",
   "icon": "assets/bikesarepain/icon.png",
@@ -30,11 +30,15 @@
   ],
   "depends": {
     "fabricloader": ">=0.16.0",
-    "minecraft": "~1.21",
+    "minecraft": ["1.21", "1.21.1"],
     "java": ">=21",
     "architectury": ">=13.0.6",
     "fabric-api": "*",
-    "geckolib": ">=4.5.0"
+    "geckolib": ">=4.5.0",
+    "yet_another_config_lib_v3": "*"
+  },
+  "recommends": {
+    "modmenu": "*"
   },
   "suggest": {
     "dehydration": ">=1.3.7"

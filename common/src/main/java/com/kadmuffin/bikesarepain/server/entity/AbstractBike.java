@@ -48,7 +48,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public float bikePitch = 0.0F;
     private float rearWheelSpeed = 0.0F;
 
-    private float blocksTravelled = 0.0F;
     private BlockPos lastPos = null;
 
     // Let devs add event listener for when the bike is moving
@@ -56,6 +55,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private static final List<TriConsumer<AbstractBike, Float, Boolean>> onMoveListeners = new ArrayList<>();
 
     // Entity Data
+    private static final EntityDataAccessor<Float> BLOCKS_TRAVELLED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> TICKS_PEDALLED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> LAST_ROT_Y = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> HAS_CHEST = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.BOOLEAN);
@@ -86,7 +86,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         compound.putBoolean("SaveTime", this.saveTime);
         compound.putBoolean("SaveDistance", this.saveDistance);
         compound.putBoolean("HasChest", this.hasChest());
-        compound.putFloat("BlocksTravelled", this.blocksTravelled);
+        compound.putFloat("BlocksTravelled", this.getBlocksTravelled());
         compound.putInt("TicksTravelled", this.getTicksPedalled());
         compound.putBoolean("HealthAffectsSpeed", this.isHealthAffectingSpeed());
     }
@@ -97,7 +97,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.saveTime = compound.getBoolean("SaveTime");
         this.saveDistance = compound.getBoolean("SaveDistance");
         this.setChested(compound.getBoolean("HasChest"));
-        this.blocksTravelled = compound.getFloat("BlocksTravelled");
+        this.setBlocksTravelled(compound.getFloat("BlocksTravelled"));
         this.setTicksPedalled(compound.getInt("TicksTravelled"));
         this.setHealthAffectsSpeed(compound.getBoolean("HealthAffectsSpeed"));
     }
@@ -116,6 +116,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         builder.define(HAS_CHEST, false);
         builder.define(LAST_ROT_Y, 0.0F);
         builder.define(TICKS_PEDALLED, 0);
+        builder.define(BLOCKS_TRAVELLED, 0.0F);
     }
 
     public static EntityDataAccessor<Boolean> getHasChest() {
@@ -206,7 +207,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 BlockPos currentPos = new BlockPos((int) this.getX(), (int) this.getY(), (int) this.getZ());
 
                 if (this.getSpeed() > 0.05F && this.isSavingDistance() && (this.lastPos == null || !this.lastPos.equals(currentPos))) {
-                    this.blocksTravelled += this.getSpeed() / this.getWheelRadius();
+                    this.setBlocksTravelled(this.getBlocksTravelled()+this.getSpeed() / this.getWheelRadius());
                     this.lastPos = currentPos;
                 }
             }
@@ -598,7 +599,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     }
 
     public float getBlocksTravelled() {
-        return this.blocksTravelled;
+        return this.entityData.get(BLOCKS_TRAVELLED);
     }
 
     public int getTicksPedalled() {
@@ -606,7 +607,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     }
 
     public void setBlocksTravelled(float blocksTravelled) {
-        this.blocksTravelled = blocksTravelled;
+        this.entityData.set(BLOCKS_TRAVELLED, blocksTravelled);
     }
 
     public void setTicksPedalled(int ticksPedalled) {

@@ -66,8 +66,14 @@ public class SerialReader {
             this.serialPort.closePort();
         }
 
+        String port = ClientConfig.CONFIG.instance().getPort();
 
-        this.serialPort = SerialPort.getCommPort(ClientConfig.CONFIG.instance().getPort());
+        // Remove descriptive name
+        if (port.contains(":")) {
+            port = port.split(":")[0];
+        }
+
+        this.serialPort = SerialPort.getCommPort(port);
         this.serialPort.setComPortParameters(ClientConfig.CONFIG.instance().getBaudRate(), 8, 1, 0);
         this.serialPort.setFlowControl(SerialPort.FLOW_CONTROL_DISABLED);
         this.serialPort.addDataListener(new SerialPortDataListener() {
@@ -162,13 +168,14 @@ public class SerialReader {
         });
     }
 
-    public void start() {
+    public boolean start() {
         if (this.serialPort == null) {
-            return;
+            return false;
         }
         this.updateServerData(true, true, false);
         this.serialPort.openPort();
         this.speedQueue = new LinkedList<>();
+        return true;
     }
 
     public void stop() {
@@ -205,6 +212,23 @@ public class SerialReader {
         List<String> portNames = new ArrayList<>();
         for (SerialPort port : ports) {
             portNames.add(port.getSystemPortName());
+        }
+
+        return portNames;
+    }
+
+    // COMX: NAME
+    public static List<String> getPortsNamed() {
+        SerialPort[] ports = SerialPort.getCommPorts();
+        List<String> portNames = new ArrayList<>();
+        for (SerialPort port : ports) {
+            // COMX: NAME [Name is limited to 20 characters]
+            String name = port.getPortDescription();
+            if (name.length() > 20) {
+                name = name.substring(0, 20);
+                name += "...";
+            }
+            portNames.add(port.getSystemPortName() + ": " + (name.isEmpty() ? "Unknown" : name));
         }
 
         return portNames;

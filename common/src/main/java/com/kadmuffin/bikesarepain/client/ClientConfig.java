@@ -196,7 +196,7 @@ public class ClientConfig {
     }
 
     public static List<String> getPorts() {
-        List<String> ports = SerialReader.getPorts();
+        List<String> ports = SerialReader.getPortsNamed();
         if (ports.isEmpty()) {
             ports.add("No port available");
         }

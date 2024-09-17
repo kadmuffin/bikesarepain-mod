@@ -18,7 +18,19 @@ public class BikesArePainClient {
             // is in the list SerialReader.getPorts()
             if (ClientConfig.CONFIG.instance().isAutoConnect() && !ClientConfig.CONFIG.instance().getPort().contains("No port")) {
                 if (SerialReader.getPorts().contains(ClientConfig.CONFIG.instance().getPort())) {
-                    reader.start();
+                    try {
+                        if (reader.start())  {
+                            player.displayClientMessage(
+                                    Component.translatable("bikesarepain.jserialcomm.connected_to_port"),
+                                    false
+                            );
+                        }
+                    } catch (Exception e) {
+                        player.displayClientMessage(
+                                Component.literal("Bikes Are Pain: Something went wrong while trying to connect to the serial port. Error: " + e),
+                                false
+                        );
+                    }
                 } else if (ClientConfig.CONFIG.instance().isShowPortNotAvailableMessage()) {
                     player.displayClientMessage(
                             Component.translatable("bikesarepain.jserialcomm.port_not_available"),

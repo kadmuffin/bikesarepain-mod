@@ -33,6 +33,10 @@ public class BikesArePainClient {
         });
     }
 
+    public static boolean isConfigPortAvailable() {
+        return SerialReader.getPorts().contains(ClientConfig.CONFIG.instance().getPort());
+    }
+
     public static SerialReader getReader() {
         return reader;
     }

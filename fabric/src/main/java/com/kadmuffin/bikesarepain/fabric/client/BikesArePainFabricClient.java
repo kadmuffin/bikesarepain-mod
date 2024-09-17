@@ -68,6 +68,13 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
                                     context.getSource().sendFeedback(Component.literal("No port set yet."));
                                     return 0;
                                 }
+
+                                // Check if the port is available
+                                if (!BikesArePainClient.isConfigPortAvailable()) {
+                                    context.getSource().sendFeedback(Component.literal("The chosen port is not available. Please choose another port or try again."));
+                                    return 0;
+                                }
+
                                 BikesArePainClient.getReader().setSerial();
                                 BikesArePainClient.getReader().start();
                             } catch (Exception e) {
@@ -91,6 +98,13 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
                                     String port = StringArgumentType.getString(context, "port");
                                     try {
                                         ClientConfig.CONFIG.instance().setPort(port);
+
+                                        // Check if the port is available
+                                        if (!BikesArePainClient.isConfigPortAvailable()) {
+                                            context.getSource().sendFeedback(Component.literal("The chosen port is not available. Please choose another port or try again."));
+                                            return 0;
+                                        }
+
                                         BikesArePainClient.getReader().setSerial();
                                         BikesArePainClient.getReader().start();
                                         ClientConfig.CONFIG.save();

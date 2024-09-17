@@ -86,6 +86,12 @@ public final class BikesArePainNeoForge {
                                             return 0;
                                         }
 
+                                        // Check if the port is available
+                                        if (!BikesArePainClient.isConfigPortAvailable()) {
+                                            context.getSource().arch$sendFailure(Component.literal("The chosen port is not available. Please choose another port or try again."));
+                                            return 0;
+                                        }
+
                                         BikesArePainClient.getReader().setSerial();
                                         BikesArePainClient.getReader().start();
                                     } catch (Exception e) {
@@ -108,6 +114,13 @@ public final class BikesArePainNeoForge {
                                             String port = StringArgumentType.getString(context, "port");
                                             try {
                                                 ClientConfig.CONFIG.instance().setPort(port);
+
+                                                // Check if the port is available
+                                                if (!BikesArePainClient.isConfigPortAvailable()) {
+                                                    context.getSource().arch$sendFailure(Component.literal("The chosen port is not available. Please choose another port or try again."));
+                                                    return 0;
+                                                }
+
                                                 BikesArePainClient.getReader().setSerial();
                                                 BikesArePainClient.getReader().start();
                                                 ClientConfig.CONFIG.save();

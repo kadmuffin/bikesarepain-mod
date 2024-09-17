@@ -18,7 +18,9 @@ public class BikesArePainClient {
             // is in the list SerialReader.getPorts()
             if (ClientConfig.CONFIG.instance().isAutoConnect() && !ClientConfig.CONFIG.instance().getPort().contains("No port")) {
                 if (SerialReader.getPorts().contains(ClientConfig.CONFIG.instance().getPort())) {
+                    reader.stop();
                     try {
+                        reader.setSerial();
                         if (reader.start())  {
                             player.displayClientMessage(
                                     Component.translatable("bikesarepain.jserialcomm.connected_to_port"),

@@ -139,7 +139,20 @@ public class ClientConfig {
         return autoConnect;
     }
 
+    public String getPortRaw() {
+        return port;
+    }
+
     public String getPort() {
+        String port = this.getPortRaw();
+        if (port.contains("No port")) {
+        }
+
+        if (port.contains(":")) {
+            // Assuming that the port is in the format "COM7: Arduino Uno (COM7)"
+            return port.split(":")[0];
+        }
+
         return port;
     }
 

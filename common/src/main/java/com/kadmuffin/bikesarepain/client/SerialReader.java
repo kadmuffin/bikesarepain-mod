@@ -66,14 +66,7 @@ public class SerialReader {
             this.serialPort.closePort();
         }
 
-        String port = ClientConfig.CONFIG.instance().getPort();
-
-        // Remove descriptive name
-        if (port.contains(":")) {
-            port = port.split(":")[0];
-        }
-
-        this.serialPort = SerialPort.getCommPort(port);
+        this.serialPort = SerialPort.getCommPort(ClientConfig.CONFIG.instance().getPort());
         this.serialPort.setComPortParameters(ClientConfig.CONFIG.instance().getBaudRate(), 8, 1, 0);
         this.serialPort.setFlowControl(SerialPort.FLOW_CONTROL_DISABLED);
         this.serialPort.addDataListener(new SerialPortDataListener() {
@@ -222,10 +215,10 @@ public class SerialReader {
         SerialPort[] ports = SerialPort.getCommPorts();
         List<String> portNames = new ArrayList<>();
         for (SerialPort port : ports) {
-            // COMX: NAME [Name is limited to 20 characters]
+            // COMX: NAME [Name is limited to 35 characters]
             String name = port.getPortDescription();
-            if (name.length() > 20) {
-                name = name.substring(0, 20);
+            if (name.length() > 35) {
+                name = name.substring(0, 35);
                 name += "...";
             }
             portNames.add(port.getSystemPortName() + ": " + (name.isEmpty() ? "Unknown" : name));

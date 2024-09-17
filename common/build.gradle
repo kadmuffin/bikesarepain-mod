@@ -12,7 +12,5 @@ dependencies {
 
     modImplementation "software.bernie.geckolib:geckolib-common-${minecraft_version}:$rootProject.geckolib_version"
 
-    modImplementation("dev.isxander:yet-another-config-lib:${project.yacl_version}-fabric") {
-        exclude(group: "net.fabricmc.fabric-api")
-    }
+    modCompileOnly("dev.isxander:yet-another-config-lib:${project.yacl_version}-fabric")
 }

@@ -77,7 +77,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.22499999403953552)
-                .add(Attributes.FALL_DAMAGE_MULTIPLIER, 0.4D);
+                .add(Attributes.FALL_DAMAGE_MULTIPLIER, 0.4D)
+                .add(Attributes.JUMP_STRENGTH, 0.57D);
     }
 
     @Override
@@ -313,7 +314,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
         double steerInf = this.getSpeed() > 0.08F ? (
                 this.getSteeringYaw() / this.getMaxSteeringAngle() * 0.5F
-        ) * this.getSpeed() : 0;
+        ) * this.getSpeed() * 1.4F : 0;
 
         this.getCenterMass().setPlayerOffset(new Vector3d(f + steerInf,0,0));
 

@@ -8,6 +8,7 @@ import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -25,6 +26,7 @@ import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
@@ -53,6 +55,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private int ticksSinceLastBrake = 0;
     private int ticksLookingAtDisplay = 0;
     private SoundType soundType = SoundType.WOOD;
+    private int countOfWrenchInteractions = 0;
     private final DecagonDisplayManager displayManager = new DecagonDisplayManager();
 
     private static final EntityDataAccessor<Integer> FWHEEL_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
@@ -332,8 +335,8 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                     // Play the corresponding sound
                     this.playSound(soundEvent, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
 
-                    // Return the interaction result
                 }
+                countOfWrenchInteractions = 0;
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
@@ -348,7 +351,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 if (!player.isCreative()) {
                     player.getItemInHand(hand).shrink(1);
                 }
-
+                countOfWrenchInteractions = 0;
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
@@ -359,6 +362,21 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
                 this.triggerAnim("finalAnim", "screen");
                 this.setHasDisplay(true);
+                this.playSound(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.0F, 1.0F);
+
+                if (!player.isCreative()) {
+                    player.getItemInHand(hand).shrink(1);
+                }
+
+                return InteractionResult.sidedSuccess(this.level().isClientSide());
+            }
+
+            if (player.getItemInHand(hand).getItem() == ItemManager.PROPELLER_ITEM.get()) {
+                if (this.hasBalloon()) {
+                    return InteractionResult.sidedSuccess(this.level().isClientSide());
+                }
+
+                this.setHasBalloon(true);
                 this.playSound(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.0F, 1.0F);
 
                 if (!player.isCreative()) {
@@ -386,10 +404,69 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             }
 
             this.dropEquipment();
-            this.remove(RemovalReason.DISCARDED);
 
+            this.remove(RemovalReason.DISCARDED);
             return InteractionResult.sidedSuccess(this.level().isClientSide());
         }
+        if (player.getItemInHand(hand).getItem() == ItemManager.WRENCH_ITEM.get()) {
+            if (countOfWrenchInteractions > 20) {
+                ItemStack frame = new ItemStack(ItemManager.FRAME_ITEM.get());
+                if (this.getFrameColor() != ItemManager.bicycleColors.get(2))
+                    frame.set(DataComponents.DYED_COLOR, new DyedItemColor(this.getFrameColor(), true));
+
+                this.spawnAtLocation(frame);
+
+                ItemStack fWheel = new ItemStack(ItemManager.WHEEL_ITEM.get());
+                if (this.getFWheelColor() != ItemManager.bicycleColors.getFirst())
+                    fWheel.set(DataComponents.DYED_COLOR, new DyedItemColor(this.getFWheelColor(), true));
+
+                this.spawnAtLocation(fWheel);
+
+                ItemStack rWheel = new ItemStack(ItemManager.WHEEL_ITEM.get());
+                if (this.getRWheelColor() != ItemManager.bicycleColors.get(1))
+                    rWheel.set(DataComponents.DYED_COLOR, new DyedItemColor(this.getRWheelColor(), true));
+
+                this.spawnAtLocation(rWheel);
+
+                ItemStack gearbox = new ItemStack(ItemManager.GEARBOX_ITEM.get());
+                if (this.getGearboxColor() != ItemManager.bicycleColors.get(3))
+                    gearbox.set(DataComponents.DYED_COLOR, new DyedItemColor(this.getGearboxColor(), true));
+
+                this.spawnAtLocation(gearbox);
+
+                this.spawnAtLocation(new ItemStack(ItemManager.HANDLEBAR_ITEM.get()));
+
+                ItemStack iron = new ItemStack(Items.IRON_INGOT);
+                iron.setCount(3);
+                this.spawnAtLocation(iron);
+
+                if (this.hasDisplay()) {
+                    this.spawnAtLocation(ItemManager.PEDOMETER_ITEM.get());
+                }
+
+                if (this.hasBalloon()) {
+                    this.spawnAtLocation(ItemManager.PROPELLER_ITEM.get());
+                }
+
+                if (this.hasChest()) {
+                    this.spawnAtLocation(Items.CHEST);
+                }
+
+                this.dropEquipment();
+
+                this.playSound(SoundEvents.ITEM_FRAME_BREAK, 1.0F, 1.6F);
+
+                this.remove(RemovalReason.DISCARDED);
+                return InteractionResult.sidedSuccess(this.level().isClientSide());
+            }
+
+            countOfWrenchInteractions++;
+            // Increase pitch as we get closer to the max
+            this.playSound(SoundEvents.BAMBOO_PLACE, 1.0F, 0.8F + (countOfWrenchInteractions / 19F));
+            return InteractionResult.sidedSuccess(this.level().isClientSide());
+        }
+
+        countOfWrenchInteractions = 0;
         this.doPlayerRide(player);
         return InteractionResult.sidedSuccess(this.level().isClientSide());
     }

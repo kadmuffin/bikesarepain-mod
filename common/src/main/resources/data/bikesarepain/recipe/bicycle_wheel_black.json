@@ -22,7 +22,7 @@
     "id": "bikesarepain:bicycle_wheel",
     "count": 1,
     "components": {
-      "bikesarepain:color": 3223600
+      "minecraft:dyed_color": 3223600
     }
   },
   "show_notification": true

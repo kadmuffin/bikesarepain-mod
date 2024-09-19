@@ -1,40 +1,45 @@
 package com.kadmuffin.bikesarepain.server.item;
 
 import com.kadmuffin.bikesarepain.BikesArePain;
-import com.kadmuffin.bikesarepain.client.entity.BicycleRenderer;
 import com.kadmuffin.bikesarepain.client.helper.Utils;
-import com.kadmuffin.bikesarepain.client.item.BaseItemRenderer;
-import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import com.kadmuffin.bikesarepain.server.entity.EntityManager;
-import com.mojang.datafixers.types.Func;
 import com.mojang.serialization.Codec;
 import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.*;
-import software.bernie.geckolib.util.Color;
+import net.minecraft.world.item.component.DyedItemColor;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 public class ItemManager {
+
     public static final List<Integer> bicycleColors = List.of(
-            14269837,
-            14269837,
+            16777215,
+            16777215,
             14269837,
             14269837);
-
-
 
     private static int getBicycleItemColor(ItemStack item, int index) {
         if (index < 0 || index >= 4) {
             return 0;
         }
-        return Utils.completeRest(item.getComponents().getOrDefault(BICYCLE_COLORS.get(), bicycleColors), bicycleColors).get(index);
+
+        List<Integer> colors = Utils.completeRest(item.getComponents().getOrDefault(BICYCLE_COLORS.get(), bicycleColors), bicycleColors);
+
+        int targetColor = colors.get(index);
+
+        // If there is a zero in the index, return the default color at that index
+        if (targetColor == 0) {
+            return bicycleColors.get(index);
+        }
+
+        return targetColor;
     }
 
     private static int getBicyclePartColor(ItemStack item, int index) {
@@ -42,7 +47,7 @@ public class ItemManager {
             return 0;
         }
 
-        return item.getComponents().getOrDefault(COLOR.get(), bicycleColors.get(index));
+        return item.getComponents().getOrDefault(DataComponents.DYED_COLOR, new DyedItemColor(bicycleColors.get(index), false)).rgb();
     }
 
     public static final RegistrySupplier<CreativeModeTab> BIKES_MOD_TAB = BikesArePain.TABS.register("bikes_mod_tab", () ->
@@ -50,10 +55,6 @@ public class ItemManager {
                     Component.literal("Bikes Are Pain"),
                     () -> new ItemStack(ItemManager.BICYCLE_ITEM.get())
             )
-    );
-    public static final RegistrySupplier<DataComponentType<Integer>> COLOR = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "color"),
-            () -> DataComponentType.<Integer>builder().persistent(Codec.INT).build()
     );
     public static final RegistrySupplier<DataComponentType<List<Integer>>> BICYCLE_COLORS = BikesArePain.DATA_COMPONENTS.register(
             ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "colors"),
@@ -110,7 +111,7 @@ public class ItemManager {
                     List.of(),
                     new BikeItem.Properties()
                             .stacksTo(1)
-                            .rarity(Rarity.UNCOMMON)
+                            .rarity(Rarity.RARE)
                             .durability(100)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
                             .component(SADDLED.get(), false)
@@ -121,7 +122,6 @@ public class ItemManager {
                             .component(HEALTH_AFFECTS_SPEED.get(), true)
                             .component(HAS_BALLOON.get(), false)
                             .component(HAS_DISPLAY.get(), false)
-                            // Where [front_wheel, rear_wheel, frame, gearbox]
                             .component(BICYCLE_COLORS.get(), bicycleColors)
             )
     );
@@ -129,8 +129,6 @@ public class ItemManager {
     public static final RegistrySupplier<Item> NUT_ITEM = BikesArePain.ITEMS.register("nut", () ->
             new BaseItem(
                     ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "nut"),
-                    Map.of(),
-                    List.of(),
                     new Item.Properties()
                     .stacksTo(64)
                     .rarity(Rarity.COMMON)
@@ -141,8 +139,6 @@ public class ItemManager {
     public static final RegistrySupplier<Item> WRENCH_ITEM = BikesArePain.ITEMS.register("wrench", () ->
             new BaseItem(
                     ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "wrench"),
-                    Map.of(),
-                    List.of(),
                     new Item.Properties()
                     .stacksTo(1)
                     .rarity(Rarity.UNCOMMON)
@@ -154,8 +150,6 @@ public class ItemManager {
     public static final RegistrySupplier<Item> PEDOMETER_ITEM = BikesArePain.ITEMS.register("pedometer", () ->
             new BaseItem(
                     ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "pedometer"),
-                    Map.of(),
-                    List.of(),
                     new Item.Properties()
                     .stacksTo(1)
                     .rarity(Rarity.UNCOMMON)
@@ -164,7 +158,7 @@ public class ItemManager {
     );
 
     public static final RegistrySupplier<Item> FRAME_ITEM = BikesArePain.ITEMS.register("bicycle_frame", () ->
-            new BaseItem(
+            new TintedItem(
                     ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_frame"),
                     Map.of("*", (item) -> getBicyclePartColor(item, 3)),
                     List.of(),
@@ -172,12 +166,11 @@ public class ItemManager {
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
-                            .component(COLOR.get(), Color.HSBtoARGB(34,33,17))
             )
     );
 
     public static final RegistrySupplier<Item> GEARBOX_ITEM = BikesArePain.ITEMS.register("bicycle_gearbox", () ->
-            new BaseItem(
+            new TintedItem(
                     ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_gearbox"),
                     Map.of("Cap1", (item) -> getBicyclePartColor(item, 2),
                             "Cap2", (item) -> getBicyclePartColor(item, 2)
@@ -187,15 +180,12 @@ public class ItemManager {
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
-                            .component(COLOR.get(), Color.HSBtoARGB(34,33,17))
             )
     );
 
     public static final RegistrySupplier<Item> HANDLEBAR_ITEM = BikesArePain.ITEMS.register("bicycle_handlebar", () ->
             new BaseItem(
                     ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_handlebar"),
-                    Map.of(),
-                    List.of(),
                     new Item.Properties()
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
@@ -204,18 +194,24 @@ public class ItemManager {
     );
 
     public static final RegistrySupplier<Item> WHEEL_ITEM = BikesArePain.ITEMS.register("bicycle_wheel", () ->
-            new BaseItem(
+            new TintedItem(
                     ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_wheel"),
-                    Map.of("hexadecagon", (item) -> getBicyclePartColor(item, 0),
-                            "*", (item) -> bicycleColors.get(1)),
+                    Map.of("hexadecagon", (item) -> getBicyclePartColor(item, 0)),
                     List.of(),
                     new Item.Properties()
                             .stacksTo(2)
                             .rarity(Rarity.UNCOMMON)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
-                            .component(COLOR.get(), bicycleColors.getFirst())
             )
     );
+
+    public static final RegistrySupplier<Item> PROPELLER_ITEM = BikesArePain.ITEMS.register("bicycle_propeller", () -> new BaseItem(
+            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_propeller"),
+            new Item.Properties()
+                    .stacksTo(1)
+                    .rarity(Rarity.EPIC)
+                    .arch$tab(ItemManager.BIKES_MOD_TAB)
+    ));
 
 
     public static void init() {

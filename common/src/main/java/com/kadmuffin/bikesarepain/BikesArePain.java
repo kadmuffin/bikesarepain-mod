@@ -7,6 +7,7 @@ import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.kadmuffin.bikesarepain.server.entity.EntityManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import com.kadmuffin.bikesarepain.server.item.TooltipManager;
+import com.kadmuffin.bikesarepain.server.recipe.RecipeManager;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -24,6 +25,8 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 
 import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 
@@ -35,6 +38,7 @@ public final class BikesArePain {
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(MOD_ID, Registries.SOUND_EVENT);
     public static final DeferredRegister<DataComponentType<?>> DATA_COMPONENTS = DeferredRegister.create(MOD_ID, Registries.DATA_COMPONENT_TYPE);
     public static final DeferredRegister<ResourceLocation> STATS = DeferredRegister.create(MOD_ID, Registries.CUSTOM_STAT);
+    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZER = DeferredRegister.create(MOD_ID, Registries.RECIPE_SERIALIZER);
 
     public static void init() {
         EntityManager.init();
@@ -44,6 +48,7 @@ public final class BikesArePain {
         TooltipManager.init();
         SoundManager.init();
         GameRuleManager.init();
+        RecipeManager.init();
 
         CommandRegistrationEvent.EVENT.register((dispatcher, dedicated, commands) -> {
             dispatcher.register(Commands.literal("bikes_ops")

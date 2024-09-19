@@ -1,7 +1,6 @@
 package com.kadmuffin.bikesarepain.server.item;
 
 import com.kadmuffin.bikesarepain.client.helper.Utils;
-import com.kadmuffin.bikesarepain.client.item.BaseItemRenderer;
 import com.kadmuffin.bikesarepain.client.item.BicycleItemRenderer;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
@@ -13,7 +12,6 @@ import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 

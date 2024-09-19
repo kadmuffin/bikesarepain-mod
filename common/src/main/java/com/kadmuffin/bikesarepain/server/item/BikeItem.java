@@ -1,8 +1,6 @@
 package com.kadmuffin.bikesarepain.server.item;
 
-import com.kadmuffin.bikesarepain.client.item.BaseItemRenderer;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
-import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -23,7 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
-public class BikeItem extends BaseItem {
+public class BikeItem extends TintedItem {
     private final EntityType<? extends AbstractBike> entityType;
     public BikeItem(EntityType<? extends AbstractBike> entityType, ResourceLocation modelName, Map<String, Function<ItemStack, Integer>> bonesToColor, List<String> bonesToIgnore, Properties properties) {
         super(modelName, bonesToColor, bonesToIgnore, properties);

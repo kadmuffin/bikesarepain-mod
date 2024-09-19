@@ -20,10 +20,7 @@
   },
   "result": {
     "id": "bikesarepain:bicycle_wheel",
-    "count": 1,
-    "components": {
-      "bikesarepain:color": 16777215
-    }
+    "count": 1
   },
   "show_notification": true
 }

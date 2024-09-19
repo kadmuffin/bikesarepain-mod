@@ -1,10 +1,5 @@
 package com.kadmuffin.bikesarepain.client.helper;
 
-import com.kadmuffin.bikesarepain.client.item.BaseItemRenderer;
-import com.mojang.datafixers.types.Func;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +30,25 @@ public class Utils<T> {
             }
         } else if (base.size() > target.size()) {
             base = new ArrayList<>(base.subList(0, target.size()));
+        }
+
+        return base;
+    }
+
+    // Same as completeRest, but when at an index of the baseInm there is a zero, it gets replaced by the target.value at that index
+    public static ArrayList<Integer> completeRestIncludingZeroes(List<Integer> baseInm, List<Integer> target) {
+        ArrayList<Integer> base = new ArrayList<>(baseInm);
+
+        if (base.size() < target.size()) {
+            for (int i = base.size(); i < target.size(); i++) {
+                base.add(target.get(i));
+            }
+        } else if (base.size() > target.size()) {
+            for (int i = 0; i < target.size(); i++) {
+                if (base.get(i) == 0) {
+                    base.set(i, target.get(i));
+                }
+            }
         }
 
         return base;

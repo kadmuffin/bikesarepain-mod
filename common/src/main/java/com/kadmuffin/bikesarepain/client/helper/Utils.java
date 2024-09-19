@@ -5,6 +5,7 @@ import com.mojang.datafixers.types.Func;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,20 @@ public class Utils<T> {
         Map<String, Integer> map = new HashMap<>();
         bones.forEach(bone -> map.put(bone, 0));
         return map;
+    }
+
+    public static <T> List<T> completeRest(List<T> baseInm, List<T> target) {
+        List<T> base = new ArrayList<>(baseInm);
+
+        if (base.size() < target.size()) {
+            for (int i = base.size(); i < target.size(); i++) {
+                base.add(target.get(i));
+            }
+        } else if (base.size() > target.size()) {
+            base = new ArrayList<>(base.subList(0, target.size()));
+        }
+
+        return base;
     }
 
     public static <T> Map<String, Integer> evaluateBonesToColorMap(Map<String, Function<T, Integer>> bonesToColor, T stack) {

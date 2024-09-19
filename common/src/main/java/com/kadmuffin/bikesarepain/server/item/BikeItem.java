@@ -30,6 +30,26 @@ public class BikeItem extends BaseItem {
         this.entityType = entityType;
     }
 
+    public void placementHook(AbstractBike entity, ItemStack itemStack) {
+        entity.setHealth(entity.getMaxHealth() * (itemStack.getMaxDamage() - Math.min(itemStack.getDamageValue(), itemStack.getMaxDamage()-1)) / itemStack.getMaxDamage());
+
+        if (itemStack.has(ItemManager.SADDLED.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SADDLED.get()))) {
+            ItemStack saddle = new ItemStack(Items.SADDLE);
+            saddle.setCount(1);
+            entity.equipSaddle(saddle, null);
+        }
+
+        if (itemStack.has(ItemManager.SAVE_TIME.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SAVE_TIME.get()))) {
+            entity.setTicksPedalled(Objects.requireNonNullElse(itemStack.get(ItemManager.TICKS_MOVED.get()), 0));
+            entity.setSaveTime(true);
+        }
+
+        if (itemStack.has(ItemManager.SAVE_DISTANCE.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SAVE_DISTANCE.get()))) {
+            entity.setBlocksTravelled(Objects.requireNonNullElse(itemStack.get(ItemManager.DISTANCE_MOVED.get()), 0.0F));
+            entity.setSaveDistance(true);
+        }
+    }
+
     @Override
     public @NotNull InteractionResult useOn(UseOnContext context) {
         Level level = context.getLevel();
@@ -60,47 +80,7 @@ public class BikeItem extends BaseItem {
 
             // Scale the health based on the durability
             if (entity instanceof AbstractBike) {
-                entity.setHealth(entity.getMaxHealth() * (itemStack.getMaxDamage() - Math.min(itemStack.getDamageValue(), itemStack.getMaxDamage()-1)) / itemStack.getMaxDamage());
-
-                if (itemStack.has(ItemManager.SADDLED.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SADDLED.get()))) {
-                    ItemStack saddle = new ItemStack(Items.SADDLE);
-                    saddle.setCount(1);
-                    entity.equipSaddle(saddle, null);
-                }
-
-                if (itemStack.has(ItemManager.SAVE_TIME.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SAVE_TIME.get()))) {
-                    entity.setTicksPedalled(Objects.requireNonNullElse(itemStack.get(ItemManager.TICKS_MOVED.get()), 0));
-                    entity.setSaveTime(true);
-                }
-
-                if (itemStack.has(ItemManager.SAVE_DISTANCE.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SAVE_DISTANCE.get()))) {
-                    entity.setBlocksTravelled(Objects.requireNonNullElse(itemStack.get(ItemManager.DISTANCE_MOVED.get()), 0.0F));
-                    entity.setSaveDistance(true);
-                }
-
-                if (entity instanceof Bicycle bicycle) {
-                    if (itemStack.has(ItemManager.HAS_BALLOON.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HAS_BALLOON.get()))) {
-                        bicycle.setHasBalloon(true);
-                    }
-
-                    if (itemStack.has(ItemManager.HAS_DISPLAY.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HAS_DISPLAY.get()))) {
-                        bicycle.setHasDisplay(true);
-                    }
-
-                    if (itemStack.has(ItemManager.BICYCLE_COLORS.get())) {
-                        int frontWheelColor = Objects.requireNonNullElse(itemStack.get(ItemManager.BICYCLE_COLORS.get()).getFirst(), 0);
-                        int backWheelColor = Objects.requireNonNullElse(itemStack.get(ItemManager.BICYCLE_COLORS.get()).get(1), 0);
-                        int gearboxColor = Objects.requireNonNullElse(itemStack.get(ItemManager.BICYCLE_COLORS.get()).get(2), 0);
-                        int frameColor = Objects.requireNonNullElse(itemStack.get(ItemManager.BICYCLE_COLORS.get()).get(3), 0);
-
-                        bicycle.setFWheelColor(frontWheelColor);
-                        bicycle.setRWheelColor(backWheelColor);
-                        bicycle.setGearboxColor(gearboxColor);
-                        bicycle.setFrameColor(frameColor);
-                    }
-                }
-
-
+                this.placementHook(entity, itemStack);
 
                 entity.setHealthAffectsSpeed(itemStack.has(ItemManager.HEALTH_AFFECTS_SPEED.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HEALTH_AFFECTS_SPEED.get())));
 

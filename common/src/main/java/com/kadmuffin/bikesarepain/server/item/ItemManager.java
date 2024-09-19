@@ -16,6 +16,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.*;
 import software.bernie.geckolib.util.Color;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -27,11 +28,13 @@ public class ItemManager {
             14269837,
             14269837);
 
+
+
     private static int getBicycleItemColor(ItemStack item, int index) {
         if (index < 0 || index >= 4) {
             return 0;
         }
-        return item.getComponents().getOrDefault(BICYCLE_COLORS.get(), bicycleColors).get(index);
+        return Utils.completeRest(item.getComponents().getOrDefault(BICYCLE_COLORS.get(), bicycleColors), bicycleColors).get(index);
     }
 
     private static int getBicyclePartColor(ItemStack item, int index) {

@@ -32,6 +32,7 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.function.TriConsumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
@@ -120,6 +121,16 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         builder.define(BLOCKS_TRAVELLED, 0.0F);
     }
 
+    @Nullable
+    @Override
+    public LivingEntity getControllingPassenger() {
+        if (this.getFirstPassenger() instanceof Player player) {
+            return player;
+        }
+
+        return super.getControllingPassenger();
+    }
+
     public static EntityDataAccessor<Boolean> getHasChest() {
         return HAS_CHEST;
     }
@@ -201,7 +212,14 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         super.tick();
         if (this.getFirstPassenger() instanceof Player playerEntity) {
             if (!this.isSaddled()) {
-                playerEntity.hurt(new DamageSources(this.registryAccess()).sting(this), 0.5F);
+                if (this.getSpeed() > 0.05F) {
+                    // HUrt value that goes in 0.5 steps
+                    float hurtAmount = Math.round(this.getSpeed()*5F / 0.5F) * 0.5F;
+
+                    if (hurtAmount>0 && this.random.nextInt(100) < 10 * hurtAmount) {
+                        playerEntity.hurt(new DamageSources(this.registryAccess()).sting(this), hurtAmount);
+                    }
+                }
             }
 
             if (!this.level().isClientSide()) {

@@ -299,6 +299,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         if (!this.getPassengers().isEmpty() && !this.canAddPassenger(player)){
             return super.mobInteract(player, hand);
         } else if (player.isShiftKeyDown()) {
+            countOfWrenchInteractions = 0;
             if (player.getItemInHand(hand).getItem() == ItemManager.WRENCH_ITEM.get()) {
                 if (player.getOffhandItem().getItem() == ItemManager.NUT_ITEM.get()) {
                     if (this.showGears
@@ -338,7 +339,18 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                     this.playSound(soundEvent, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
 
                 }
-                countOfWrenchInteractions = 0;
+                return InteractionResult.sidedSuccess(this.level().isClientSide());
+            }
+
+            if (player.getItemInHand(hand).getItem() == Items.SADDLE) {
+                if (this.isSaddled()) {
+                    return InteractionResult.sidedSuccess(this.level().isClientSide());
+                }
+                this.equipSaddle(player.getItemInHand(hand), player.getSoundSource());
+
+                if (!player.isCreative()) {
+                    player.getItemInHand(hand).shrink(1);
+                }
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
@@ -353,7 +365,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 if (!player.isCreative()) {
                     player.getItemInHand(hand).shrink(1);
                 }
-                countOfWrenchInteractions = 0;
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 

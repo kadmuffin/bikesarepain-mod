@@ -22,8 +22,8 @@ public class ItemManager {
     public static final List<Integer> bicycleColors = List.of(
             16777215,
             16777215,
-            14269837,
-            14269837);
+            3878696,
+            3878696);
 
     private static int getBicycleItemColor(ItemStack item, int index) {
         if (index < 0 || index >= 4) {

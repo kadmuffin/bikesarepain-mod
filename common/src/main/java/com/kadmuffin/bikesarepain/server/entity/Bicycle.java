@@ -47,6 +47,8 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.ClientUtil;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.List;
+
 public class Bicycle extends AbstractBike implements GeoEntity {
     public boolean showGears = false;
     private boolean ringAlreadyPressed = false;
@@ -606,6 +608,13 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
         if (this.hasDisplay()) {
             itemStack.set(ItemManager.HAS_DISPLAY.get(), true);
+        }
+
+        List<Integer> colors = List.of(this.getFWheelColor(), this.getRWheelColor(), this.getFrameColor(), this.getGearboxColor());
+
+        // Check if the colors are the same as ItemManager.bicycleColors
+        if (!colors.equals(ItemManager.bicycleColors)) {
+            itemStack.set(ItemManager.BICYCLE_COLORS.get(), colors);
         }
 
         itemStack.set(ItemManager.HEALTH_AFFECTS_SPEED.get(), this.isHealthAffectingSpeed());

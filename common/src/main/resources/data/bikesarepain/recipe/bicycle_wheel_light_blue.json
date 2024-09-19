@@ -9,7 +9,7 @@
   ],
   "key": {
     "y": {
-      "item": "minecraft:yellow_wool"
+      "item": "minecraft:light_blue_wool"
     },
     "w": {
       "item": "bikesarepain:nut"
@@ -20,7 +20,10 @@
   },
   "result": {
     "id": "bikesarepain:bicycle_wheel",
-    "count": 1
+    "count": 1,
+    "components": {
+      "bikesarepain:color": 5636095
+    }
   },
   "show_notification": true
 }

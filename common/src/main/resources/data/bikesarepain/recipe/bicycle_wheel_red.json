@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "bikesarepain.bicycle_wheel",
+  "pattern": [
+    "ysy",
+    "sws",
+    "ysy"
+  ],
+  "key": {
+    "y": {
+      "item": "minecraft:red_wool"
+    },
+    "w": {
+      "item": "bikesarepain:nut"
+    },
+    "s": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "id": "bikesarepain:bicycle_wheel",
+    "count": 1,
+    "components": {
+      "bikesarepain:color": 16733525
+    }
+  },
+  "show_notification": true
+}

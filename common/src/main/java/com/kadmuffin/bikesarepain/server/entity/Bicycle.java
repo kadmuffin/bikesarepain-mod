@@ -55,6 +55,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private SoundType soundType = SoundType.WOOD;
     private final DecagonDisplayManager displayManager = new DecagonDisplayManager();
 
+    private static final EntityDataAccessor<Integer> FWHEEL_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> RWHEEL_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> GEARBOX_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> FRAME_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+
+
     private static final EntityDataAccessor<Boolean> HAS_DISPLAY = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> HAS_BALLOON = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> TICKS_OUT_OF_WATER = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
@@ -104,6 +110,10 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         builder.define(BALLOON_INFLATED, false);
         builder.define(HAS_BALLOON, false);
         builder.define(TICKS_OUT_OF_WATER, 0);
+        builder.define(FRAME_COLOR, 0);
+        builder.define(FWHEEL_COLOR, 0);
+        builder.define(RWHEEL_COLOR, 0);
+        builder.define(GEARBOX_COLOR, 0);
     }
 
     @Override
@@ -112,6 +122,10 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         compound.putBoolean("ShowGears", this.showGears);
         compound.putBoolean("HasBalloon", this.hasBalloon());
         compound.putBoolean("HasDisplay", this.hasDisplay());
+        compound.putInt("FWheelColor", this.getFWheelColor());
+        compound.putInt("RWheelColor", this.getRWheelColor());
+        compound.putInt("GearboxColor", this.getGearboxColor());
+        compound.putInt("FrameColor", this.getFrameColor());
     }
 
     // Reads the nbt data
@@ -121,6 +135,10 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         this.showGears = compound.getBoolean("ShowGears");
         this.setHasBalloon(compound.getBoolean("HasBalloon"));
         this.setHasDisplay(compound.getBoolean("HasDisplay"));
+        this.setFWheelColor(compound.getInt("FWheelColor"));
+        this.setRWheelColor(compound.getInt("RWheelColor"));
+        this.setGearboxColor(compound.getInt("GearboxColor"));
+        this.setFrameColor(compound.getInt("FrameColor"));
     }
 
     @Override
@@ -878,6 +896,38 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     public Vec3 getSeatPos() {
         return new Vec3(0, 0.9F * this.getModelScalingFactor(), -0.4F * this.getModelScalingFactor());
+    }
+
+    public int getFWheelColor() {
+        return this.entityData.get(FWHEEL_COLOR);
+    }
+
+    public void setFWheelColor(int color) {
+        this.entityData.set(FWHEEL_COLOR, color);
+    }
+
+    public int getRWheelColor() {
+        return this.entityData.get(RWHEEL_COLOR);
+    }
+
+    public void setRWheelColor(int color) {
+        this.entityData.set(RWHEEL_COLOR, color);
+    }
+
+    public int getGearboxColor() {
+        return this.entityData.get(GEARBOX_COLOR);
+    }
+
+    public void setGearboxColor(int color) {
+        this.entityData.set(GEARBOX_COLOR, color);
+    }
+
+    public int getFrameColor() {
+        return this.entityData.get(FRAME_COLOR);
+    }
+
+    public void setFrameColor(int color) {
+        this.entityData.set(FRAME_COLOR, color);
     }
 
     // Used for zooming into the display

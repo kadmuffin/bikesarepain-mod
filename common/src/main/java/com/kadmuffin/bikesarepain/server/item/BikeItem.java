@@ -1,9 +1,8 @@
 package com.kadmuffin.bikesarepain.server.item;
 
-import com.kadmuffin.bikesarepain.client.item.BikeItemRenderer;
+import com.kadmuffin.bikesarepain.client.item.BaseItemRenderer;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -11,7 +10,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
@@ -19,49 +17,17 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.NotNull;
-import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.animatable.client.GeoRenderProvider;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
-public class BikeItem extends Item implements GeoItem {
-    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+public class BikeItem extends BaseItem {
     private final EntityType<? extends AbstractBike> entityType;
-    private final ResourceLocation modelName;
-
-    public BikeItem(EntityType<? extends AbstractBike> defaultType, ResourceLocation modelName, Properties properties) {
-        super(properties);
-        this.entityType = defaultType;
-        this.modelName = modelName;
-    }
-
-    @Override
-    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
-        ResourceLocation modelName = this.modelName;
-        consumer.accept(new GeoRenderProvider() {
-            private BikeItemRenderer renderer;
-
-            @Override
-            public BlockEntityWithoutLevelRenderer getGeoItemRenderer() {
-                if (this.renderer == null)
-                    this.renderer = new BikeItemRenderer(modelName);
-
-                return this.renderer;
-            }
-        });
-    }
-
-    @Override
-    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-    }
-
-    @Override
-    public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return this.cache;
+    public BikeItem(EntityType<? extends AbstractBike> entityType, ResourceLocation modelName, Map<String, Function<ItemStack, Integer>> bonesToColor, List<String> bonesToIgnore, Properties properties) {
+        super(modelName, bonesToColor, bonesToIgnore, properties);
+        this.entityType = entityType;
     }
 
     @Override
@@ -112,13 +78,29 @@ public class BikeItem extends Item implements GeoItem {
                     entity.setSaveDistance(true);
                 }
 
-                if (entity instanceof Bicycle && itemStack.has(ItemManager.HAS_BALLOON.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HAS_BALLOON.get()))) {
-                    ((Bicycle) entity).setHasBalloon(true);
+                if (entity instanceof Bicycle bicycle) {
+                    if (itemStack.has(ItemManager.HAS_BALLOON.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HAS_BALLOON.get()))) {
+                        bicycle.setHasBalloon(true);
+                    }
+
+                    if (itemStack.has(ItemManager.HAS_DISPLAY.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HAS_DISPLAY.get()))) {
+                        bicycle.setHasDisplay(true);
+                    }
+
+                    if (itemStack.has(ItemManager.BICYCLE_COLORS.get())) {
+                        int frontWheelColor = Objects.requireNonNullElse(itemStack.get(ItemManager.BICYCLE_COLORS.get()).getFirst(), 0);
+                        int backWheelColor = Objects.requireNonNullElse(itemStack.get(ItemManager.BICYCLE_COLORS.get()).get(1), 0);
+                        int gearboxColor = Objects.requireNonNullElse(itemStack.get(ItemManager.BICYCLE_COLORS.get()).get(2), 0);
+                        int frameColor = Objects.requireNonNullElse(itemStack.get(ItemManager.BICYCLE_COLORS.get()).get(3), 0);
+
+                        bicycle.setFWheelColor(frontWheelColor);
+                        bicycle.setRWheelColor(backWheelColor);
+                        bicycle.setGearboxColor(gearboxColor);
+                        bicycle.setFrameColor(frameColor);
+                    }
                 }
 
-                if (entity instanceof Bicycle && itemStack.has(ItemManager.HAS_DISPLAY.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HAS_DISPLAY.get()))) {
-                    ((Bicycle) entity).setHasDisplay(true);
-                }
+
 
                 entity.setHealthAffectsSpeed(itemStack.has(ItemManager.HEALTH_AFFECTS_SPEED.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HEALTH_AFFECTS_SPEED.get())));
 

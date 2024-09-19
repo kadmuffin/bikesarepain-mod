@@ -373,7 +373,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
-            if (player.getItemInHand(hand).getItem() == ItemManager.PROPELLER_ITEM.get()) {
+            if (player.getItemInHand(hand).getItem() == ItemManager.FLOAT_MODIFIER_ITEM.get()) {
                 if (this.hasBalloon()) {
                     return InteractionResult.sidedSuccess(this.level().isClientSide());
                 }
@@ -447,7 +447,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 }
 
                 if (this.hasBalloon()) {
-                    this.spawnAtLocation(ItemManager.PROPELLER_ITEM.get());
+                    this.spawnAtLocation(ItemManager.FLOAT_MODIFIER_ITEM.get());
                 }
 
                 if (this.hasChest()) {

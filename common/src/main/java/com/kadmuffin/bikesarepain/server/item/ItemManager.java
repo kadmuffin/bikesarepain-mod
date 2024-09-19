@@ -205,13 +205,14 @@ public class ItemManager {
             )
     );
 
-    public static final RegistrySupplier<Item> PROPELLER_ITEM = BikesArePain.ITEMS.register("bicycle_propeller", () -> new BaseItem(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_propeller"),
-            new Item.Properties()
-                    .stacksTo(1)
-                    .rarity(Rarity.EPIC)
-                    .arch$tab(ItemManager.BIKES_MOD_TAB)
-    ));
+    public static final RegistrySupplier<Item> FLOAT_MODIFIER_ITEM = BikesArePain.ITEMS.register("float_on_water_modifier", () ->
+            new Item(
+                new Item.Properties()
+                        .stacksTo(1)
+                        .rarity(Rarity.EPIC)
+                        .arch$tab(ItemManager.BIKES_MOD_TAB)
+        )
+    );
 
 
     public static void init() {

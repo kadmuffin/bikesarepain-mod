@@ -22,12 +22,12 @@ public class BicycleItem extends BikeItem {
     @Override
     public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
         consumer.accept(new GeoRenderProvider() {
-            private BicycleItemRenderer<BicycleItem> renderer;
+            private BicycleItemRenderer renderer;
 
             @Override
             public BlockEntityWithoutLevelRenderer getGeoItemRenderer() {
                 if (this.renderer == null)
-                    this.renderer = new BicycleItemRenderer<>(getModel(), getBonesToColor(), getBonesToIgnore());
+                    this.renderer = new BicycleItemRenderer(getModel(), getBonesToColor(), getBonesToIgnore());
 
                 return this.renderer;
             }

@@ -1,5 +1,6 @@
 package com.kadmuffin.bikesarepain.client.item;
 
+import com.kadmuffin.bikesarepain.server.item.BicycleItem;
 import com.kadmuffin.bikesarepain.server.item.BikeItem;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import net.minecraft.core.component.DataComponentType;
@@ -10,7 +11,7 @@ import software.bernie.geckolib.renderer.layer.FastBoneFilterGeoLayer;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class BicycleItemRenderer<T extends BikeItem> extends BaseItemRenderer<T> {
+public class BicycleItemRenderer extends BaseItemRenderer<BicycleItem> {
     public final Supplier<List<String>> bones = () -> List.of(
             "Chest", "Propellers", "MonitorRoot", "SeatF"
     );
@@ -31,20 +32,20 @@ public class BicycleItemRenderer<T extends BikeItem> extends BaseItemRenderer<T>
             }
 
             if (geoBone.getName().equals("Propellers")) {
-                geoBone.setHidden(isEnabledComponentDef(stack, ItemManager.HAS_BALLOON.get()));
+                boolean hide = stack.getOrDefault(ItemManager.HAS_BALLOON.getOrNull(), false);
+                geoBone.setHidden(!hide);
             }
 
             if (geoBone.getName().equals("MonitorRoot")) {
-                geoBone.setHidden(isEnabledComponentDef(stack, ItemManager.HAS_DISPLAY.get()));
+                boolean hide = stack.getOrDefault(ItemManager.HAS_DISPLAY.getOrNull(), false);
+                geoBone.setHidden(!hide);
             }
 
             if (geoBone.getName().equals("SeatF")) {
-                geoBone.setHidden(isEnabledComponentDef(stack, ItemManager.SADDLED.get()));
+                boolean hide = stack.getOrDefault(ItemManager.SADDLED.getOrNull(), false);
+                geoBone.setHidden(!hide);
             }
         }));
     }
 
-    public static boolean isEnabledComponentDef(ItemStack stack, DataComponentType<Boolean> type) {
-        return stack.getComponents().getOrDefault(type, false);
-    }
 }

@@ -37,8 +37,8 @@ public class BicycleItem extends BikeItem {
 
                 int frontWheelColor = bicycleColors.getFirst();
                 int backWheelColor = bicycleColors.get(1);
-                int gearboxColor = bicycleColors.get(2);
-                int frameColor = bicycleColors.get(3);
+                int gearboxColor = bicycleColors.get(3);
+                int frameColor = bicycleColors.get(2);
 
                 bicycle.setFWheelColor(frontWheelColor);
                 bicycle.setRWheelColor(backWheelColor);

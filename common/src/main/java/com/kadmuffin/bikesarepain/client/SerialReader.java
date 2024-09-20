@@ -195,8 +195,8 @@ public class SerialReader {
                 lastDistance,
                 lastKcalories,
                 lastWheelRadius,
-                ClientConfig.CONFIG.instance().getSpeedScaleRatio(),
-                ClientConfig.CONFIG.instance().getWheelScaleRatio()
+                ClientConfig.CONFIG.instance().getWheelScaleRatio(),
+                ClientConfig.CONFIG.instance().getSpeedScaleRatio()
         ));
     }
 

@@ -361,8 +361,13 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                         movSpeed *= -1;
                     }
                 } else {
-                    // Warn the player that the JSerialComm is not active
-                    player.sendSystemMessage(Component.translatable("bikesarepain.jserialcomm.timeout"));
+                    if (this.level().isClientSide()) {
+                        // Warn the player that the JSerialComm is not active
+                        player.displayClientMessage(
+                                Component.translatable("bikesarepain.jserialcomm.timeout"),
+                                false
+                        );
+                    }
 
                     playerAcc.bikesarepain$setJSCActive(false);
                 }
@@ -442,8 +447,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.setRearWheelSpeed(rotation / (2 * (float) Math.PI));
 
         float backWheelRotation = this.getBackWheelRotation() + rotation;
-        if (Math.abs(backWheelRotation) > 2*Math.PI) {
-            backWheelRotation = rotation;
+        if (Math.abs(backWheelRotation) >= 2*Math.PI) {
+            backWheelRotation = (float) (2*Math.PI - Math.abs(backWheelRotation));
         }
         this.setBackWheelRotation(backWheelRotation);
         // Make the front wheel lag behind the back wheel

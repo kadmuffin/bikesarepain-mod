@@ -6,10 +6,13 @@ import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -64,7 +67,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private static final EntityDataAccessor<Integer> RWHEEL_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> GEARBOX_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> FRAME_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
-
 
     private static final EntityDataAccessor<Boolean> HAS_DISPLAY = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> HAS_BALLOON = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
@@ -168,11 +170,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     }
 
     @Override
-    public @NotNull Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
-        return super.getDismountLocationForPassenger(passenger);
-    }
-
-    @Override
     public void die(DamageSource damageSource) {
         if (!this.isRemoved() && !this.dead) {
             Entity entity = damageSource.getEntity();
@@ -216,6 +213,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             boolean isReverse = g < 0.0F;
 
             if (speed > 0.05) {
+                // If we are going fast
+                // we will create some flame particles at the rear of the bike
+                if (speed > 0.25F) {
+                    this.level().addParticle(ParticleTypes.FLAME, this.getX() - (0.5F * Mth.sin(this.getYRot() * 0.017453292F)), this.getY() + 0.5F, this.getZ() - (0.5F * Mth.cos(this.getYRot() * 0.017453292F)), 0.0D, 0.0D, 0.0D);
+                }
+
                 // Depending on the speed, we'll scale the volume and pitch
                 // with a sprinkle of randomness
                 final float pitch = 0.85F + Math.min(speed, 2.0F) + (float) Math.random() * 0.1F * this.soundType.getPitch();
@@ -292,6 +295,22 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 this.soundType = blockState.getSoundType();
             }
         }
+    }
+
+    @Override
+    public boolean isSavingDistance() {
+        if (this.hasDisplay()) {
+            return true;
+        }
+        return super.isSavingDistance();
+    }
+
+    @Override
+    public boolean isSavingTime() {
+        if (this.hasDisplay()) {
+            return true;
+        }
+        return super.isSavingTime();
     }
 
     @Override
@@ -377,6 +396,11 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 this.setHasDisplay(true);
                 this.playSound(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.0F, 1.0F);
 
+                // Load the data from the item
+                ItemStack itemStack = player.getItemInHand(hand);
+                this.setBlocksTravelled(itemStack.getOrDefault(ItemManager.DISTANCE_MOVED.get(), 0.0F));
+                this.setTicksPedalled(itemStack.getOrDefault(ItemManager.TICKS_MOVED.get(), 0));
+
                 if (!player.isCreative()) {
                     player.getItemInHand(hand).shrink(1);
                 }
@@ -422,7 +446,27 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             return InteractionResult.sidedSuccess(this.level().isClientSide());
         }
         if (player.getItemInHand(hand).getItem() == ItemManager.WRENCH_ITEM.get()) {
+            // If the health is not full, we will make a sound and particles
+            // and return early as we cannot split the item without full health
+            if (this.getHealth() < this.getMaxHealth()) {
+                if (this.level().isClientSide()) {
+                    AbstractClientPlayer localPlayer = (AbstractClientPlayer) player;
+                    localPlayer.displayClientMessage(
+                            Component.translatable("bikesarepain.bicycle.cant_drop.not_full_health").withStyle(ChatFormatting.RED),
+                            true
+                    );
+                }
+                this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 0.8F+ (this.getHealth() / this.getMaxHealth() * 0.5F));
+                this.level().broadcastEntityEvent(this, (byte) 6);
+                return InteractionResult.sidedSuccess(this.level().isClientSide());
+            }
+
             if (countOfWrenchInteractions > 20) {
+                if (this.isSaddled()){
+                    this.spawnAtLocation(new ItemStack(Items.SADDLE));
+                    this.equipSaddle(ItemStack.EMPTY, null);
+                }
+
                 ItemStack frame = new ItemStack(ItemManager.FRAME_ITEM.get());
                 if (this.getFrameColor() != ItemManager.bicycleColors.get(2))
                     frame.set(DataComponents.DYED_COLOR, new DyedItemColor(this.getFrameColor(), true));
@@ -454,7 +498,10 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 this.spawnAtLocation(iron);
 
                 if (this.hasDisplay()) {
-                    this.spawnAtLocation(ItemManager.PEDOMETER_ITEM.get());
+                    ItemStack pedometer = new ItemStack(ItemManager.PEDOMETER_ITEM.get());
+                    pedometer.set(ItemManager.DISTANCE_MOVED.get(), this.getBlocksTravelled());
+                    pedometer.set(ItemManager.TICKS_MOVED.get(), this.getTicksPedalled());
+                    this.spawnAtLocation(pedometer);
                 }
 
                 if (this.hasBalloon()) {

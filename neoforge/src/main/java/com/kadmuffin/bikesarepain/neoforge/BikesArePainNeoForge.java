@@ -84,7 +84,7 @@ public final class BikesArePainNeoForge {
                                         }
 
                                         // Check if the port is available
-                                        if (!BikesArePainClient.isConfigPortAvailable()) {
+                                        if (BikesArePainClient.isConfigPortUnavailable()) {
                                             context.getSource().arch$sendFailure(Component.literal("The chosen port is not available. Please choose another port or try again."));
                                             return 0;
                                         }
@@ -113,7 +113,7 @@ public final class BikesArePainNeoForge {
                                                 ClientConfig.CONFIG.instance().setPort(port);
 
                                                 // Check if the port is available
-                                                if (!BikesArePainClient.isConfigPortAvailable()) {
+                                                if (BikesArePainClient.isConfigPortUnavailable()) {
                                                     context.getSource().arch$sendFailure(Component.literal("The chosen port is not available. Please choose another port or try again."));
                                                     return 0;
                                                 }

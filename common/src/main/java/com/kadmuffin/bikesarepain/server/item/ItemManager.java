@@ -115,8 +115,8 @@ public class ItemManager {
                             .durability(100)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
                             .component(SADDLED.get(), false)
-                            .component(SAVE_TIME.get(), true)
-                            .component(SAVE_DISTANCE.get(), true)
+                            .component(SAVE_TIME.get(), false)
+                            .component(SAVE_DISTANCE.get(), false)
                             .component(DISTANCE_MOVED.get(), 0.0F)
                             .component(TICKS_MOVED.get(), 0)
                             .component(HEALTH_AFFECTS_SPEED.get(), true)
@@ -154,6 +154,10 @@ public class ItemManager {
                     .stacksTo(1)
                     .rarity(Rarity.UNCOMMON)
                     .arch$tab(ItemManager.BIKES_MOD_TAB)
+                    .component(SAVE_TIME.get(), true)
+                    .component(SAVE_DISTANCE.get(), true)
+                    .component(DISTANCE_MOVED.get(), 0.0F)
+                    .component(TICKS_MOVED.get(), 0)
             )
     );
 

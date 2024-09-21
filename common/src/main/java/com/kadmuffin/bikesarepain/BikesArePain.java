@@ -6,14 +6,9 @@ import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.kadmuffin.bikesarepain.server.entity.EntityManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
-import com.kadmuffin.bikesarepain.server.item.TooltipManager;
+import com.kadmuffin.bikesarepain.client.item.TooltipManager;
 import com.kadmuffin.bikesarepain.server.recipe.RecipeManager;
-import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
-import com.mojang.brigadier.builder.ArgumentBuilder;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.tree.CommandNode;
-import com.mojang.brigadier.tree.LiteralCommandNode;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.registry.registries.DeferredRegister;
 import net.minecraft.commands.CommandSourceStack;
@@ -26,9 +21,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
-
-import static com.mojang.brigadier.builder.LiteralArgumentBuilder.literal;
 
 public final class BikesArePain {
     public static final String MOD_ID = "bikesarepain";
@@ -45,7 +37,6 @@ public final class BikesArePain {
         ItemManager.init();
         PacketManager.init();
         KeybindManager.init();
-        TooltipManager.init();
         SoundManager.init();
         GameRuleManager.init();
         RecipeManager.init();

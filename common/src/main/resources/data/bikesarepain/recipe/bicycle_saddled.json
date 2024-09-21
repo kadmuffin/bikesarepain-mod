@@ -1,0 +1,39 @@
+{
+  "type": "bikesarepain:shaped_crafting_bicycle",
+  "group": "bikesarepain.bicycle",
+  "dye_copy": "4:2;6:1;7:3;8:0",
+  "category": "misc",
+  "pattern": [
+    "sih",
+    "ifi",
+    "wgw"
+  ],
+  "key": {
+    "s": {
+      "item": "minecraft:saddle"
+    },
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "f": {
+      "item": "bikesarepain:bicycle_frame"
+    },
+    "h": {
+      "item": "bikesarepain:bicycle_handlebar"
+    },
+    "w": {
+      "item": "bikesarepain:bicycle_wheel"
+    },
+    "g": {
+      "item": "bikesarepain:bicycle_gearbox"
+    }
+  },
+  "result": {
+    "id": "bikesarepain:bicycle",
+    "count": 1,
+    "components": {
+      "bikesarepain:saddled": true
+    }
+  },
+  "show_notification": true
+}

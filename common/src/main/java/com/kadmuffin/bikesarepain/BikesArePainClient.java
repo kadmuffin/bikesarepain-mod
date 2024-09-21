@@ -2,8 +2,8 @@ package com.kadmuffin.bikesarepain;
 
 import com.kadmuffin.bikesarepain.client.ClientConfig;
 import com.kadmuffin.bikesarepain.client.SerialReader;
+import com.kadmuffin.bikesarepain.client.item.TooltipManager;
 import dev.architectury.event.events.common.PlayerEvent;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 public class BikesArePainClient {
@@ -12,6 +12,7 @@ public class BikesArePainClient {
     public static void init() {
         reader = new SerialReader();
         ClientConfig.init();
+        TooltipManager.init();
 
         PlayerEvent.PLAYER_JOIN.register((player) -> {
             // Check if the port in ClientConfig.CONFIG.instance().getPort()
@@ -47,8 +48,8 @@ public class BikesArePainClient {
         });
     }
 
-    public static boolean isConfigPortAvailable() {
-        return SerialReader.getPorts().contains(ClientConfig.CONFIG.instance().getPort());
+    public static boolean isConfigPortUnavailable() {
+        return !SerialReader.getPorts().contains(ClientConfig.CONFIG.instance().getPort());
     }
 
     public static SerialReader getReader() {

@@ -3,13 +3,9 @@ package com.kadmuffin.bikesarepain.fabric.client;
 import com.kadmuffin.bikesarepain.BikesArePainClient;
 import com.kadmuffin.bikesarepain.client.ClientConfig;
 import com.kadmuffin.bikesarepain.client.SerialReader;
-import com.kadmuffin.bikesarepain.packets.PacketManager;
-import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
-import dev.architectury.networking.NetworkManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -70,7 +66,7 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
                                 }
 
                                 // Check if the port is available
-                                if (!BikesArePainClient.isConfigPortAvailable()) {
+                                if (BikesArePainClient.isConfigPortUnavailable()) {
                                     context.getSource().sendFeedback(Component.literal("The chosen port is not available. Please choose another port or try again."));
                                     return 0;
                                 }
@@ -100,7 +96,7 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
                                         ClientConfig.CONFIG.instance().setPort(port);
 
                                         // Check if the port is available
-                                        if (!BikesArePainClient.isConfigPortAvailable()) {
+                                        if (BikesArePainClient.isConfigPortUnavailable()) {
                                             context.getSource().sendFeedback(Component.literal("The chosen port is not available. Please choose another port or try again."));
                                             return 0;
                                         }

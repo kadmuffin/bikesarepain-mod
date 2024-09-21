@@ -2,7 +2,6 @@ package com.kadmuffin.bikesarepain.server.entity;
 
 import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
-import com.kadmuffin.bikesarepain.server.StatsManager;
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import net.minecraft.core.BlockPos;
@@ -447,10 +446,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.setRearWheelSpeed(rotation / (2 * (float) Math.PI));
 
         float backWheelRotation = this.getBackWheelRotation() + rotation;
-        if (Math.abs(backWheelRotation) >= 2*Math.PI) {
-            backWheelRotation = (float) (2*Math.PI - Math.abs(backWheelRotation));
-        }
-        this.setBackWheelRotation(backWheelRotation);
+        this.setBackWheelRotation((float) (backWheelRotation % (2 * Math.PI)));
         // Make the front wheel lag behind the back wheel
         float frontWheelRotation = this.getFrontWheelRotation();
         //this.frontWheelRotation = this.frontWheelRotation + (this.backWheelRotation - this.frontWheelRotation) * 0.25F;

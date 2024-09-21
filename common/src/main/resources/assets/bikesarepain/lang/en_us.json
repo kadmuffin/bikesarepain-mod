@@ -35,6 +35,7 @@
   "bikesarepain.jserialcomm.port_not_available": "The chosen port is not available. Manually run /bikes open <port> to try again.",
   "bikesarepain.jserialcomm.connected_to_port": "[BikesArePain] Serial reader has been initialized.",
   "bikesarepain.bicycle.cant_drop.not_full_health": "You can't split a bicycle item that isn't at full health.",
+  "bikesarepain.bicycle.cant_repair.no_nuts": "You can't repair a bicycle without nuts.",
 
   "config.bikesarepain.visuals.name": "Visuals",
   "config.bikesarepain.visuals.tooltip": "Visual settings for Bikes Are Pain.",

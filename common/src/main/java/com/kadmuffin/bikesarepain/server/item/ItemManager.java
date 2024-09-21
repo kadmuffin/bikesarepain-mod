@@ -3,10 +3,8 @@ package com.kadmuffin.bikesarepain.server.item;
 import com.kadmuffin.bikesarepain.BikesArePain;
 import com.kadmuffin.bikesarepain.client.helper.Utils;
 import com.kadmuffin.bikesarepain.server.entity.EntityManager;
-import com.mojang.serialization.Codec;
 import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.registries.RegistrySupplier;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -30,7 +28,7 @@ public class ItemManager {
             return 0;
         }
 
-        List<Integer> colors = Utils.completeRest(item.getComponents().getOrDefault(BICYCLE_COLORS.get(), bicycleColors), bicycleColors);
+        List<Integer> colors = Utils.completeRest(item.getComponents().getOrDefault(ComponentManager.BICYCLE_COLORS.get(), bicycleColors), bicycleColors);
 
         int targetColor = colors.get(index);
 
@@ -56,10 +54,6 @@ public class ItemManager {
                     () -> new ItemStack(ItemManager.BICYCLE_ITEM.get())
             )
     );
-    public static final RegistrySupplier<DataComponentType<List<Integer>>> BICYCLE_COLORS = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "colors"),
-            () -> DataComponentType.<List<Integer>>builder().persistent(Codec.INT.listOf()).build()
-    );
 
     public static final Map<String, Function<ItemStack, Integer>> bonesToColorBicycleItem = Utils.createBonesToColorMap(
             Map.of(
@@ -69,39 +63,6 @@ public class ItemManager {
                             "Cover2", "RodT", "RodD2", "BarT2", "RodD1", "hexadecagon4", "WheelStuff"), (item) -> getBicycleItemColor(item, 2),
                     List.of("Cap1", "Cap2"), (item) -> getBicycleItemColor(item, 3)
             )
-    );
-
-    public static final RegistrySupplier<DataComponentType<Boolean>> HAS_DISPLAY = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "has_display"),
-            () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
-    );
-    public static final RegistrySupplier<DataComponentType<Boolean>> SADDLED = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "saddled"),
-            () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
-    );
-    public static final RegistrySupplier<DataComponentType<Boolean>> HEALTH_AFFECTS_SPEED = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "health_affect_speed"),
-            () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
-    );
-    public static final RegistrySupplier<DataComponentType<Boolean>> SAVE_TIME = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "save_time"),
-            () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
-    );
-    public static final RegistrySupplier<DataComponentType<Boolean>> SAVE_DISTANCE = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "save_distance"),
-            () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
-    );
-    public static final RegistrySupplier<DataComponentType<Float>> DISTANCE_MOVED = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "distance_moved"),
-            () -> DataComponentType.<Float>builder().persistent(Codec.FLOAT).build()
-    );
-    public static final RegistrySupplier<DataComponentType<Integer>> TICKS_MOVED = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "ticks_ridden"),
-            () -> DataComponentType.<Integer>builder().persistent(Codec.INT).build()
-    );
-    public static final RegistrySupplier<DataComponentType<Boolean>> HAS_BALLOON = BikesArePain.DATA_COMPONENTS.register(
-            ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "has_balloon"),
-            () -> DataComponentType.<Boolean>builder().persistent(Codec.BOOL).build()
     );
 
     public static final RegistrySupplier<Item> BICYCLE_ITEM = BikesArePain.ITEMS.register("bicycle", () ->
@@ -114,15 +75,15 @@ public class ItemManager {
                             .rarity(Rarity.RARE)
                             .durability(100)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
-                            .component(SADDLED.get(), false)
-                            .component(SAVE_TIME.get(), false)
-                            .component(SAVE_DISTANCE.get(), false)
-                            .component(DISTANCE_MOVED.get(), 0.0F)
-                            .component(TICKS_MOVED.get(), 0)
-                            .component(HEALTH_AFFECTS_SPEED.get(), true)
-                            .component(HAS_BALLOON.get(), false)
-                            .component(HAS_DISPLAY.get(), false)
-                            .component(BICYCLE_COLORS.get(), bicycleColors)
+                            .component(ComponentManager.SADDLED.get(), false)
+                            .component(ComponentManager.SAVE_TIME.get(), false)
+                            .component(ComponentManager.SAVE_DISTANCE.get(), false)
+                            .component(ComponentManager.DISTANCE_MOVED.get(), 0.0F)
+                            .component(ComponentManager.TICKS_MOVED.get(), 0)
+                            .component(ComponentManager.HEALTH_AFFECTS_SPEED.get(), true)
+                            .component(ComponentManager.HAS_BALLOON.get(), false)
+                            .component(ComponentManager.HAS_DISPLAY.get(), false)
+                            .component(ComponentManager.BICYCLE_COLORS.get(), bicycleColors)
             )
     );
 
@@ -154,10 +115,10 @@ public class ItemManager {
                     .stacksTo(1)
                     .rarity(Rarity.UNCOMMON)
                     .arch$tab(ItemManager.BIKES_MOD_TAB)
-                    .component(SAVE_TIME.get(), true)
-                    .component(SAVE_DISTANCE.get(), true)
-                    .component(DISTANCE_MOVED.get(), 0.0F)
-                    .component(TICKS_MOVED.get(), 0)
+                    .component(ComponentManager.SAVE_TIME.get(), true)
+                    .component(ComponentManager.SAVE_DISTANCE.get(), true)
+                    .component(ComponentManager.DISTANCE_MOVED.get(), 0.0F)
+                    .component(ComponentManager.TICKS_MOVED.get(), 0)
             )
     );
 
@@ -221,7 +182,6 @@ public class ItemManager {
 
     public static void init() {
         BikesArePain.TABS.register();
-        BikesArePain.DATA_COMPONENTS.register();
         BikesArePain.ITEMS.register();
     }
 

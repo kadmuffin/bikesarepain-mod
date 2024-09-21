@@ -1,6 +1,7 @@
 package com.kadmuffin.bikesarepain.client.item;
 
 import com.kadmuffin.bikesarepain.server.item.BicycleItem;
+import com.kadmuffin.bikesarepain.server.item.ComponentManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -30,17 +31,17 @@ public class BicycleItemRenderer extends TintedItemRenderer<BicycleItem> {
             }
 
             if (geoBone.getName().equals("Propellers")) {
-                boolean hide = stack.getOrDefault(ItemManager.HAS_BALLOON.getOrNull(), false);
+                boolean hide = stack.getOrDefault(ComponentManager.HAS_BALLOON.getOrNull(), false);
                 geoBone.setHidden(!hide);
             }
 
             if (geoBone.getName().equals("MonitorRoot")) {
-                boolean hide = stack.getOrDefault(ItemManager.HAS_DISPLAY.getOrNull(), false);
+                boolean hide = stack.getOrDefault(ComponentManager.HAS_DISPLAY.getOrNull(), false);
                 geoBone.setHidden(!hide);
             }
 
             if (geoBone.getName().equals("SeatF")) {
-                boolean hide = stack.getOrDefault(ItemManager.SADDLED.getOrNull(), false);
+                boolean hide = stack.getOrDefault(ComponentManager.SADDLED.getOrNull(), false);
                 geoBone.setHidden(!hide);
             }
         }));

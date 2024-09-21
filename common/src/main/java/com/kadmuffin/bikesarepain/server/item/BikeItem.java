@@ -9,7 +9,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -31,19 +30,19 @@ public class BikeItem extends TintedItem {
     public void placementHook(AbstractBike entity, ItemStack itemStack) {
         entity.setHealth(entity.getMaxHealth() * (itemStack.getMaxDamage() - Math.min(itemStack.getDamageValue(), itemStack.getMaxDamage()-1)) / itemStack.getMaxDamage());
 
-        if (itemStack.has(ItemManager.SADDLED.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SADDLED.get()))) {
-            ItemStack saddle = new ItemStack(Items.SADDLE);
+        if (itemStack.has(ComponentManager.SADDLED.get()) && Boolean.TRUE.equals(itemStack.get(ComponentManager.SADDLED.get()))) {
+            ItemStack saddle = new ItemStack(net.minecraft.world.item.Items.SADDLE);
             saddle.setCount(1);
             entity.equipSaddle(saddle, null);
         }
 
-        if (itemStack.has(ItemManager.SAVE_TIME.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SAVE_TIME.get()))) {
-            entity.setTicksPedalled(Objects.requireNonNullElse(itemStack.get(ItemManager.TICKS_MOVED.get()), 0));
+        if (itemStack.has(ComponentManager.SAVE_TIME.get()) && Boolean.TRUE.equals(itemStack.get(ComponentManager.SAVE_TIME.get()))) {
+            entity.setTicksPedalled(Objects.requireNonNullElse(itemStack.get(ComponentManager.TICKS_MOVED.get()), 0));
             entity.setSaveTime(true);
         }
 
-        if (itemStack.has(ItemManager.SAVE_DISTANCE.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.SAVE_DISTANCE.get()))) {
-            entity.setBlocksTravelled(Objects.requireNonNullElse(itemStack.get(ItemManager.DISTANCE_MOVED.get()), 0.0F));
+        if (itemStack.has(ComponentManager.SAVE_DISTANCE.get()) && Boolean.TRUE.equals(itemStack.get(ComponentManager.SAVE_DISTANCE.get()))) {
+            entity.setBlocksTravelled(Objects.requireNonNullElse(itemStack.get(ComponentManager.DISTANCE_MOVED.get()), 0.0F));
             entity.setSaveDistance(true);
         }
     }
@@ -80,7 +79,7 @@ public class BikeItem extends TintedItem {
             if (entity instanceof AbstractBike) {
                 this.placementHook(entity, itemStack);
 
-                entity.setHealthAffectsSpeed(itemStack.has(ItemManager.HEALTH_AFFECTS_SPEED.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HEALTH_AFFECTS_SPEED.get())));
+                entity.setHealthAffectsSpeed(itemStack.has(ComponentManager.HEALTH_AFFECTS_SPEED.get()) && Boolean.TRUE.equals(itemStack.get(ComponentManager.HEALTH_AFFECTS_SPEED.get())));
 
                 // Make the bike look the same direction as the player
                 if (context.getPlayer() != null && entity.isSaddled()) {
@@ -104,7 +103,7 @@ public class BikeItem extends TintedItem {
 
     @Override
     public boolean isValidRepairItem(ItemStack stack, ItemStack repairCandidate) {
-        return repairCandidate.getItem() == Items.IRON_NUGGET;
+        return repairCandidate.getItem() == net.minecraft.world.item.Items.IRON_NUGGET;
     }
 
 }

@@ -1,6 +1,7 @@
 package com.kadmuffin.bikesarepain.server.recipe;
 
 import com.kadmuffin.bikesarepain.BikesArePain;
+import com.kadmuffin.bikesarepain.server.item.ComponentManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -131,7 +132,7 @@ public class BicycleRecipeBase implements CraftingRecipe, RecipeInput {
             }
         }
 
-        result.set(ItemManager.BICYCLE_COLORS.get(), targetColors);
+        result.set(ComponentManager.BICYCLE_COLORS.get(), targetColors);
     }
 
     public static class Serializer implements RecipeSerializer<BicycleRecipeBase> {

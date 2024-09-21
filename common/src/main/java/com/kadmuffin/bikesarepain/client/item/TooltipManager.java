@@ -1,7 +1,7 @@
 package com.kadmuffin.bikesarepain.client.item;
 
 import com.kadmuffin.bikesarepain.server.item.BikeItem;
-import com.kadmuffin.bikesarepain.server.item.ItemManager;
+import com.kadmuffin.bikesarepain.server.item.ComponentManager;
 import dev.architectury.event.events.client.ClientTooltipEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -13,10 +13,10 @@ import java.util.Objects;
 public class TooltipManager {
     public static void init() {
         ClientTooltipEvent.ITEM.register((stack, lines, context, tooltipFlag) -> {
-            if (stack.has(ItemManager.SAVE_TIME.get()) && Boolean.TRUE.equals(stack.get(ItemManager.SAVE_TIME.get()))) {
-                if (stack.has(ItemManager.TICKS_MOVED.get())) {
+            if (stack.has(ComponentManager.SAVE_TIME.get()) && Boolean.TRUE.equals(stack.get(ComponentManager.SAVE_TIME.get()))) {
+                if (stack.has(ComponentManager.TICKS_MOVED.get())) {
                     // Unpack in safe way
-                    float ticksMoved = Objects.requireNonNullElse(stack.get(ItemManager.TICKS_MOVED.get()), 0);
+                    float ticksMoved = Objects.requireNonNullElse(stack.get(ComponentManager.TICKS_MOVED.get()), 0);
                     ticksMoved /= 20.0F; // Convert to seconds
                     if (ticksMoved >= 60) {
                         int minutes = (int) (ticksMoved / 60);
@@ -38,9 +38,9 @@ public class TooltipManager {
                 }
             }
 
-            if (stack.has(ItemManager.SAVE_DISTANCE.get()) && Boolean.TRUE.equals(stack.get(ItemManager.SAVE_DISTANCE.get()))) {
-                if (stack.has(ItemManager.DISTANCE_MOVED.get())) {
-                    float distanceMoved = Objects.requireNonNullElse(stack.get(ItemManager.DISTANCE_MOVED.get()), 0.0F);
+            if (stack.has(ComponentManager.SAVE_DISTANCE.get()) && Boolean.TRUE.equals(stack.get(ComponentManager.SAVE_DISTANCE.get()))) {
+                if (stack.has(ComponentManager.DISTANCE_MOVED.get())) {
+                    float distanceMoved = Objects.requireNonNullElse(stack.get(ComponentManager.DISTANCE_MOVED.get()), 0.0F);
                     MutableComponent msg = Component.translatable("item.bikesarepain.bicycle.tooltip.distance_moved")
                             .withColor(CommonColors.GRAY);
 
@@ -76,7 +76,7 @@ public class TooltipManager {
                 }
 
                 // Check if contains a saddle
-                if (stack.has(ItemManager.SADDLED.get()) && Boolean.TRUE.equals(stack.get(ItemManager.SADDLED.get()))) {
+                if (stack.has(ComponentManager.SADDLED.get()) && Boolean.TRUE.equals(stack.get(ComponentManager.SADDLED.get()))) {
                     lines.add(Component.translatable("item.bikesarepain.bicycle.tooltip.saddled")
                             .withColor(CommonColors.GRAY).append(Component.translatable("item.bikesarepain.bicycle.tooltip.yes")
                                     .withColor(Color.ofRGB(255, 149, 0).argbInt())));

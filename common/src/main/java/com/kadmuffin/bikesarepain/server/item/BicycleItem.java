@@ -24,16 +24,16 @@ public class BicycleItem extends BikeItem {
     public void placementHook(AbstractBike entity, ItemStack itemStack) {
         super.placementHook(entity, itemStack);
         if (entity instanceof Bicycle bicycle) {
-            if (itemStack.has(ItemManager.HAS_BALLOON.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HAS_BALLOON.get()))) {
+            if (itemStack.has(ComponentManager.HAS_BALLOON.get()) && Boolean.TRUE.equals(itemStack.get(ComponentManager.HAS_BALLOON.get()))) {
                 bicycle.setHasBalloon(true);
             }
 
-            if (itemStack.has(ItemManager.HAS_DISPLAY.get()) && Boolean.TRUE.equals(itemStack.get(ItemManager.HAS_DISPLAY.get()))) {
+            if (itemStack.has(ComponentManager.HAS_DISPLAY.get()) && Boolean.TRUE.equals(itemStack.get(ComponentManager.HAS_DISPLAY.get()))) {
                 bicycle.setHasDisplay(true);
             }
 
-            if (itemStack.has(ItemManager.BICYCLE_COLORS.get())) {
-                List<Integer> bicycleColors = Utils.completeRest(itemStack.getOrDefault(ItemManager.BICYCLE_COLORS.get(), ItemManager.bicycleColors), ItemManager.bicycleColors);
+            if (itemStack.has(ComponentManager.BICYCLE_COLORS.get())) {
+                List<Integer> bicycleColors = Utils.completeRest(itemStack.getOrDefault(ComponentManager.BICYCLE_COLORS.get(), ItemManager.bicycleColors), ItemManager.bicycleColors);
 
                 int frontWheelColor = bicycleColors.getFirst();
                 int backWheelColor = bicycleColors.get(1);

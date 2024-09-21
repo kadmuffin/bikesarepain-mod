@@ -5,6 +5,7 @@ import com.kadmuffin.bikesarepain.client.helper.DecagonDisplayManager;
 import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
+import com.kadmuffin.bikesarepain.server.item.ComponentManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -17,7 +18,6 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -28,7 +28,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -51,6 +50,7 @@ import software.bernie.geckolib.util.ClientUtil;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.Set;
 
 public class Bicycle extends AbstractBike implements GeoEntity {
     public boolean showGears = false;
@@ -320,48 +320,19 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         } else if (player.isShiftKeyDown()) {
             countOfWrenchInteractions = 0;
             if (player.getItemInHand(hand).getItem() == ItemManager.WRENCH_ITEM.get()) {
-                if (player.getOffhandItem().getItem() == ItemManager.NUT_ITEM.get()) {
-                    if (this.showGears
-                            && this.getHealth() < this.getMaxHealth()) {
-                        if (!player.isCreative()) {
-                            player.getOffhandItem().shrink(1);
-                            player.getItemInHand(hand).hurtAndBreak(1, player, EquipmentSlot.OFFHAND);
-                        }
+                // Toggle the showGears state
+                this.showGears = !this.showGears;
 
-                        this.actuallyHeal(1.0F);
-                        float healthPercentage = (this.getHealth() / this.getMaxHealth());
+                // Determine the sound to play based on the new state
+                SoundEvent soundEvent = this.showGears ? SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF : SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON;
 
-                        if (this.getHealth() == this.getMaxHealth()) {
-                            this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 1.0F);
-                        } else {
-                            // Play the repair sound (the lower the health, the lower the pitch)
-                            float maxPitch = 1.28F;
-                            float minPitch = 0.8F;
-                            float pitch = minPitch + healthPercentage * (maxPitch - minPitch);
-                            this.playSound(SoundEvents.ANVIL_USE, 1.0F, pitch);
-                        }
+                // Play the corresponding sound
+                this.playSound(soundEvent, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
 
-                        // Do some particles
-                        this.level().broadcastEntityEvent(this, (byte) 7);
-
-                        return InteractionResult.sidedSuccess(this.level().isClientSide());
-                    }
-
-                } else {
-                    // Toggle the showGears state
-                    this.showGears = !this.showGears;
-
-                    // Determine the sound to play based on the new state
-                    SoundEvent soundEvent = this.showGears ? SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF : SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON;
-
-                    // Play the corresponding sound
-                    this.playSound(soundEvent, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
-
-                }
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
-            if (player.getItemInHand(hand).getItem() == Items.SADDLE) {
+            if (player.getItemInHand(hand).getItem() == net.minecraft.world.item.Items.SADDLE) {
                 if (this.isSaddled()) {
                     return InteractionResult.sidedSuccess(this.level().isClientSide());
                 }
@@ -373,7 +344,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
-            if (player.getItemInHand(hand).getItem() == Items.CHEST) {
+            if (player.getItemInHand(hand).getItem() == net.minecraft.world.item.Items.CHEST) {
                 if (this.hasChest()) {
                     return InteractionResult.sidedSuccess(this.level().isClientSide());
                 }
@@ -398,8 +369,8 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
                 // Load the data from the item
                 ItemStack itemStack = player.getItemInHand(hand);
-                this.setBlocksTravelled(itemStack.getOrDefault(ItemManager.DISTANCE_MOVED.get(), 0.0F));
-                this.setTicksPedalled(itemStack.getOrDefault(ItemManager.TICKS_MOVED.get(), 0));
+                this.setBlocksTravelled(itemStack.getOrDefault(ComponentManager.DISTANCE_MOVED.get(), 0.0F));
+                this.setTicksPedalled(itemStack.getOrDefault(ComponentManager.TICKS_MOVED.get(), 0));
 
                 if (!player.isCreative()) {
                     player.getItemInHand(hand).shrink(1);
@@ -423,7 +394,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
-            if (player.getItemInHand(hand).getItem() != Items.AIR) {
+            if (player.getItemInHand(hand).getItem() != net.minecraft.world.item.Items.AIR) {
                 this.openCustomInventoryScreen(player);
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
@@ -437,7 +408,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             this.equipSaddle(ItemStack.EMPTY, null);
 
             if (this.hasChest()) {
-                this.spawnAtLocation(Items.CHEST);
+                this.spawnAtLocation(net.minecraft.world.item.Items.CHEST);
             }
 
             this.dropEquipment();
@@ -449,21 +420,66 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             // If the health is not full, we will make a sound and particles
             // and return early as we cannot split the item without full health
             if (this.getHealth() < this.getMaxHealth()) {
-                if (this.level().isClientSide()) {
-                    AbstractClientPlayer localPlayer = (AbstractClientPlayer) player;
-                    localPlayer.displayClientMessage(
-                            Component.translatable("bikesarepain.bicycle.cant_drop.not_full_health").withStyle(ChatFormatting.RED),
-                            true
-                    );
+                this.countOfWrenchInteractions = 0;
+                if (this.showGears) {
+                    if (player.getInventory().hasAnyOf(Set.of(ItemManager.NUT_ITEM.get()))) {
+                        if (!player.isCreative()) {
+                            //player.getOffhandItem().shrink(1);
+                            // Get the first nut in the inventory
+                            for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                                ItemStack hopefullyNut = player.getInventory().getItem(i);
+                                if (hopefullyNut.getItem() == ItemManager.NUT_ITEM.get()) {
+                                    hopefullyNut.shrink(1);
+                                    break;
+                                }
+                            }
+
+                            player.getItemInHand(hand).hurtAndBreak(1, player, EquipmentSlot.OFFHAND);
+                        }
+
+                        this.actuallyHeal(1.0F);
+                        float healthPercentage = (this.getHealth() / this.getMaxHealth());
+
+                        if (this.getHealth() == this.getMaxHealth()) {
+                            this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 1.0F);
+                        } else {
+                            // Play the repair sound (the lower the health, the lower the pitch)
+                            float maxPitch = 1.28F;
+                            float minPitch = 0.8F;
+                            float pitch = minPitch + healthPercentage * (maxPitch - minPitch);
+                            this.playSound(SoundEvents.ANVIL_USE, 1.0F, pitch);
+                        }
+
+                        // Do some particles
+                        this.level().broadcastEntityEvent(this, (byte) 7);
+                    } else {
+                        if (this.level().isClientSide()) {
+                            AbstractClientPlayer localPlayer = (AbstractClientPlayer) player;
+                            localPlayer.displayClientMessage(
+                                    Component.translatable("bikesarepain.bicycle.cant_repair.no_nuts").withStyle(ChatFormatting.RED),
+                                    true
+                            );
+                        }
+                        this.playSound(SoundEvents.ANVIL_HIT, 1.0F, 1.8F);
+                        this.level().broadcastEntityEvent(this, (byte) 6);
+                    }
+                } else {
+                    if (this.level().isClientSide()) {
+                        AbstractClientPlayer localPlayer = (AbstractClientPlayer) player;
+                        localPlayer.displayClientMessage(
+                                Component.translatable("bikesarepain.bicycle.cant_drop.not_full_health").withStyle(ChatFormatting.RED),
+                                true
+                        );
+                    }
+                    this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 0.8F+ (this.getHealth() / this.getMaxHealth() * 0.5F));
+                    this.level().broadcastEntityEvent(this, (byte) 6);
                 }
-                this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 0.8F+ (this.getHealth() / this.getMaxHealth() * 0.5F));
-                this.level().broadcastEntityEvent(this, (byte) 6);
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
             if (countOfWrenchInteractions > 20) {
                 if (this.isSaddled()){
-                    this.spawnAtLocation(new ItemStack(Items.SADDLE));
+                    this.spawnAtLocation(new ItemStack(net.minecraft.world.item.Items.SADDLE));
                     this.equipSaddle(ItemStack.EMPTY, null);
                 }
 
@@ -493,14 +509,14 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
                 this.spawnAtLocation(new ItemStack(ItemManager.HANDLEBAR_ITEM.get()));
 
-                ItemStack iron = new ItemStack(Items.IRON_INGOT);
+                ItemStack iron = new ItemStack(net.minecraft.world.item.Items.IRON_INGOT);
                 iron.setCount(3);
                 this.spawnAtLocation(iron);
 
                 if (this.hasDisplay()) {
                     ItemStack pedometer = new ItemStack(ItemManager.PEDOMETER_ITEM.get());
-                    pedometer.set(ItemManager.DISTANCE_MOVED.get(), this.getBlocksTravelled());
-                    pedometer.set(ItemManager.TICKS_MOVED.get(), this.getTicksPedalled());
+                    pedometer.set(ComponentManager.DISTANCE_MOVED.get(), this.getBlocksTravelled());
+                    pedometer.set(ComponentManager.TICKS_MOVED.get(), this.getTicksPedalled());
                     this.spawnAtLocation(pedometer);
                 }
 
@@ -509,7 +525,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 }
 
                 if (this.hasChest()) {
-                    this.spawnAtLocation(Items.CHEST);
+                    this.spawnAtLocation(net.minecraft.world.item.Items.CHEST);
                 }
 
                 this.dropEquipment();
@@ -520,9 +536,13 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
-            countOfWrenchInteractions++;
-            // Increase pitch as we get closer to the max
-            this.playSound(SoundEvents.BAMBOO_PLACE, 1.0F, 0.8F + (countOfWrenchInteractions / 19F));
+            if (!this.showGears) {
+                countOfWrenchInteractions++;
+                // Increase pitch as we get closer to the max
+                this.playSound(SoundEvents.BAMBOO_PLACE, 1.0F, 0.8F + (countOfWrenchInteractions / 19F));
+            } else {
+                this.playSound(SoundEvents.BAMBOO_HIT, 1.0F, 0.8F);
+            }
             return InteractionResult.sidedSuccess(this.level().isClientSide());
         }
 
@@ -646,36 +666,36 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         itemStack.setDamageValue(itemStack.getMaxDamage() - (int) (this.getHealth() / this.getMaxHealth() * itemStack.getMaxDamage()));
 
         if (includeSaddle) {
-            itemStack.set(ItemManager.SADDLED.get(), this.isSaddled());
+            itemStack.set(ComponentManager.SADDLED.get(), this.isSaddled());
         }
 
         if (this.isSavingTime()) {
-            itemStack.set(ItemManager.SAVE_TIME.get(), true);
-            itemStack.set(ItemManager.TICKS_MOVED.get(), this.getTicksPedalled());
+            itemStack.set(ComponentManager.SAVE_TIME.get(), true);
+            itemStack.set(ComponentManager.TICKS_MOVED.get(), this.getTicksPedalled());
         }
 
         if (this.isSavingDistance()) {
-            itemStack.set(ItemManager.SAVE_DISTANCE.get(), true);
+            itemStack.set(ComponentManager.SAVE_DISTANCE.get(), true);
             // Save up to two decimal places
-            itemStack.set(ItemManager.DISTANCE_MOVED.get(), (float) Math.round(this.getBlocksTravelled() * 100) / 100);
+            itemStack.set(ComponentManager.DISTANCE_MOVED.get(), (float) Math.round(this.getBlocksTravelled() * 100) / 100);
         }
 
         if (this.hasBalloon()) {
-            itemStack.set(ItemManager.HAS_BALLOON.get(), true);
+            itemStack.set(ComponentManager.HAS_BALLOON.get(), true);
         }
 
         if (this.hasDisplay()) {
-            itemStack.set(ItemManager.HAS_DISPLAY.get(), true);
+            itemStack.set(ComponentManager.HAS_DISPLAY.get(), true);
         }
 
         List<Integer> colors = List.of(this.getFWheelColor(), this.getRWheelColor(), this.getFrameColor(), this.getGearboxColor());
 
         // Check if the colors are the same as ItemManager.bicycleColors
         if (!colors.equals(ItemManager.bicycleColors)) {
-            itemStack.set(ItemManager.BICYCLE_COLORS.get(), colors);
+            itemStack.set(ComponentManager.BICYCLE_COLORS.get(), colors);
         }
 
-        itemStack.set(ItemManager.HEALTH_AFFECTS_SPEED.get(), this.isHealthAffectingSpeed());
+        itemStack.set(ComponentManager.HEALTH_AFFECTS_SPEED.get(), this.isHealthAffectingSpeed());
 
         return itemStack;
     }

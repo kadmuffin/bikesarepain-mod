@@ -5,8 +5,8 @@ import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.kadmuffin.bikesarepain.server.entity.EntityManager;
+import com.kadmuffin.bikesarepain.server.item.ComponentManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
-import com.kadmuffin.bikesarepain.client.item.TooltipManager;
 import com.kadmuffin.bikesarepain.server.recipe.RecipeManager;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
@@ -34,6 +34,7 @@ public final class BikesArePain {
 
     public static void init() {
         EntityManager.init();
+        ComponentManager.init();
         ItemManager.init();
         PacketManager.init();
         KeybindManager.init();

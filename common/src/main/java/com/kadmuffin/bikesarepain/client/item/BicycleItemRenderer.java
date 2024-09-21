@@ -2,7 +2,6 @@ package com.kadmuffin.bikesarepain.client.item;
 
 import com.kadmuffin.bikesarepain.server.item.BicycleItem;
 import com.kadmuffin.bikesarepain.server.item.ComponentManager;
-import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import software.bernie.geckolib.renderer.layer.FastBoneFilterGeoLayer;

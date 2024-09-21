@@ -1,7 +1,6 @@
 package com.kadmuffin.bikesarepain.client;
 
 import com.kadmuffin.bikesarepain.BikesArePain;
-import dev.architectury.injectables.targets.ArchitecturyTarget;
 import dev.architectury.platform.Platform;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.*;
@@ -15,7 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.List;
 
 public class ClientConfig {
-    public static ConfigClassHandler<ClientConfig> CONFIG = ConfigClassHandler.createBuilder(ClientConfig.class)
+    public static final ConfigClassHandler<ClientConfig> CONFIG = ConfigClassHandler.createBuilder(ClientConfig.class)
             .id(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "config"))
             .serializer(config -> GsonConfigSerializerBuilder.create(config)
                     .setPath(Platform.getConfigFolder().resolve(String.format("%s.json5", BikesArePain.MOD_ID)))

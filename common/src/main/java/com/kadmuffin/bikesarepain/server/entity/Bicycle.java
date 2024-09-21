@@ -1112,7 +1112,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
         Vec3 targetDir = displayPos.subtract(camera).normalize();
 
-        // arcos dot product of viewDir and targetDir
+        // arc cos dot product of viewDir and targetDir
         float angle = (float) Math.acos(viewDir.dot(targetDir));
 
         // 7.5 degrees -> 0.1309 radians

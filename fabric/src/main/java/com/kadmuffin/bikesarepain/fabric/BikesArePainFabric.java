@@ -4,8 +4,6 @@ import com.kadmuffin.bikesarepain.BikesArePain;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import net.dehydration.access.ThirstManagerAccess;
 import net.fabricmc.api.ModInitializer;
-import net.dehydration.access.PlayerAccess;
-import net.dehydration.access.ServerPlayerAccess;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.entity.player.Player;
 

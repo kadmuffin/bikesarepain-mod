@@ -145,8 +145,6 @@ public class ClientConfig {
 
     public String getPort() {
         String port = this.getPortRaw();
-        if (port.contains("No port")) {
-        }
 
         if (port.contains(":")) {
             // Assuming that the port is in the format "COM7: Arduino Uno (COM7)"

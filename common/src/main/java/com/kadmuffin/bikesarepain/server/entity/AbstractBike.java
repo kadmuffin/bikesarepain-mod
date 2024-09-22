@@ -564,7 +564,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             }
         }
 
-        boolean pressingForward = (Math.abs(g) > 0 && !isJSerialCommActive) || (isJSerialCommActive && movSpeed > 0);
+        boolean pressingForward = (Math.abs(g) > 0 && !isJSerialCommActive) || (isJSerialCommActive && Math.abs(movSpeed) > 0);
 
         // Run event listeners
         for (TriConsumer<AbstractBike, Float, Boolean> listener : onMoveListeners) {
@@ -576,15 +576,16 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         }
 
         float gravityAcceleration = 0F;
-        float pitch = this.getSyncedPitch();
+        // Correct for model's usage of pitch calculation
+        float pitch = -this.getSyncedPitch();
         if (Math.abs(pitch) > 0) {
-            gravityAcceleration = (float) (Math.sin(-pitch) * this.getGravity())*0.25F;
-
-            movSpeed += gravityAcceleration;
+            gravityAcceleration = (float) (Math.sin(pitch) * this.getGravity())*0.25F;
+            float maxGravityAcc = 0.1F;
+            gravityAcceleration = Math.max(-maxGravityAcc, Math.min(maxGravityAcc, gravityAcceleration));
         }
 
         if (!pressingForward) {
-            movSpeed = (lastSpeed + gravityAcceleration) * this.inertiaFactor();
+            movSpeed = lastSpeed * this.inertiaFactor() + gravityAcceleration;
             if (Math.abs(movSpeed) < 0.05F) {
                 movSpeed *= 0.8F;
                 if (Math.abs(movSpeed) < 0.003F) {
@@ -592,7 +593,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 }
             }
         } else {
-            movSpeed = lastSpeed + (movSpeed - lastSpeed) * (1.15F-this.inertiaFactor()) + gravityAcceleration;
+            float acceleration = (movSpeed - lastSpeed) * (1.15F - this.inertiaFactor());
+            movSpeed = lastSpeed + acceleration + gravityAcceleration;
         }
         final float maxSpeed = this.level().getGameRules().getRule(GameRuleManager.MAX_BIKE_SPEED).get()/20F;
         movSpeed = Math.clamp(movSpeed, -maxSpeed, maxSpeed);
@@ -603,17 +605,12 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
         float backWheelRotation = this.getBackWheelRotation() + rotation;
         this.setBackWheelRotation(Utils.wrapRotation(backWheelRotation));
-        // Make the front wheel lag behind the back wheel
-        //float frontWheelRotation = this.getFrontWheelRotation();
-        //this.frontWheelRotation = this.frontWheelRotation + (this.backWheelRotation - this.frontWheelRotation) * 0.25F;
-        //this.setFrontWheelRotation(frontWheelRotation + (backWheelRotation - frontWheelRotation) * 0.25F);
 
         // Calculate the tilt of the bike
         float newTilt = (float) (Math.PI/2 + this.getCenterMass().calculateRollAngle());
         newTilt = Math.clamp(newTilt, -this.getMaxTiltAngle(), this.getMaxTiltAngle());
 
         float tilt = this.getTilt();
-        //this.tilt = this.tilt + (newTilt - this.tilt) * 0.25F;
         this.setTilt(tilt + (newTilt - tilt) * 0.25F);
 
         this.setInternalSpeed(movSpeed);

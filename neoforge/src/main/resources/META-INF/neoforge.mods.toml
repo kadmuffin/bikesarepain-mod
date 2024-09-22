@@ -6,9 +6,9 @@ license = "MIT"
 [[mods]]
 modId = "bikesarepain"
 version = "${version}"
-displayName = "BikesArePain"
+displayName = "Bikes Are Pain"
 authors = "Kadmuffin"
-description = "Adds bikes to the game and allows you to use real fitness bikes to move in-game. Uses JSerialComm under the Apache 2.0 License under the hood."
+description = "[ALPHA] Adds a bike to the game and allows you to use a fitness bike to move in-game. Uses JSerialComm (Apache 2.0 License) under the hood."
 
 #logoFile = ""
 

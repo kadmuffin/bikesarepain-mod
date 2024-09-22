@@ -15,19 +15,22 @@ import java.util.List;
 
 public class ClientConfig {
     public static final ConfigClassHandler<ClientConfig> CONFIG = ConfigClassHandler.createBuilder(ClientConfig.class)
-            .id(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "config"))
+            .id(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "config.client"))
             .serializer(config -> GsonConfigSerializerBuilder.create(config)
-                    .setPath(Platform.getConfigFolder().resolve(String.format("%s.json5", BikesArePain.MOD_ID)))
+                    .setPath(Platform.getConfigFolder().resolve(String.format("%s.client.json5", BikesArePain.MOD_ID)))
                     .setJson5(true)
                     .build())
             .build();
 
+    @SerialEntry(comment = "Whether to sync the pitch with the server. If this is enabled, the server will use the client's visual pitch for applying gravity acceleration.")
+    private boolean syncPitchWithServer = true;
+
     @SerialEntry(comment = "Display Imperial units instead of metric.")
     private boolean imperial = false;
-    @SerialEntry(comment = "Pitch the bike based on the blocks touching the wheels.")
-    private boolean pitchBasedOnBlocks = true;
+    @SerialEntry(comment = "Amount of rays to cast per wheel for pitching the bike depending on terrain.")
+    private int amountOfRaysPerWheel = 0;
     @SerialEntry(comment = "Use very bad interpolation for movement.")
-    private boolean badInterpolation = false;
+    private boolean interpolation = true;
 
     @SerialEntry(comment = "Whether to automatically connect to the serial port on startup.")
     private boolean autoConnect = false;
@@ -58,17 +61,32 @@ public class ClientConfig {
                                             .controller(TickBoxControllerBuilder::create)
                                             .build()
                                     )
-                                    .option(Option.<Boolean>createBuilder()
+                                    .option(Option.<Integer>createBuilder()
                                             .name(Component.translatable("config.bikesarepain.visuals.pitch.name"))
                                             .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pitch.tooltip")))
-                                            .binding(true, () -> pitchBasedOnBlocks, value -> pitchBasedOnBlocks = value)
-                                            .controller(TickBoxControllerBuilder::create)
+                                            .binding(0, () -> amountOfRaysPerWheel, value -> amountOfRaysPerWheel = value)
+                                            .controller(opt -> IntegerSliderControllerBuilder.create(opt)
+                                                    .range(0, 16)
+                                                    .step(1)
+                                                    // If the value is 0, we want to display "Disabled" instead of "0"
+                                                    .formatValue(value -> (value == 0 ? Component.translatable("config.bikesarepain.visuals.pitch.disabled") : Component.literal(String.format("%d rays", value))))
+                                            )
+                                            .build()
+                                    )
+                                    .option(Option.<Boolean>createBuilder()
+                                            .name(Component.translatable("config.bikesarepain.visuals.pitch.sync_pitch.name"))
+                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pitch.sync_pitch.tooltip")))
+                                            .binding(true, () -> syncPitchWithServer, value -> syncPitchWithServer = value)
+                                            .controller(opt -> BooleanControllerBuilder.create(opt)
+                                                    .formatValue(value -> (value ? Component.translatable("config.bikesarepain.visuals.pitch.sync_pitch.enabled") : Component.translatable("config.bikesarepain.visuals.pitch.sync_pitch.disabled")))
+                                                    .coloured(true)
+                                            )
                                             .build()
                                     )
                                     .option(Option.<Boolean>createBuilder()
                                             .name(Component.translatable("config.bikesarepain.visuals.bad_interpolation.name"))
                                             .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.bad_interpolation.tooltip")))
-                                            .binding(false, () -> badInterpolation, value -> badInterpolation = value)
+                                            .binding(true, () -> interpolation, value -> interpolation = value)
                                             .controller(TickBoxControllerBuilder::create)
                                             .build()
                                     )
@@ -211,20 +229,32 @@ public class ClientConfig {
         return imperial;
     }
 
-    public boolean useBadInterpolation() {
-        return badInterpolation;
+    public boolean useInterpolation() {
+        return interpolation;
     }
 
-    public void setBadInterpolation(boolean value) {
-        this.badInterpolation = value;
+    public void setInterpolation(boolean value) {
+        this.interpolation = value;
     }
 
     public boolean pitchBasedOnBlocks() {
-        return pitchBasedOnBlocks;
+        return amountOfRaysPerWheel > 0;
     }
 
-    public void setPitchBasedOnBlocks(boolean value) {
-        this.pitchBasedOnBlocks = value;
+    public int getAmountOfRaysPerWheel() {
+        return amountOfRaysPerWheel;
+    }
+
+    public void setAmountOfRaysPerWheel(int value) {
+        this.amountOfRaysPerWheel = value;
+    }
+
+    public boolean syncPitchWithServer() {
+        return syncPitchWithServer;
+    }
+
+    public void setSyncPitchWithServer(boolean value) {
+        this.syncPitchWithServer = value;
     }
 
     public boolean isShowPortNotAvailableMessage() {

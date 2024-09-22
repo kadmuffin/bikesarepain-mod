@@ -463,6 +463,8 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                         this.playSound(SoundEvents.ANVIL_HIT, 1.0F, 1.8F);
                         this.level().broadcastEntityEvent(this, (byte) 6);
                     }
+
+                    return InteractionResult.sidedSuccess(this.level().isClientSide());
                 } else {
                     if (this.level().isClientSide()) {
                         AbstractClientPlayer localPlayer = (AbstractClientPlayer) player;

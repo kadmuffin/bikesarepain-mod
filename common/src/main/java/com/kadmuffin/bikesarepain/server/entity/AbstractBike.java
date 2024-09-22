@@ -1,6 +1,7 @@
 package com.kadmuffin.bikesarepain.server.entity;
 
 import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
+import com.kadmuffin.bikesarepain.client.ClientConfig;
 import com.kadmuffin.bikesarepain.client.helper.Utils;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
@@ -78,12 +79,16 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         }
 
         // Recalculates if needed, updates the last value and returns the new value
-        public float reCalculateIfOld(Supplier<Float> valueSupplier) {
-            float maxTimePerFrameMs = Minecraft.getInstance().getFps() / 1000.0f;
-            if (System.currentTimeMillis() - this.lastUpdated > maxTimePerFrameMs) {
-                this.setRotation(valueSupplier.get());
+        public float reCalculateIfOld(Supplier<Float> valueSupplier, float originalForNoInterpolation) {
+            if (ClientConfig.CONFIG.instance().useBadInterpolation()) {
+                float maxTimePerFrameMs = Minecraft.getInstance().getFps() / 1000.0f;
+                if (System.currentTimeMillis() - this.lastUpdated > maxTimePerFrameMs) {
+                    this.setRotation(valueSupplier.get());
+                }
+                return this.rotation;
             }
-            return this.rotation;
+
+            return originalForNoInterpolation;
         }
     }
 
@@ -119,6 +124,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.rotations.put("backWheelRotation", new RotationData());
         this.rotations.put("steeringYaw", new RotationData());
         this.rotations.put("tilt", new RotationData());
+        this.rotations.put("pitch", new RotationData());
     }
 
     public static AttributeSupplier.@NotNull Builder createBaseHorseAttributes() {
@@ -216,7 +222,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     @Override
     protected void executeRidersJump(float strength, Vec3 movementInput) {
         super.executeRidersJump(strength, movementInput);
-        bikePitch = 10F;
+        // Calculate the pitch of the bike
+        // taking into account the strength of the jump
+        bikePitch += strength * 0.5F;
     }
 
     @Override
@@ -254,13 +262,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return InteractionResult.sidedSuccess(this.level().isClientSide);
     }
 
-    public float calculateBikePitch(Vec3 frontWheelPos, Vec3 backWheelPos) {
-        Vec3 frontWheel = this.modelToWorldPos(frontWheelPos);
-        Vec3 backWheel = this.modelToWorldPos(backWheelPos);
-
+    public float calculateBikePitch(Vec3 frontWheel, Vec3 backWheel) {
         // Do a raycast down to see if we are on the ground
         Vec3 raycastDir = new Vec3(0, -1F, 0);
-
 
         BlockHitResult rayFront = this.level().clip(new ClipContext(frontWheel, frontWheel.add(raycastDir), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
         BlockHitResult rayBack = this.level().clip(new ClipContext(backWheel, backWheel.add(raycastDir), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
@@ -297,35 +301,45 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         super.tick();
 
         if (this.level().isClientSide()) {
-            final int maxRaycasts = 10;
-            final float raycastSteps = this.getWheelRadius()/maxRaycasts;
+            float averagePitch;
+            if (ClientConfig.CONFIG.instance().pitchBasedOnBlocks()) {
+                final int maxRaycasts = 10;
+                final float raycastSteps = this.getWheelRadius() * 2 / maxRaycasts;
 
-            // At (0,0,contactpoint)
-            Vec3 frontWheelPos = this.getFrontWheelPos();
-            Vec3 backWheelPos = this.getBackWheelPos();
+                // At (0,0,contactpoint)
+                Vec3 frontWheelPos = this.getFrontWheelPos();
+                Vec3 backWheelPos = this.getBackWheelPos();
 
-            // We start at the negative side of the wheel
-            float currentRaycastCoordinate = -(maxRaycasts/2F)*raycastSteps;
+                // We start at the negative side of the wheel
+                float currentRaycastCoordinate = -(maxRaycasts / 2F) * raycastSteps;
 
-            ArrayList<Float> calculatedPitches = new ArrayList<>();
+                List<Float> calculatedPitches = new ArrayList<>();
 
-            for (int i = 0; i < maxRaycasts; i++) {
-                // First we need to calculate the Y coordinate
-                // knowing the formula for a circle, we can approximate the height
-                // at this point in the circle
-                float y = (float) Math.sqrt(Math.pow(this.getWheelRadius(), 2) - Math.pow(currentRaycastCoordinate, 2));
+                for (int i = 0; i < maxRaycasts; i++) {
+                    // First we need to calculate the Y coordinate
+                    // knowing the formula for a circle, we can approximate the height
+                    // at this point in the circle
+                    float y = this.getWheelRadius() - (float) Math.sqrt(Math.pow(this.getWheelRadius(), 2) - Math.pow(currentRaycastCoordinate, 2));
 
-                Vec3 frontWheel = this.modelToWorldPos(frontWheelPos.add(0, y, currentRaycastCoordinate));
-                Vec3 backWheel = this.modelToWorldPos(backWheelPos.add(0, y, currentRaycastCoordinate));
+                    Vec3 frontWheel = this.modelToWorldPos(frontWheelPos.add(0, y, currentRaycastCoordinate));
+                    Vec3 backWheel = this.modelToWorldPos(backWheelPos.add(0, y, currentRaycastCoordinate));
 
-                calculatedPitches.add(this.calculateBikePitch(frontWheel, backWheel));
+                    calculatedPitches.add(this.calculateBikePitch(frontWheel, backWheel));
+
+                    currentRaycastCoordinate += raycastSteps; // Increment after processing
+
+                }
+
+                // Calculate the average pitch
+                averagePitch = calculatedPitches.stream().reduce(0F, Float::sum) / calculatedPitches.size();
+
+                // Reduce or increase effect of pitch based on speed
+                averagePitch *= 1 - Math.min(this.getSpeed() / 0.5F, 1);
+            } else {
+                averagePitch = 0;
             }
-
-            // Calculate the average pitch
-            float averagePitch = calculatedPitches.stream().reduce(0F, Float::sum) / calculatedPitches.size();
-
-            // Apply smoothly the pitch
             this.bikePitch = this.bikePitch + (averagePitch - this.bikePitch) * 0.25F;
+
         }
 
 

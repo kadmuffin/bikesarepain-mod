@@ -43,6 +43,10 @@
   "config.bikesarepain.visuals.pedometer.tooltip": "Configuration for the visuals aspects of the pedometer item.",
   "config.bikesarepain.visuals.pedometer.imperial.name": "Use Imperial Units",
   "config.bikesarepain.visuals.pedometer.imperial.tooltip": "Shows imperial units for any bike you are riding.",
+  "config.bikesarepain.visuals.pitch.name": "Pitch model with blocks",
+    "config.bikesarepain.visuals.pitch.tooltip": "This will make the bike model pitch when there is air under the wheels.",
+  "config.bikesarepain.visuals.bad_interpolation.name": "Enable bad client side interpolation",
+  "config.bikesarepain.visuals.bad_interpolation.tooltip": "This will smooth out the rotations in the client. It currently uses a very bad and catastrophic method of doing it.",
 
   "config.bikesarepain.serial.name": "Serial",
   "config.bikesarepain.serial.tooltip": "Settings for connecting with an arduino. Used for reading data from a fitness bike.",

@@ -865,6 +865,71 @@
 					}
 				}
 			}
+		},
+		"bike.controlled": {
+			"loop": true,
+			"bones": {
+				"ActualRoot": {
+					"rotation": {
+						"vector": ["query.bikesarepain_pitch", 0, 0],
+						"easing": "linear"
+					}
+				},
+				"Bike": {
+					"rotation": {
+						"vector": [0, 0, "query.bikesarepain_tilt"],
+						"easing": "linear"
+					}
+				},
+				"SpinningThing": {
+					"rotation": {
+						"vector": [0, 0, "query.bikesarepain_backwheel_rot"],
+						"easing": "linear"
+					}
+				},
+				"SpinningThing2": {
+					"rotation": {
+						"vector": [0, 0, "query.bikesarepain_backwheel_rot"],
+						"easing": "linear"
+					}
+				},
+				"RearGears": {
+					"rotation": {
+						"vector": [0, 0, "query.bikesarepain_backwheel_rot"],
+						"easing": "linear"
+					}
+				},
+				"Pedals": {
+					"rotation": {
+						"vector": [0, 0, "query.bikesarepain_backwheel_rot"],
+						"easing": "linear"
+					}
+				},
+				"WheelUnion": {
+					"rotation": {
+						"vector": [0, "query.bikesarepain_steering_yaw", 0],
+						"easing": "linear"
+					}
+				},
+				"ActualWheel2": {
+					"rotation": {
+						"vector": [0, 0, "query.bikesarepain_frontwheel_rot"],
+						"easing": "linear"
+					}
+				},
+				"Handlebar": {
+					"rotation": {
+						"vector": [0, "query.bikesarepain_steering_yaw", 0],
+						"easing": "linear"
+					}
+				},
+				"ActualWheel": {
+					"rotation": {
+						"vector": [0, 0, "query.bikesarepain_backwheel_rot"],
+						"easing": "linear"
+					}
+				}
+			}
 		}
 	},
 	"azurelib_format_version": 2

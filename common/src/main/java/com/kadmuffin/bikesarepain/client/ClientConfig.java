@@ -24,6 +24,10 @@ public class ClientConfig {
 
     @SerialEntry(comment = "Display Imperial units instead of metric.")
     private boolean imperial = false;
+    @SerialEntry(comment = "Pitch the bike based on the blocks touching the wheels.")
+    private boolean pitchBasedOnBlocks = true;
+    @SerialEntry(comment = "Use very bad interpolation for movement.")
+    private boolean badInterpolation = false;
 
     @SerialEntry(comment = "Whether to automatically connect to the serial port on startup.")
     private boolean autoConnect = false;
@@ -51,6 +55,20 @@ public class ClientConfig {
                                             .name(Component.translatable("config.bikesarepain.visuals.pedometer.imperial.name"))
                                             .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pedometer.imperial.tooltip")))
                                             .binding(false, () -> imperial, value -> imperial = value)
+                                            .controller(TickBoxControllerBuilder::create)
+                                            .build()
+                                    )
+                                    .option(Option.<Boolean>createBuilder()
+                                            .name(Component.translatable("config.bikesarepain.visuals.pitch.name"))
+                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pitch.tooltip")))
+                                            .binding(true, () -> pitchBasedOnBlocks, value -> pitchBasedOnBlocks = value)
+                                            .controller(TickBoxControllerBuilder::create)
+                                            .build()
+                                    )
+                                    .option(Option.<Boolean>createBuilder()
+                                            .name(Component.translatable("config.bikesarepain.visuals.bad_interpolation.name"))
+                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.bad_interpolation.tooltip")))
+                                            .binding(false, () -> badInterpolation, value -> badInterpolation = value)
                                             .controller(TickBoxControllerBuilder::create)
                                             .build()
                                     )
@@ -191,6 +209,22 @@ public class ClientConfig {
 
     public boolean isImperial() {
         return imperial;
+    }
+
+    public boolean useBadInterpolation() {
+        return badInterpolation;
+    }
+
+    public void setBadInterpolation(boolean value) {
+        this.badInterpolation = value;
+    }
+
+    public boolean pitchBasedOnBlocks() {
+        return pitchBasedOnBlocks;
+    }
+
+    public void setPitchBasedOnBlocks(boolean value) {
+        this.pitchBasedOnBlocks = value;
     }
 
     public boolean isShowPortNotAvailableMessage() {

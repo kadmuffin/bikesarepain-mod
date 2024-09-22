@@ -61,4 +61,8 @@ public class Utils<T> {
         });
         return map;
     }
+
+    public static float wrapRotation(float angle) {
+        return (float) (((angle % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
+    }
 }

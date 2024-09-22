@@ -4,17 +4,20 @@ import com.kadmuffin.bikesarepain.BikesArePain;
 import com.kadmuffin.bikesarepain.client.helper.DecagonDisplayManager;
 import com.kadmuffin.bikesarepain.client.helper.Utils;
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import software.bernie.geckolib.renderer.layer.FastBoneFilterGeoLayer;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class BicycleRenderer extends AbstractBikeRenderer<Bicycle> {
+
     public static final Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF", "MonitorRoot", "Display",
             "Display1", "Display2", "Display3", "Display4", "Display5", "Display6",
             "TypeScreen", "UnitDistance", "UnitTime", "UnitSpeed", "MonitorRoot", "Propellers", "SpinningThing", "SpinningThing2",
@@ -31,31 +34,54 @@ public class BicycleRenderer extends AbstractBikeRenderer<Bicycle> {
             )
     );
 
+    private float smoothRotation(float currentRot, float targetRot) {
+        float deltaTime = Minecraft.getInstance().getFrameTimeNs() / 1_000_000_000.0f;
+
+        currentRot = (float) (((currentRot % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
+        targetRot = (float) (((targetRot % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
+
+        float diff = targetRot - currentRot;
+
+        if (diff > Math.PI) {
+            diff -= 2 * Math.PI;
+        } else if (diff < -Math.PI) {
+            diff += 2 * Math.PI;
+        }
+
+        float smoothSpeed = 60F;
+        float newRotation = currentRot + diff * smoothSpeed * deltaTime;
+
+        newRotation = (float) (((newRotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
+
+        return newRotation;
+    }
+
     public BicycleRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new DefaultedEntityGeoModel<>(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle")), bonesToColor);
+
         addRenderLayer(new FastBoneFilterGeoLayer<>(this, bones, (geoBone, bikeEntity, aFloat) -> {
 
             if (geoBone.getName().equals("ActualWheel")) {
-                geoBone.setRotZ(bikeEntity.getBackWheelRotation());
+                geoBone.setRotZ(bikeEntity.rotations.get("backWheelRotation").reCalculateIfOld(() -> this.smoothRotation(geoBone.getRotZ(), bikeEntity.getBackWheelRotation())));
             }
             if (geoBone.getName().equals("Cap2")) {
                 geoBone.setHidden(bikeEntity.showGears);
             }
             if (geoBone.getName().equals("RearGears")) {
-                geoBone.setRotZ(bikeEntity.getBackWheelRotation());
+                geoBone.setRotZ(bikeEntity.rotations.get("backWheelRotation").reCalculateIfOld(() -> this.smoothRotation(geoBone.getRotZ(), bikeEntity.getBackWheelRotation())));
             }
             if (geoBone.getName().equals("Pedals")) {
-                geoBone.setRotZ(bikeEntity.getBackWheelRotation());
+                geoBone.setRotZ(bikeEntity.rotations.get("backWheelRotation").reCalculateIfOld(() -> this.smoothRotation(geoBone.getRotZ(), bikeEntity.getBackWheelRotation())));
             }
             if (geoBone.getName().equals("WheelUnion")) {
-                geoBone.setRotY(bikeEntity.getSteeringYaw());
+                geoBone.setRotY(bikeEntity.rotations.get("steeringYaw").reCalculateIfOld(() -> this.smoothRotation(geoBone.getRotY(), bikeEntity.getSteeringYaw())));
             }
             if (geoBone.getName().equals("Handlebar")) {
-                geoBone.setRotY(bikeEntity.getSteeringYaw());
+                geoBone.setRotY(bikeEntity.rotations.get("steeringYaw").reCalculateIfOld(() -> this.smoothRotation(geoBone.getRotY(), bikeEntity.getSteeringYaw())));
             }
 
             if (geoBone.getName().equals("ActualWheel2")) {
-                geoBone.setRotZ(bikeEntity.getFrontWheelRotation());
+                geoBone.setRotZ(bikeEntity.rotations.get("backWheelRotation").reCalculateIfOld(() -> this.smoothRotation(geoBone.getRotZ(), bikeEntity.getBackWheelRotation())));
             }
 
             if (geoBone.getName().equals("SeatF")) {
@@ -63,19 +89,11 @@ public class BicycleRenderer extends AbstractBikeRenderer<Bicycle> {
             }
 
             if (geoBone.getName().equals("Bike")) {
-                geoBone.setRotZ(bikeEntity.getTilt());
+                geoBone.setRotZ(bikeEntity.rotations.get("tilt").reCalculateIfOld(() -> this.smoothRotation(geoBone.getRotZ(), bikeEntity.getTilt())));
             }
 
             if (geoBone.getName().equals("ActualRoot")) {
-                // TODO: Replace hacky old way with just doing radian math
-                float pitch = bikeEntity.bikePitch - 0.4F;
-                pitch = Math.max(0, pitch);
-
-                if (pitch > 0) {
-                    geoBone.setRotX(pitch/100);
-                }
-
-                bikeEntity.bikePitch = Math.max(0, bikeEntity.bikePitch - 0.4F);
+                geoBone.setRotX(bikeEntity.getPitch());
             }
 
             if (geoBone.getName().equals("Propellers")) {

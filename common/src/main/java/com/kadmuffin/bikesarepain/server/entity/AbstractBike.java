@@ -1,9 +1,11 @@
 package com.kadmuffin.bikesarepain.server.entity;
 
 import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
+import com.kadmuffin.bikesarepain.client.helper.Utils;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
@@ -24,11 +26,10 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec2;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.*;
 import org.apache.commons.lang3.function.TriConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +38,10 @@ import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 public abstract class AbstractBike extends AbstractHorse implements PlayerRideableJumping, Saddleable {
     protected boolean jumping;
@@ -49,6 +53,47 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private float rearWheelSpeed = 0.0F;
 
     private BlockPos lastPos = null;
+
+    public static class RotationData {
+        public float rotation;
+        public long lastUpdated;
+
+        public RotationData() {
+            this.rotation = 0;
+            this.lastUpdated = 0;
+        }
+
+        public RotationData(float rotation, long lastUpdated) {
+            this.rotation = rotation;
+            this.lastUpdated = lastUpdated;
+        }
+
+        public void setRotation(float rotation) {
+            this.rotation = rotation;
+            this.lastUpdated = System.currentTimeMillis();
+        }
+
+        public float getRotation() {
+            return this.rotation;
+        }
+
+        // Recalculates if needed, updates the last value and returns the new value
+        public float reCalculateIfOld(Supplier<Float> valueSupplier) {
+            float maxTimePerFrameMs = Minecraft.getInstance().getFps() / 1000.0f;
+            if (System.currentTimeMillis() - this.lastUpdated > maxTimePerFrameMs) {
+                this.setRotation(valueSupplier.get());
+            }
+            return this.rotation;
+        }
+    }
+
+    // Store already computed rotations for:
+    // backWheelRotation
+    // steeringYaw
+    // tilt
+    // and when the frame it was last updated
+    public final Map<String, RotationData> rotations = new HashMap<>();
+
 
     // Let devs add event listener for when the bike is moving
     // This is a list storing those lambdas
@@ -71,6 +116,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level);
+        this.rotations.put("backWheelRotation", new RotationData());
+        this.rotations.put("steeringYaw", new RotationData());
+        this.rotations.put("tilt", new RotationData());
     }
 
     public static AttributeSupplier.@NotNull Builder createBaseHorseAttributes() {
@@ -206,9 +254,81 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return InteractionResult.sidedSuccess(this.level().isClientSide);
     }
 
+    public float calculateBikePitch(Vec3 frontWheelPos, Vec3 backWheelPos) {
+        Vec3 frontWheel = this.modelToWorldPos(frontWheelPos);
+        Vec3 backWheel = this.modelToWorldPos(backWheelPos);
+
+        // Do a raycast down to see if we are on the ground
+        Vec3 raycastDir = new Vec3(0, -1F, 0);
+
+
+        BlockHitResult rayFront = this.level().clip(new ClipContext(frontWheel, frontWheel.add(raycastDir), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+        BlockHitResult rayBack = this.level().clip(new ClipContext(backWheel, backWheel.add(raycastDir), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+
+        Vec3 rayFrontPos = rayFront.getLocation();
+        Vec3 rayBackPos = rayBack.getLocation();
+
+        // When there is air below one of the wheels
+        // we calculate the pitch based on the distance the raycast hit
+        // We pitch the bike negatively when the front wheel is in the air and the back wheel is on the ground
+        // and positively when the back wheel is in the air and the front wheel is on the ground
+        float newRadiansPitch = 0.0F;
+        float distanceFront = (float) (frontWheel.y - rayFrontPos.y);
+        float distanceBack = (float) (backWheel.y - rayBackPos.y);
+        boolean frontOnGround = rayFront.getType() == HitResult.Type.BLOCK;
+        boolean backOnGround = rayBack.getType() == HitResult.Type.BLOCK;
+
+        if (frontOnGround && backOnGround) {
+            // Both wheels on ground, calculate pitch based on height difference
+            newRadiansPitch = (float) Math.atan2(distanceBack - distanceFront, frontWheel.distanceTo(backWheel));
+        } else if (!frontOnGround && backOnGround) {
+            // Front wheel in air, back wheel on ground
+            newRadiansPitch = (float) Math.atan2(distanceFront, frontWheel.distanceTo(backWheel));
+        } else if (frontOnGround && !backOnGround) {
+            // Front wheel on ground, back wheel in air
+            newRadiansPitch = -(float) Math.atan2(distanceBack, frontWheel.distanceTo(backWheel));
+        }
+
+        return newRadiansPitch;
+    }
+
     @Override
     public void tick() {
         super.tick();
+
+        if (this.level().isClientSide()) {
+            final int maxRaycasts = 10;
+            final float raycastSteps = this.getWheelRadius()/maxRaycasts;
+
+            // At (0,0,contactpoint)
+            Vec3 frontWheelPos = this.getFrontWheelPos();
+            Vec3 backWheelPos = this.getBackWheelPos();
+
+            // We start at the negative side of the wheel
+            float currentRaycastCoordinate = -(maxRaycasts/2F)*raycastSteps;
+
+            ArrayList<Float> calculatedPitches = new ArrayList<>();
+
+            for (int i = 0; i < maxRaycasts; i++) {
+                // First we need to calculate the Y coordinate
+                // knowing the formula for a circle, we can approximate the height
+                // at this point in the circle
+                float y = (float) Math.sqrt(Math.pow(this.getWheelRadius(), 2) - Math.pow(currentRaycastCoordinate, 2));
+
+                Vec3 frontWheel = this.modelToWorldPos(frontWheelPos.add(0, y, currentRaycastCoordinate));
+                Vec3 backWheel = this.modelToWorldPos(backWheelPos.add(0, y, currentRaycastCoordinate));
+
+                calculatedPitches.add(this.calculateBikePitch(frontWheel, backWheel));
+            }
+
+            // Calculate the average pitch
+            float averagePitch = calculatedPitches.stream().reduce(0F, Float::sum) / calculatedPitches.size();
+
+            // Apply smoothly the pitch
+            this.bikePitch = this.bikePitch + (averagePitch - this.bikePitch) * 0.25F;
+        }
+
+
         if (this.getFirstPassenger() instanceof Player playerEntity) {
             if (!this.isSaddled()) {
                 if (this.getSpeed() > 0.05F) {
@@ -439,18 +559,18 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             movSpeed = lastSpeed + (movSpeed - lastSpeed) * (1.15F-this.inertiaFactor());
         }
         final float maxSpeed = this.level().getGameRules().getRule(GameRuleManager.MAX_BIKE_SPEED).get()/20F;
-        movSpeed = Math.clamp(movSpeed, 0, maxSpeed);
+        movSpeed = Math.clamp(movSpeed, -maxSpeed, maxSpeed);
 
         rotation = movSpeed / this.getWheelRadius();
 
         this.setRearWheelSpeed(rotation / (2 * (float) Math.PI));
 
         float backWheelRotation = this.getBackWheelRotation() + rotation;
-        this.setBackWheelRotation((float) (backWheelRotation % (2 * Math.PI)));
+        this.setBackWheelRotation(Utils.wrapRotation(backWheelRotation));
         // Make the front wheel lag behind the back wheel
-        float frontWheelRotation = this.getFrontWheelRotation();
+        //float frontWheelRotation = this.getFrontWheelRotation();
         //this.frontWheelRotation = this.frontWheelRotation + (this.backWheelRotation - this.frontWheelRotation) * 0.25F;
-        this.setFrontWheelRotation(frontWheelRotation + (backWheelRotation - frontWheelRotation) * 0.25F);
+        //this.setFrontWheelRotation(frontWheelRotation + (backWheelRotation - frontWheelRotation) * 0.25F);
 
         // Calculate the tilt of the bike
         float newTilt = (float) (Math.PI/2 + this.getCenterMass().calculateRollAngle());
@@ -690,6 +810,14 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     public void setLastRotY(float lastRotY) {
         this.entityData.set(LAST_ROT_Y, lastRotY);
+    }
+
+    public float getPitch() {
+        return this.bikePitch;
+    }
+
+    public void setPitch(float pitch) {
+        this.bikePitch = pitch;
     }
 
     // Event listeners

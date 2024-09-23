@@ -199,7 +199,7 @@ public class ClientConfig {
                                             .controller(opt -> FloatSliderControllerBuilder.create(opt)
                                                     .formatValue(value -> Component.literal(ClientConfig.getAutoCMtoInchString(value, this.imperial)))
                                                     .range(0.05F, 3F)
-                                                    .step(0.01F)
+                                                    .step((imperial ? 0.01F : 0.001F))
                                             )
                                             .build()
                                     )

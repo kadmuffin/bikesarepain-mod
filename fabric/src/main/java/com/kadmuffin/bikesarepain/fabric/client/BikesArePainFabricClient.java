@@ -13,7 +13,7 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.network.chat.Component;
 
 public final class BikesArePainFabricClient implements ClientModInitializer {
-    private RequiredArgumentBuilder<FabricClientCommandSource, ?> scaleSet(int applyTo) {
+    private RequiredArgumentBuilder<FabricClientCommandSource, ?> scaleSet(ClientConfig.ApplyScaleTo applyTo) {
         return ClientCommandManager.argument("scale1", FloatArgumentType.floatArg(
                 0.01F,
                 50F
@@ -27,7 +27,7 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
                                         ClientCommandManager.literal("meter").executes(context -> {
                                             float scale1 = FloatArgumentType.getFloat(context, "scale1");
                                             float scale2 = FloatArgumentType.getFloat(context, "scale2");
-                                            BikesArePainClient.getReader().setScaleFactor(scale1, scale2, applyTo);
+                                            ClientConfig.CONFIG.instance().setScale(scale1, scale2, applyTo);
                                             context.getSource().sendFeedback(Component.literal("Set scale factor"));
                                             return 1;
                                         })
@@ -42,7 +42,7 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
                                 ClientCommandManager.literal("block").executes(context -> {
                                     float scale1 = FloatArgumentType.getFloat(context, "scale1");
                                     float scale2 = FloatArgumentType.getFloat(context, "scale2");
-                                    BikesArePainClient.getReader().setScaleFactor(scale2, scale1, applyTo);
+                                    ClientConfig.CONFIG.instance().setScale(scale2, scale1, applyTo);
                                     context.getSource().sendFeedback(Component.literal("Set scale factor"));
                                     return 1;
                                 })
@@ -127,29 +127,28 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
                     return 1;
                 })
         ).then(ClientCommandManager.literal("clear").executes(context -> {
-                    BikesArePainClient.getReader().resetDistance();
-                    BikesArePainClient.getReader().resetCalories();
+                    BikesArePainClient.getProcessor().reset();
                     context.getSource().sendFeedback(Component.literal("Cleared data"));
                     return 1;
                 }))
                 .then(
                 ClientCommandManager.literal("scale").then(
                         ClientCommandManager.literal("set").then(
-                                ClientCommandManager.literal("all").then(scaleSet(0))
+                                ClientCommandManager.literal("all").then(scaleSet(ClientConfig.ApplyScaleTo.BOTH))
                         )
                                 .then(
                                         ClientCommandManager.literal("wheel").then(
-                                                scaleSet(2)
+                                                scaleSet(ClientConfig.ApplyScaleTo.WHEEL)
                                         )
                                 )
                                 .then(
                                         ClientCommandManager.literal("speed").then(
-                                                scaleSet(1)
+                                                scaleSet(ClientConfig.ApplyScaleTo.SPEED)
                                         )
                                 )
                 ).then(ClientCommandManager.literal("get")
                         .executes(context -> {
-                            context.getSource().sendFeedback(Component.literal("Scale factor: " + BikesArePainClient.getReader().getScaleFactorString()));
+                            context.getSource().sendFeedback(Component.literal("Scale factor: " + ClientConfig.CONFIG.instance().getScaleRatiosString()));
                             return 1;
                         })
                 )

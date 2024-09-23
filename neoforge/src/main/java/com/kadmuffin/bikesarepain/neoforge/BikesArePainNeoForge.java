@@ -21,7 +21,7 @@ import static com.kadmuffin.bikesarepain.BikesArePain.MOD_ID;
 public final class BikesArePainNeoForge {
     private SerialReader reader;
 
-    private RequiredArgumentBuilder<ClientCommandRegistrationEvent.ClientCommandSourceStack, Float> setScale(int applyTo) {
+    private RequiredArgumentBuilder<ClientCommandRegistrationEvent.ClientCommandSourceStack, Float> setScale(ClientConfig.ApplyScaleTo applyTo) {
         return ClientCommandRegistrationEvent.argument("scale1", FloatArgumentType.floatArg(
                         0.01F,
                         50F
@@ -36,7 +36,7 @@ public final class BikesArePainNeoForge {
                                                         .executes(context -> {
                                                             float scale1 = FloatArgumentType.getFloat(context, "scale1");
                                                             float scale2 = FloatArgumentType.getFloat(context, "scale2");
-                                                            BikesArePainClient.getReader().setScaleFactor(scale1, scale2, applyTo);
+                                                            ClientConfig.CONFIG.instance().setScale(scale1, scale2, applyTo);
                                                             context.getSource().arch$sendSuccess(() -> Component.literal("Set scale factor"), false);
                                                             return 1;
                                                         })
@@ -53,7 +53,7 @@ public final class BikesArePainNeoForge {
                                         .executes(context -> {
                                             float scale1 = FloatArgumentType.getFloat(context, "scale1");
                                             float scale2 = FloatArgumentType.getFloat(context, "scale2");
-                                            BikesArePainClient.getReader().setScaleFactor(scale1, scale2, applyTo);
+                                            ClientConfig.CONFIG.instance().setScale(scale1, scale2, applyTo);
                                             context.getSource().arch$sendSuccess(() -> Component.literal("Set scale factor"), false);
                                             return 1;
                                         })
@@ -134,8 +134,7 @@ public final class BikesArePainNeoForge {
                         )
                         .then(ClientCommandRegistrationEvent.literal("clear")
                                 .executes(context -> {
-                                    BikesArePainClient.getReader().resetDistance();
-                                    BikesArePainClient.getReader().resetCalories();
+                                    BikesArePainClient.getProcessor().reset();
                                     context.getSource().arch$sendSuccess(() -> Component.literal("Cleared data"), false);
                                     return 1;
                                 })
@@ -158,24 +157,24 @@ public final class BikesArePainNeoForge {
                                         .then(ClientCommandRegistrationEvent.literal("set")
                                                 .then(
                                                         ClientCommandRegistrationEvent.literal("all").then(
-                                                                setScale(0)
+                                                                setScale(ClientConfig.ApplyScaleTo.BOTH)
                                                         )
                                                 )
                                                 .then(
                                                         ClientCommandRegistrationEvent.literal("wheel").then(
-                                                                setScale(2)
+                                                                setScale(ClientConfig.ApplyScaleTo.WHEEL)
                                                         )
                                                 )
                                                 .then(
                                                         ClientCommandRegistrationEvent.literal("speed").then(
-                                                                setScale(1)
+                                                                setScale(ClientConfig.ApplyScaleTo.SPEED)
                                                         )
                                                 )
                                         ).then(
                                                 ClientCommandRegistrationEvent.literal("get")
                                                         .then(ClientCommandRegistrationEvent.literal("scale")
                                                                 .executes(context -> {
-                                                                    context.getSource().arch$sendSuccess(() -> Component.literal(BikesArePainClient.getReader().getScaleFactorString()), false);
+                                                                    context.getSource().arch$sendSuccess(() -> Component.literal(ClientConfig.CONFIG.instance().getScaleRatiosString()), false);
                                                                     return 1;
                                                                 })
                                                         )

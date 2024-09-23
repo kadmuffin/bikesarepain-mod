@@ -4,7 +4,13 @@ Dual-licensed under the GNU Lesser General Public License v3.0 and the Apache Li
 
 This project uses jSerialComm under the Apache License 2.0.
 
-- Apache 2.0 License File: [vendor/jSerialComm/APACHE-2.0.txt](vendor/jSerialComm/APACHE-2.0.txt)
+- Apache 2.0 License File: [vendor/shared/APACHE-2.0.txt](vendor/shared/APACHE-2.0.txt)
 - GNU LGPL 3.0 License File: [vendor/jSerialComm/LGPL-3.0.txt](vendor/jSerialComm/LGPL-3.0.txt)
+
+## [sqlite-jdbc](https://github.com/xerial/sqlite-jdbc) - (v3.46.1.0)
+
+This project uses sqlite-jbc licensed under the Apache License 2.0.
+
+- Apache 2.0 License File: [vendor/shared/APACHE-2.0.txt](vendor/shared/APACHE-2.0.txt)
 
 `NOTICE` contents is included in the [NOTICE](NOTICE.md) file of this project.

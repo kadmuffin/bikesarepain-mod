@@ -1,17 +1,12 @@
 package com.kadmuffin.bikesarepain.client.helper;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
-public class Utils<T> {
+public class Utils {
     public static <T> Map<String, Function<T, Integer>> createBonesToColorMap(Map<List<String>, Function<T, Integer>> bonesToColor) {
         Map<String, Function<T, Integer>> map = new HashMap<>();
-        bonesToColor.forEach((bones, color) -> {
-            bones.forEach(bone -> map.put(bone, color));
-        });
+        bonesToColor.forEach((bones, color) -> bones.forEach(bone -> map.put(bone, color)));
         return map;
     }
 
@@ -56,9 +51,7 @@ public class Utils<T> {
 
     public static <T> Map<String, Integer> evaluateBonesToColorMap(Map<String, Function<T, Integer>> bonesToColor, T stack) {
         Map<String, Integer> map = new HashMap<>();
-        bonesToColor.forEach((bone, color) -> {
-            map.put(bone, color.apply(stack));
-        });
+        bonesToColor.forEach((bone, color) -> map.put(bone, color.apply(stack)));
         return map;
     }
 

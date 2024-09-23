@@ -13,4 +13,6 @@ dependencies {
     modImplementation "software.bernie.geckolib:geckolib-common-${minecraft_version}:$rootProject.geckolib_version"
 
     modCompileOnly("dev.isxander:yet-another-config-lib:${project.yacl_version}-fabric")
+
+
 }

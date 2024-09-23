@@ -3,162 +3,90 @@ package com.kadmuffin.bikesarepain.client;
 import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
-import com.kadmuffin.bikesarepain.packets.PacketManager;
-import dev.architectury.networking.NetworkManager;
+import com.kadmuffin.bikesarepain.client.serial.SerialParser;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.util.TriConsumer;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
+import java.util.function.Consumer;
 
 public class SerialReader {
-    private final StringBuilder buffer = new StringBuilder();
-    private boolean markerFound = false;
-    private SerialPort serialPort;
-    private Queue<Float> speedQueue;
-    private float sumSpeed = 0;
-
-    private float lastSpeed = 0;
-    private double lastTriggerTime = 0;
-    private float lastWheelRadius = 0;
-    private float scaleBlockWheel = 1;
-    private float scaleMeterWheel = 1;
-    private float scaleBlockSpeed = 1;
-    private float scaleMeterSpeed = 1;
-    private double distanceMoved = 0;
-    private float caloriesBurned = 0;
-
-    public void resetDistance() {
-        distanceMoved = 0;
+    public enum Event {
+        SUDDEN_DISCONNECT,
+        START,
+        STOP
     }
 
-    public void resetCalories() {
-        caloriesBurned = 0;
+    private SerialPort port;
+    private final SerialParser parser;
+
+    private final List<TriConsumer<Float,Double,Float>> listeners;
+    private final List<Consumer<Event>> eventListeners;
+
+    private static final Logger LOGGER = LogManager.getLogger();
+
+    public SerialReader() {
+        listeners = new ArrayList<>();
+        eventListeners = new ArrayList<>();
+
+        parser = new SerialParser(
+                '#', '*',
+                () -> port
+        );
+
+        parser.addParser((rawString) -> {
+            String[] pieces = rawString.split(";");
+
+            if (pieces.length != 3) return;
+
+            try {
+                float speed = Float.parseFloat(pieces[0]);
+                double triggerTimeHours = Double.parseDouble(pieces[1]);
+                float wheelRadius = Float.parseFloat(pieces[2]);
+
+                for (TriConsumer<Float,Double,Float> listener : listeners) {
+                    listener.accept(speed, triggerTimeHours, wheelRadius);
+                }
+
+            } catch (NumberFormatException e) {
+                LOGGER.error("Failed to parse serial data: {}", rawString);
+            }
+        });
     }
 
-    public SerialPort getSerial() {
-        return this.serialPort;
+    public void addListener(TriConsumer<Float,Double,Float> listener) {
+        listeners.add(listener);
     }
 
-    public void setScaleFactor(float scaleBlock, float scaleMeter, int applyScaleTo) {
-        switch (applyScaleTo) {
-            case 0:
-                this.scaleBlockSpeed = scaleBlock;
-                this.scaleMeterSpeed = scaleMeter;
-                this.scaleBlockWheel = scaleBlock;
-                this.scaleMeterWheel = scaleMeter;
-                float scale = scaleBlock / scaleMeter;
-                ClientConfig.CONFIG.instance().setSpeedScaleRatio(scale);
-                ClientConfig.CONFIG.instance().setWheelScaleRatio(scale);
-                break;
-            case 1:
-                this.scaleBlockSpeed = scaleBlock;
-                this.scaleMeterSpeed = scaleMeter;
-                ClientConfig.CONFIG.instance().setSpeedScaleRatio(scaleBlock / scaleMeter);
-                break;
-            case 2:
-                this.scaleBlockWheel = scaleBlock;
-                this.scaleMeterWheel = scaleMeter;
-                ClientConfig.CONFIG.instance().setWheelScaleRatio(scaleBlock / scaleMeter);
-                break;
-        }
-        ClientConfig.CONFIG.save();
-
+    public void addEventListener(Consumer<Event> listener) {
+        eventListeners.add(listener);
     }
 
-    public String getScaleFactorString() {
-        return String.format("Speed is set to %.2f block is %.2f meters; Wheel is set to %.2f block is %.2f meters.", this.scaleBlockSpeed, this.scaleMeterSpeed, this.scaleBlockWheel, this.scaleMeterWheel);
+    public void removeListener(TriConsumer<Float,Double,Float> listener) {
+        listeners.remove(listener);
+    }
+
+    public void removeEventListener(Consumer<Event> listener) {
+        eventListeners.remove(listener);
     }
 
     public void setSerial() {
-        if (this.serialPort != null && this.serialPort.isOpen()) {
-            this.serialPort.closePort();
+        if (this.port != null && this.port.isOpen()) {
+            this.port.closePort();
         }
 
-        this.serialPort = SerialPort.getCommPort(ClientConfig.CONFIG.instance().getPort());
-        this.serialPort.setComPortParameters(ClientConfig.CONFIG.instance().getBaudRate(), 8, 1, 0);
-        this.serialPort.setFlowControl(SerialPort.FLOW_CONTROL_DISABLED);
-        this.serialPort.addDataListener(new SerialPortDataListener() {
-            @Override
-            public int getListeningEvents() { return SerialPort.LISTENING_EVENT_DATA_AVAILABLE; }
-            @Override
-            public void serialEvent(SerialPortEvent event)
-            {
-                if (event.getEventType() != SerialPort.LISTENING_EVENT_DATA_AVAILABLE)
-                    return;
+        String portName = ClientConfig.CONFIG.instance().getPort();
+        int baudRate = ClientConfig.CONFIG.instance().getBaudRate();
+        this.port = SerialPort.getCommPort(portName);
+        this.port.setComPortParameters(baudRate, 8, 1, 0);
+        this.port.setFlowControl(SerialPort.FLOW_CONTROL_DISABLED);
 
-                if (serialPort.isOpen()) {
-                    if (serialPort.bytesAvailable() > 0) {
-                        byte[] readBuffer = new byte[serialPort.bytesAvailable()];
-                        int numRead = serialPort.readBytes(readBuffer, readBuffer.length);
-
-                        //String data = new String(readBuffer, 0, numRead, StandardCharsets.US_ASCII);
-                        //System.out.println("Data: " + data);
-
-                        // We are going to loop through the bytes
-                        // When we see the start marker, we will start adding bytes to the buffer
-                        // Once, we see the end marker, we will parse the buffer
-                        // with String(byte[], offset, length, "ASCII") constructor
-                        for (int i = 0; i < numRead; i++) {
-                            char ch = (char) readBuffer[i];
-
-                            if (ch == '#') {
-                                buffer.setLength(0); // Clear previous data
-                                markerFound = true;
-                            } else if (ch == '*') {
-                                markerFound = false;
-
-                                // Update speed and distance moved
-                                String[] data = buffer.toString().split(";");
-                                if (data.length == 4) {
-                                    float speed = Float.parseFloat(data[0]);
-                                    double triggerTime = Double.parseDouble(data[1]);
-                                    float wheelRadius = Float.parseFloat(data[3]);
-
-                                    // Now calculate average speed
-                                    speedQueue.add(speed);
-                                    sumSpeed += speed;
-                                    if (speedQueue.size() > 3) {
-                                        sumSpeed -= speedQueue.poll();
-                                    }
-
-                                    float avgSpeed = 0;
-                                    if (!speedQueue.isEmpty()) {
-                                        avgSpeed = sumSpeed / speedQueue.size();
-                                        avgSpeed = avgSpeed > 0 ? avgSpeed : 0;
-                                    }
-
-                                    // Round to last two decimal places
-                                    avgSpeed = (float) (Math.round(avgSpeed * 100.0) / 100.0);
-
-                                    if (avgSpeed != lastSpeed || triggerTime != lastTriggerTime || lastWheelRadius != wheelRadius) {
-                                        lastSpeed = avgSpeed;
-                                        if (triggerTime != -1 && lastSpeed > 0) {
-                                            lastTriggerTime = triggerTime;
-                                        }
-
-                                        if (wheelRadius != -1) {
-                                            lastWheelRadius = wheelRadius;
-                                        }
-
-                                        updateServerData(true, false, false);
-                                    } else {
-                                        updateServerData(true, true, false);
-                                    }
-                                }
-
-                            } else if (markerFound) {
-                                buffer.append(ch);
-                            }
-                        }
-
-                    }
-                }
-            }
-        });
+        this.port.addDataListener(this.parser);
 
         // Check for disconnect
-        this.serialPort.addDataListener(new SerialPortDataListener() {
+        this.port.addDataListener(new SerialPortDataListener() {
             @Override
             public int getListeningEvents() {
                 return SerialPort.LISTENING_EVENT_PORT_DISCONNECTED;
@@ -167,75 +95,36 @@ public class SerialReader {
             @Override
             public void serialEvent(SerialPortEvent event) {
                 if (event.getEventType() == SerialPort.LISTENING_EVENT_PORT_DISCONNECTED) {
-                    updateServerData(false, true, true);
+                    for (Consumer<Event> listener : eventListeners) {
+                        listener.accept(Event.SUDDEN_DISCONNECT);
+                    }
                 }
             }
         });
     }
 
     public boolean start() {
-        if (this.serialPort == null) {
+        if (this.port == null) {
             return false;
         }
-        this.updateServerData(true, true, false);
-        this.serialPort.openPort();
-        this.speedQueue = new LinkedList<>();
-        this.resetCalories();
-        this.resetDistance();
+        this.port.openPort();
+        for (Consumer<Event> listener : eventListeners) {
+            listener.accept(Event.START);
+        }
+
         return true;
     }
 
     public void stop() {
-        if (this.serialPort == null) {
-            return;
-        }
-        updateServerData(false, true, false);
-        this.serialPort.closePort();
-    }
-
-    public void updateServerData(boolean enabled, boolean empty, boolean disconnect) {
-        if (this.serialPort == null) {
+        if (this.port == null) {
             return;
         }
 
-        if (empty) {
-            NetworkManager.sendToServer(new PacketManager.EmptyArduinoData(enabled, disconnect));
-            return;
+        for (Consumer<Event> listener : eventListeners) {
+            listener.accept(Event.STOP);
         }
 
-        // The speed comes in km/h, and the lastTriggerTime in hours
-        // the value we need is in meters
-        distanceMoved += lastSpeed * lastTriggerTime * 1000;
-        caloriesBurned += ClientConfig.CONFIG.instance().calculateCalories(lastSpeed, lastTriggerTime);
-
-        // The speed that comes from the bike is for its small radii
-        float scaleRatio = 1F;
-
-        if (ClientConfig.CONFIG.instance().wantsValuesScaled()) {
-            // Let say the fitness bike wheel measures 0.27 meters in diameter
-            // but a real bike wheel measures 0.7 meters in diameter
-            float targetSize = ClientConfig.CONFIG.instance().getTargetWheelSize();
-            scaleRatio = targetSize / lastWheelRadius;
-        }
-
-        float originalSpeed = lastSpeed;
-        float originalWheelRadii = lastWheelRadius;
-
-        if (ClientConfig.CONFIG.instance().useMappedForCalculations()) {
-            originalSpeed = lastSpeed * scaleRatio;
-            originalWheelRadii = lastWheelRadius * scaleRatio;
-        }
-
-        NetworkManager.sendToServer(new PacketManager.ArduinoData(
-                enabled,
-                originalSpeed,
-                lastSpeed * scaleRatio,
-                (float) (distanceMoved * scaleRatio),
-                caloriesBurned * scaleRatio,
-                originalWheelRadii,
-                ClientConfig.CONFIG.instance().getWheelScaleRatio(),
-                ClientConfig.CONFIG.instance().getSpeedScaleRatio()
-        ));
+        this.port.closePort();
     }
 
     public static List<String> getPorts() {

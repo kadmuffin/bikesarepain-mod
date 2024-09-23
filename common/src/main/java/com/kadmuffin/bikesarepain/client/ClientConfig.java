@@ -15,6 +15,12 @@ import java.text.DecimalFormat;
 import java.util.List;
 
 public class ClientConfig {
+    public enum ApplyScaleTo {
+        SPEED,
+        WHEEL,
+        BOTH
+    }
+
     public static final DecimalFormat format = new DecimalFormat("#.##");
 
     public static final ConfigClassHandler<ClientConfig> CONFIG = ConfigClassHandler.createBuilder(ClientConfig.class)
@@ -433,6 +439,31 @@ public class ClientConfig {
             ports.add("No port available");
         }
         return ports;
+    }
+
+    public void setScale(float scaleBlock, float scaleMeter, ApplyScaleTo target) {
+        float scale = scaleBlock / scaleMeter;
+
+        switch (target) {
+            case SPEED:
+                this.speedScaleRatio = scale;
+                break;
+            case WHEEL:
+                this.wheelScaleRatio = scale;
+                break;
+            case BOTH:
+                this.speedScaleRatio = scale;
+                this.wheelScaleRatio = scale;
+                break;
+        }
+    }
+
+    public String getScaleRatiosString() {
+        return String.format(
+                "Speed is set to %s, Wheel is set to %s",
+                getUnitString(this.speedScaleRatio, this.imperial),
+                getUnitString(this.wheelScaleRatio, this.imperial)
+        );
     }
 
     public static void init() {

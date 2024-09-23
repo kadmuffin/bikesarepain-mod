@@ -20,6 +20,15 @@ License and the Apache Software License along with jSerialComm. If not,
 see <http://www.gnu.org/licenses/> and <http://www.apache.org/licenses/>.
 ```
 
+## sqlite-jdbc
+
+```
+This product includes the following softwares developed by David Crawshaw.
+See LICENSE.zentus file.
+
+And also, NestedVM (Apache License Version 2.0) is used inside sqlite-
+```
+
 See the [THIRD_PARTY_LICENSES](THIRD_PARTY_LICENSES.md) file for full license details.
 
 ---

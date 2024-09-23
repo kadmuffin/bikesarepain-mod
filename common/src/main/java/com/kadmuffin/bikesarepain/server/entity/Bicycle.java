@@ -833,12 +833,16 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     public Vec3 getFrontWheelPos() {
-        return new Vec3(0, 0, -0.59);
+        return new Vec3(0, 0, 0.59);
+    }
+    @Override
+    public Vec3 getFrontPivotPos() {
+        return new Vec3(0, 0, 0.45);
     }
 
     @Override
     public Vec3 getBackWheelPos() {
-        return new Vec3(0, 0, 0.56);
+        return new Vec3(0, 0, -0.56);
     }
 
     public int getTicksSinceLastRing() {

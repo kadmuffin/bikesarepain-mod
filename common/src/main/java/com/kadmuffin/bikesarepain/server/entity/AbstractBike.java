@@ -9,6 +9,7 @@ import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -263,7 +264,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return InteractionResult.sidedSuccess(this.level().isClientSide);
     }
 
-    public float calculateBikePitch(Vec3 frontWheel, Vec3 backWheel) {
+    public float calculateBikePitchDown(Vec3 frontWheel, Vec3 backWheel, boolean showRays) {
         // Do a raycast down to see if we are on the ground
         Vec3 raycastDir = new Vec3(0, -1F, 0);
 
@@ -272,6 +273,24 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
         Vec3 rayFrontPos = rayFront.getLocation();
         Vec3 rayBackPos = rayBack.getLocation();
+
+        if (showRays) {
+            float particleScale = 0.2F * this.getModelScalingFactor();
+            this.level().addParticle(new DustParticleOptions(new Vector3f(255F,0F,0F), particleScale), frontWheel.x, frontWheel.y, frontWheel.z, 0, 0, 0);
+            this.level().addParticle(new DustParticleOptions(new Vector3f(0F,0F,255F), particleScale), backWheel.x, backWheel.y, backWheel.z, 0, 0, 0);
+
+            if (rayFront.getType() == HitResult.Type.BLOCK) {
+                this.level().addParticle(new DustParticleOptions(new Vector3f(0F,255F,0F), particleScale), rayFrontPos.x, rayFrontPos.y, rayFrontPos.z, 0, 0, 0);
+            } else {
+                this.level().addParticle(new DustParticleOptions(new Vector3f(255F,255F,0F), particleScale), rayFrontPos.x, rayFrontPos.y, rayFrontPos.z, 0, 0, 0);
+            }
+
+            if (rayBack.getType() == HitResult.Type.BLOCK) {
+                this.level().addParticle(new DustParticleOptions(new Vector3f(0F,255F,0F), particleScale), rayBackPos.x, rayBackPos.y, rayBackPos.z, 0, 0, 0);
+            } else {
+                this.level().addParticle(new DustParticleOptions(new Vector3f(255F,255F,0F), particleScale), rayBackPos.x, rayBackPos.y, rayBackPos.z, 0, 0, 0);
+            }
+        }
 
         // When there is air below one of the wheels
         // we calculate the pitch based on the distance the raycast hit
@@ -288,12 +307,12 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             newRadiansPitch = (float) Math.atan2(distanceBack - distanceFront, frontWheel.distanceTo(backWheel));
         } else if (!frontOnGround && backOnGround) {
             // Front wheel in air, back wheel on ground
-            newRadiansPitch = (float) Math.atan2(distanceFront, frontWheel.distanceTo(backWheel));
+            newRadiansPitch = -(float) Math.atan2(distanceFront, frontWheel.distanceTo(backWheel));
         } else if (frontOnGround) {
             // Front wheel on ground, back wheel in air
-            newRadiansPitch = -(float) Math.atan2(distanceBack, frontWheel.distanceTo(backWheel));
+            newRadiansPitch = (float) Math.atan2(distanceBack, frontWheel.distanceTo(backWheel));
         } else {
-            newRadiansPitch -= (float) (this.getSpeed()*0.5F*Math.PI);
+            newRadiansPitch += (float) (this.getSpeed()*0.5F*Math.PI);
         }
 
         return newRadiansPitch;
@@ -307,11 +326,13 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             float averagePitch;
             if (ClientConfig.CONFIG.instance().pitchBasedOnBlocks()) {
                 final int maxRaycasts = ClientConfig.CONFIG.instance().getAmountOfRaysPerWheel();
-                final float raycastSteps = this.getWheelRadius() * 2 / maxRaycasts;
+                // Convert to diameter (well, a bit less than that), and split it into the amount of raycasts
+                final float raycastSteps = this.getWheelRadius() * 1.5F / maxRaycasts;
 
                 // At (0,0,contactpoint)
-                Vec3 frontWheelPos = this.getFrontWheelPos();
-                Vec3 backWheelPos = this.getBackWheelPos();
+                Vec3 frontWheelPos = this.getFrontWheelPos().scale(this.getModelScalingFactor());
+                Vec3 backWheelPos = this.getBackWheelPos().scale(this.getModelScalingFactor());
+                Vec3 pivotPoint = this.getFrontPivotPos().scale(this.getModelScalingFactor());
 
                 // We start at the negative side of the wheel
                 float currentRaycastCoordinate = -(maxRaycasts / 2F) * raycastSteps;
@@ -323,11 +344,15 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                     // knowing the formula for a circle, we can approximate the height
                     // at this point in the circle
                     float y = this.getWheelRadius() - (float) Math.sqrt(Math.pow(this.getWheelRadius(), 2) - Math.pow(currentRaycastCoordinate, 2));
+                    Vec3 frontPos = frontWheelPos.add(0, y, currentRaycastCoordinate);
 
-                    Vec3 frontWheel = this.modelToWorldPos(frontWheelPos.add(0, y, currentRaycastCoordinate).yRot(this.getSteeringYaw()));
-                    Vec3 backWheel = this.modelToWorldPos(backWheelPos.add(0, y, currentRaycastCoordinate).yRot(this.getSteeringYaw()));
+                    // Manually rotate it around pivot point
+                    Vec3 rotatedFront = frontPos.subtract(pivotPoint).yRot(this.getSteeringYaw()).add(pivotPoint);
 
-                    calculatedPitches.add(this.calculateBikePitch(frontWheel, backWheel));
+                    Vec3 frontWheel = this.modelToWorldPos(rotatedFront);
+                    Vec3 backWheel = this.modelToWorldPos(backWheelPos.add(0, y, currentRaycastCoordinate));
+
+                    calculatedPitches.add(this.calculateBikePitchDown(frontWheel, backWheel, ClientConfig.CONFIG.instance().showDebugWheelRays()));
 
                     currentRaycastCoordinate += raycastSteps; // Increment after processing
 
@@ -578,7 +603,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         float gravityAcceleration = 0F;
         // Correct for model's usage of pitch calculation
         float pitch = -this.getSyncedPitch();
-        if (Math.abs(pitch) > 0) {
+        if (Math.abs(pitch) > 0.05F) {
             gravityAcceleration = (float) (Math.sin(pitch) * this.getGravity())*0.25F;
             float maxGravityAcc = 0.1F;
             gravityAcceleration = Math.max(-maxGravityAcc, Math.min(maxGravityAcc, gravityAcceleration));
@@ -693,6 +718,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public abstract float getBrakeMultiplier();
     public abstract void playBrakeSound();
     public abstract Vec3 getFrontWheelPos();
+    public abstract Vec3 getFrontPivotPos();
     public abstract Vec3 getBackWheelPos();
 
     /**

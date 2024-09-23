@@ -132,6 +132,14 @@ public final class BikesArePainNeoForge {
                                         })
                                 )
                         )
+                        .then(ClientCommandRegistrationEvent.literal("clear")
+                                .executes(context -> {
+                                    BikesArePainClient.getReader().resetDistance();
+                                    BikesArePainClient.getReader().resetCalories();
+                                    context.getSource().arch$sendSuccess(() -> Component.literal("Cleared data"), false);
+                                    return 1;
+                                })
+                        )
                         .then(ClientCommandRegistrationEvent.literal("close")
                                 .executes(context -> {
                                     try {

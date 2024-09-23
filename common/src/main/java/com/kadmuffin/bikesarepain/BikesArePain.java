@@ -75,6 +75,7 @@ public final class BikesArePain {
                                                                                                                                     PacketManager.processArduinoData(new PacketManager.ArduinoData(
                                                                                                                                             true,
                                                                                                                                             speed,
+                                                                                                                                            speed,
                                                                                                                                             distance,
                                                                                                                                             kcalories,
                                                                                                                                             wheelRadius,

@@ -69,9 +69,24 @@
   "config.bikesarepain.serial.scale.name": "Units Scale",
   "config.bikesarepain.serial.scale.tooltip": "Used to scale the speed and wheel sizes readings before applying them. Can be set more easily with \"/bikes scale set\"",
   "config.bikesarepain.serial.scale.wheel.name": "Wheel Scale Factor",
-  "config.bikesarepain.serial.scale.wheel.tooltip": "This scales the size of the real wheel to the in-game wheel. This only affects the model visually.",
+  "config.bikesarepain.serial.scale.wheel.tooltip": "This scales the size of the real wheel to the in-game wheel. This only affects the model visually. Doesn't apply to pedometer display.",
   "config.bikesarepain.serial.scale.speed.name": "Speed Scale Factor",
-  "config.bikesarepain.serial.scale.speed.tooltip": "The speed readings from the arduino are multiplied by this value. This is used to make the biking 'feel' faster or slower.",
+  "config.bikesarepain.serial.scale.speed.tooltip": "The speed readings from the arduino are multiplied by this value. This is used to make the biking 'feel' faster or slower. Doesn't apply to pedometer display.",
+  "config.bikesarepain.serial.scale.reference.name": "Map Pedometer to Reference",
+  "config.bikesarepain.serial.scale.use_for_calculations.name": "Use Mapped Values for All",
+  "config.bikesarepain.serial.scale.use_for_calculations.tooltip": "This will use the mapped values for all calculations, including wheel and speed scales before applying their factors. If disabled, the original wheel size is used for the calculations.",
+  "config.bikesarepain.serial.scale.reference.tooltip": "This will scale the distance, calories and speed to what a real bike with diameter \"Reference Wheel Diameter\" would have.",
+  "config.bikesarepain.serial.scale.reference.wheel.name": "Reference Wheel Diameter",
+  "config.bikesarepain.serial.scale.reference.wheel.tooltip": "The diameter of the wheel that the pedometer is calibrated to. This is used to scale the distance, calories and speed to what a real bike with this diameter would have.",
+  "config.bikesarepain.serial.calories.mass.name": "Body Mass",
+  "config.bikesarepain.serial.calories.mass.tooltip": "The mass of the player in kilograms. This is used to calculate the calories burned.",
+
+  "config.bikesarepain.advanced.name": "Advanced",
+  "config.bikesarepain.advanced.tooltip": "Advanced settings for Bikes Are Pain.",
+  "config.bikesarepain.advanced.debug.name": "Debug",
+  "config.bikesarepain.advanced.debug.tooltip": "Settings that are used for debugging the mod.",
+  "config.bikesarepain.advanced.debug.wheel_rays.name": "Show Pitch Rays",
+  "config.bikesarepain.advanced.debug.wheel_rays.tooltip": "Shows the rays that are casted for the pitch visuals.",
 
   "modmenu.summaryTranslation.bikesarepain": "Adds bikes to the game."
 }

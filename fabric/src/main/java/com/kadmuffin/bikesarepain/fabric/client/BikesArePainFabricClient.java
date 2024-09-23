@@ -126,7 +126,13 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
                     context.getSource().sendFeedback(Component.literal("Closed port"));
                     return 1;
                 })
-        ).then(
+        ).then(ClientCommandManager.literal("clear").executes(context -> {
+                    BikesArePainClient.getReader().resetDistance();
+                    BikesArePainClient.getReader().resetCalories();
+                    context.getSource().sendFeedback(Component.literal("Cleared data"));
+                    return 1;
+                }))
+                .then(
                 ClientCommandManager.literal("scale").then(
                         ClientCommandManager.literal("set").then(
                                 ClientCommandManager.literal("all").then(scaleSet(0))

@@ -19,13 +19,22 @@ public class SerialReader {
     private float sumSpeed = 0;
 
     private float lastSpeed = 0;
-    private float lastDistance = 0;
-    private float lastKcalories = 0;
+    private double lastTriggerTime = 0;
     private float lastWheelRadius = 0;
     private float scaleBlockWheel = 1;
     private float scaleMeterWheel = 1;
     private float scaleBlockSpeed = 1;
     private float scaleMeterSpeed = 1;
+    private double distanceMoved = 0;
+    private float caloriesBurned = 0;
+
+    public void resetDistance() {
+        distanceMoved = 0;
+    }
+
+    public void resetCalories() {
+        caloriesBurned = 0;
+    }
 
     public SerialPort getSerial() {
         return this.serialPort;
@@ -103,8 +112,7 @@ public class SerialReader {
                                 String[] data = buffer.toString().split(";");
                                 if (data.length == 4) {
                                     float speed = Float.parseFloat(data[0]);
-                                    float totalDistance = Float.parseFloat(data[1]);
-                                    float kcalories = Float.parseFloat(data[2]);
+                                    double triggerTime = Double.parseDouble(data[1]);
                                     float wheelRadius = Float.parseFloat(data[3]);
 
                                     // Now calculate average speed
@@ -123,11 +131,15 @@ public class SerialReader {
                                     // Round to last two decimal places
                                     avgSpeed = (float) (Math.round(avgSpeed * 100.0) / 100.0);
 
-                                    if (avgSpeed != lastSpeed || totalDistance != lastDistance || kcalories != lastKcalories || lastWheelRadius != wheelRadius) {
+                                    if (avgSpeed != lastSpeed || triggerTime != lastTriggerTime || lastWheelRadius != wheelRadius) {
                                         lastSpeed = avgSpeed;
-                                        lastDistance = totalDistance;
-                                        lastKcalories = kcalories;
-                                        lastWheelRadius = wheelRadius;
+                                        if (triggerTime != -1 && lastSpeed > 0) {
+                                            lastTriggerTime = triggerTime;
+                                        }
+
+                                        if (wheelRadius != -1) {
+                                            lastWheelRadius = wheelRadius;
+                                        }
 
                                         updateServerData(true, false, false);
                                     } else {
@@ -168,6 +180,8 @@ public class SerialReader {
         this.updateServerData(true, true, false);
         this.serialPort.openPort();
         this.speedQueue = new LinkedList<>();
+        this.resetCalories();
+        this.resetDistance();
         return true;
     }
 
@@ -189,12 +203,36 @@ public class SerialReader {
             return;
         }
 
+        // The speed comes in km/h, and the lastTriggerTime in hours
+        // the value we need is in meters
+        distanceMoved += lastSpeed * lastTriggerTime * 1000;
+        caloriesBurned += ClientConfig.CONFIG.instance().calculateCalories(lastSpeed, lastTriggerTime);
+
+        // The speed that comes from the bike is for its small radii
+        float scaleRatio = 1F;
+
+        if (ClientConfig.CONFIG.instance().wantsValuesScaled()) {
+            // Let say the fitness bike wheel measures 0.27 meters in diameter
+            // but a real bike wheel measures 0.7 meters in diameter
+            float targetSize = ClientConfig.CONFIG.instance().getTargetWheelSize();
+            scaleRatio = targetSize / lastWheelRadius;
+        }
+
+        float originalSpeed = lastSpeed;
+        float originalWheelRadii = lastWheelRadius;
+
+        if (ClientConfig.CONFIG.instance().useMappedForCalculations()) {
+            originalSpeed = lastSpeed * scaleRatio;
+            originalWheelRadii = lastWheelRadius * scaleRatio;
+        }
+
         NetworkManager.sendToServer(new PacketManager.ArduinoData(
                 enabled,
-                lastSpeed,
-                lastDistance,
-                lastKcalories,
-                lastWheelRadius,
+                originalSpeed,
+                lastSpeed * scaleRatio,
+                (float) (distanceMoved * scaleRatio),
+                caloriesBurned * scaleRatio,
+                originalWheelRadii,
                 ClientConfig.CONFIG.instance().getWheelScaleRatio(),
                 ClientConfig.CONFIG.instance().getSpeedScaleRatio()
         ));

@@ -11,9 +11,12 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
+import java.text.DecimalFormat;
 import java.util.List;
 
 public class ClientConfig {
+    public static final DecimalFormat format = new DecimalFormat("#.##");
+
     public static final ConfigClassHandler<ClientConfig> CONFIG = ConfigClassHandler.createBuilder(ClientConfig.class)
             .id(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "config.client"))
             .serializer(config -> GsonConfigSerializerBuilder.create(config)
@@ -29,7 +32,7 @@ public class ClientConfig {
     private boolean imperial = false;
     @SerialEntry(comment = "Amount of rays to cast per wheel for pitching the bike depending on terrain.")
     private int amountOfRaysPerWheel = 0;
-    @SerialEntry(comment = "Use very bad interpolation for movement.")
+    @SerialEntry(comment = "Use (probably not well done) interpolation for movement.")
     private boolean interpolation = true;
 
     @SerialEntry(comment = "Whether to automatically connect to the serial port on startup.")
@@ -42,9 +45,22 @@ public class ClientConfig {
     private int baudRate = 31250;
 
     @SerialEntry(comment = "How much to scale the speed by. Calculated with 1 / x meters needed to do a full block. ")
-    private float speedScaleRatio = 2F;
+    private float speedScaleRatio = 1F;
     @SerialEntry(comment = "How much to scale the wheel size read by JSerialComm. You can calculate it in the same way as the speedRatio.")
-    private float wheelScaleRatio = 2F;
+    private float wheelScaleRatio = 1F;
+
+    @SerialEntry(comment = "When true, the values showed at the pedometer will be calculated with a reference value in mind (maps the small fitness bike to the real bike).")
+    private boolean scaleCalcByRef = true;
+    @SerialEntry(comment = "Map the original wheel size to the reference for wheel/speed calculations.")
+    private boolean useForCalculations = true;
+    @SerialEntry(comment = "The real size of a bicycle wheel in meters.")
+    private float targetWheelSize = 0.62F;
+
+    @SerialEntry(comment = "The mass of the player in kilograms (or if \"imperial=true\", in pounds).")
+    private float bodyMass = 70F;
+
+    @SerialEntry(comment = "Show debug rays for the wheel.")
+    private boolean debugShowWheelRays = false;
 
     public Screen getScreen(Screen parent) {
         return YetAnotherConfigLib.create(CONFIG, ((defaults, config, builder) -> builder.title(Component.literal("Bikes Are Pain Config Screen"))
@@ -110,7 +126,7 @@ public class ClientConfig {
                                     .option(Option.<Boolean>createBuilder()
                                             .name(Component.translatable("config.bikesarepain.serial.link.autoconnect_failed.name"))
                                             .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.link.autoconnect_failed.tooltip")))
-                                            .binding(false, () -> showPortNotAvailableMessage, value -> showPortNotAvailableMessage = value)
+                                            .binding(true, () -> showPortNotAvailableMessage, value -> showPortNotAvailableMessage = value)
                                             .controller(TickBoxControllerBuilder::create)
                                             .build()
                                     )
@@ -140,34 +156,142 @@ public class ClientConfig {
                             .group(OptionGroup.createBuilder()
                                     .name(Component.translatable("config.bikesarepain.serial.scale.name"))
                                     .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.tooltip")))
+                                    .option(Option.<Boolean>createBuilder()
+                                            .name(Component.translatable("config.bikesarepain.serial.scale.reference.name"))
+                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.reference.tooltip")))
+                                            .binding(true, () -> scaleCalcByRef, value -> scaleCalcByRef = value)
+                                            .controller(TickBoxControllerBuilder::create)
+                                            .build()
+                                    )
+                                    .option(Option.<Boolean>createBuilder()
+                                            .name(Component.translatable("config.bikesarepain.serial.scale.use_for_calculations.name"))
+                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.use_for_calculations.tooltip")))
+                                            .binding(true, () -> useForCalculations, value -> useForCalculations = value)
+                                            .controller(TickBoxControllerBuilder::create)
+                                            .build()
+                                    )
                                     .option(Option.<Float>createBuilder()
                                             .name(Component.translatable("config.bikesarepain.serial.scale.wheel.name"))
                                             .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.wheel.tooltip")))
-                                            .binding(1F, () -> wheelScaleRatio, value -> wheelScaleRatio = value)
-                                            .controller(opt -> FloatFieldControllerBuilder.create(opt)
-                                                    .range(0.05F, 50F)
-                                                    .formatValue(value -> Component.nullToEmpty(
-                                                            String.format("1 meter is %.2f %s", value, (value == 1F ? "block" : "blocks"))
-                                                    ))
+                                            .binding(1F, () -> this.wheelScaleRatio, value -> this.wheelScaleRatio = value)
+                                            .controller(opt -> FloatSliderControllerBuilder.create(opt)
+                                                    .formatValue(value -> Component.literal(ClientConfig.getUnitString(value, this.imperial)))
+                                                    .range(0.05F, 10F)
+                                                    .step(0.05F)
                                             )
                                             .build()
                                     )
                                     .option(Option.<Float>createBuilder()
                                             .name(Component.translatable("config.bikesarepain.serial.scale.speed.name"))
                                             .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.speed.tooltip")))
-                                            .binding(1F, () -> speedScaleRatio, value -> speedScaleRatio = value)
+                                            .binding(1F, () -> this.speedScaleRatio, value -> this.speedScaleRatio = value)
+                                            .controller(opt -> FloatSliderControllerBuilder.create(opt)
+                                                    .formatValue(value -> Component.literal(ClientConfig.getUnitString(value, this.imperial)))
+                                                    .range(0.05F, 10F)
+                                                    .step(0.05F)
+                                            )
+                                            .build()
+                                    )
+                                    .option(Option.<Float>createBuilder()
+                                            .name(Component.translatable("config.bikesarepain.serial.scale.reference.wheel.name"))
+                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.reference.wheel.tooltip")))
+                                            .binding(0.62F, () -> targetWheelSize, value -> targetWheelSize = Math.max(0.01F, value))
+                                            .controller(opt -> FloatSliderControllerBuilder.create(opt)
+                                                    .formatValue(value -> Component.literal(ClientConfig.getAutoCMtoInchString(value, this.imperial)))
+                                                    .range(0.05F, 3F)
+                                                    .step(0.01F)
+                                            )
+                                            .build()
+                                    )
+                                    .option(Option.<Float>createBuilder()
+                                            .name(Component.translatable("config.bikesarepain.serial.calories.mass.name"))
+                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.calories.mass.tooltip")))
+                                            .binding(70F, () -> bodyMass, value -> bodyMass = value)
                                             .controller(opt -> FloatFieldControllerBuilder.create(opt)
-                                                    .range(0.05F, 50F)
-                                                    .formatValue(value -> Component.nullToEmpty(
-                                                            String.format("1 meter is %.2f %s", value, (value == 1F ? "block" : "blocks"))
-                                                    ))
+                                                    .formatValue(value -> Component.literal(imperial ?
+                                                            String.format("%s pounds", roundUpToTwo(value)) :
+                                                            String.format("%s kg", roundUpToTwo(value)))
+                                                            )
+                                                    .min(1F)
                                             )
                                             .build()
                                     )
                                     .build()
                             )
+
                             .build()
-                    ))).generateScreen(parent);
+                    )
+                .category(ConfigCategory.createBuilder()
+                        .name(Component.translatable("config.bikesarepain.advanced.name"))
+                        .tooltip(Component.translatable("config.bikesarepain.advanced.tooltip"))
+                        .group(OptionGroup.createBuilder()
+                                .name(Component.translatable("config.bikesarepain.advanced.debug.name"))
+                                .description(OptionDescription.of(Component.translatable("config.bikesarepain.advanced.debug.tooltip")))
+                                .option(Option.<Boolean>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.advanced.debug.wheel_rays.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.advanced.debug.wheel_rays.tooltip")))
+                                        .binding(false, () -> debugShowWheelRays, value -> debugShowWheelRays = value)
+                                        .controller(TickBoxControllerBuilder::create)
+                                        .build()
+                                )
+                                .build()
+                        )
+                        .build()
+                )
+        )).generateScreen(parent);
+    }
+
+    public float kilogramsToPounds(float value) {
+        return value * 2.20462f;
+    }
+
+    public float poundsToKilograms(float value) {
+        return value / 2.20462f;
+    }
+
+    public float getBodyMassKg() {
+        return imperial ? this.poundsToKilograms(this.bodyMass) : bodyMass;
+    }
+
+    public static String roundUpToTwo(float value) {
+        return format.format(Math.round(value * 100) / 100f);
+    }
+
+    public static String getUnitString(float value, boolean imperial) {
+        if (imperial) {
+            // Convert blocks per meter to blocks per foot
+            float blocksPerFoot = value * 3.28084f; // value is blocks per meter
+            return String.format("1 foot measures %s %s",
+                    roundUpToTwo(blocksPerFoot),
+                    (blocksPerFoot == 1f ? "block" : "blocks"));
+        } else {
+            return String.format("1 meter measures %s %s",
+                    // Limit to
+                    roundUpToTwo(value),
+                    (value == 1f ? "block" : "blocks"));
+        }
+    }
+
+    public static String getAutoKgToLbString(float value, boolean imperial) {
+        if (imperial) {
+            // Convert kilograms to pounds
+            float pounds = value * 2.20462f; // value is kilograms
+            return String.format("%s pounds", roundUpToTwo(pounds));
+        } else {
+            // from pounds to kg
+            return String.format("%s kg", roundUpToTwo(value / 2.20462f));
+        }
+    }
+
+    public static String getAutoCMtoInchString(float value, boolean imperial) {
+        if (imperial) {
+            // Convert centimeters to inches
+            float inches = value * 39.3701f; // value is meters
+            return String.format("%s inches", roundUpToTwo(inches));
+        } else {
+            // from meters to cm
+            return String.format("%s cm", roundUpToTwo(value * 100));
+        }
     }
 
     public boolean isAutoConnect() {
@@ -267,6 +391,40 @@ public class ClientConfig {
 
     public boolean doesConfigExist() {
         return Platform.getConfigFolder().resolve(String.format("%s.json5", BikesArePain.MOD_ID)).toFile().exists();
+    }
+
+    public boolean wantsValuesScaled() {
+        return this.scaleCalcByRef && this.targetWheelSize > 0;
+    }
+
+    public float getTargetWheelSize() {
+        return this.targetWheelSize/2F;
+    }
+
+    public boolean useMappedForCalculations() {
+        return this.useForCalculations;
+    }
+
+    public void setUseMappedForCalculations(boolean value) {
+        this.useForCalculations = value;
+    }
+
+    public boolean showDebugWheelRays() {
+        return this.debugShowWheelRays;
+    }
+
+    public static double getMET(float speedKPH) {
+        if (speedKPH == 0) return 1;
+        if (speedKPH <= 15) return 5.8;
+        else if (speedKPH <= 19) return 6.8;
+        else if (speedKPH <= 22) return 8.0;
+        else if (speedKPH <= 25) return 10.0;
+        else if (speedKPH <= 30) return 12.0;
+        else return 16.8;
+    }
+
+    public float calculateCalories(double speedKPH, double timeHours) {
+        return (float) (getMET((float) speedKPH) * this.getBodyMassKg() * timeHours);
     }
 
     public static List<String> getPorts() {

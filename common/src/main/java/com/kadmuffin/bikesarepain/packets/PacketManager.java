@@ -145,26 +145,27 @@ public class PacketManager {
         playerAcc.bikesarepain$setJSCSpeed(packet.speed * scaleFactorSpeed);
         playerAcc.bikesarepain$setJSCWheelRadius(wheelSize);
 
-        playerAcc.bikesarepain$setJSCRealSpeed(packet.speed);
+        playerAcc.bikesarepain$setJSCRealSpeed(packet.scaledSpeed);
         playerAcc.bikesarepain$setJSCDistance(packet.distanceMoved);
         playerAcc.bikesarepain$setJSCCalories(packet.kcalories);
 
         playerAcc.bikesarepain$setJSCSinceUpdate(0);
     }
 
-    public record ArduinoData(boolean enabled, float speed, float distanceMoved, float kcalories, float wheelRadius, float scaleFactorWheel, float scaleFactorSpeed) implements CustomPacketPayload {
+    public record ArduinoData(boolean enabled, float speed, float scaledSpeed, float distanceMoved, float kcalories, float wheelRadius, float scaleFactorWheel, float scaleFactorSpeed) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<ArduinoData> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "arduino_data"));
         public static final StreamCodec<RegistryFriendlyByteBuf, ArduinoData> CODEC = StreamCodec.of(
                 (buf, obj) -> {
                     buf.writeBoolean(obj.enabled);
                     buf.writeFloat(obj.speed);
+                    buf.writeFloat(obj.scaledSpeed);
                     buf.writeFloat(obj.distanceMoved);
                     buf.writeFloat(obj.kcalories);
                     buf.writeFloat(obj.wheelRadius);
                     buf.writeFloat(obj.scaleFactorWheel);
                     buf.writeFloat(obj.scaleFactorSpeed);
                 },
-                buf -> new ArduinoData(buf.readBoolean(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat())
+                buf -> new ArduinoData(buf.readBoolean(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat(), buf.readFloat())
         );
         public static final NetworkManager.NetworkReceiver<ArduinoData> RECEIVER = (packet, context) -> {
             Player player = context.getPlayer();

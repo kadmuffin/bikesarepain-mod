@@ -4,10 +4,11 @@
 // Different bikes may require different configurations, so you may need to code everything from scratch
 // The only thing that the mod expects at this commit is that the arduino sends the
 // data in a specific format. The format is as follows:
-// #<speed>;<distanceMoved>;<kcalories>;<wheelRadius>*
-// The speed is in km/h, distanceMoved is in meters, kcalories is in kilocalories and wheelRadius is in meters
+// #<speed>;<timeSinceLastTrigger>;<wheelRadius>*
+// The speed is in km/h, timeSinceLastTrigger is in hours and wheelRadius is in meters
 // It is important to keep the "#" and "*" characters as they are used to identify the start and end of the data
 // Also, keep in mind that you should tell the mod when the bike is stopped by sending a speed of 0.00 with the same format.
+// The mod uses "timeSinceLastTrigger" for calories calculations, but when the speed is zero it is ignored.
 
 // This is the pin your hall sensor is connected to
 // Assuming you don't need to adjust this code for your specific bike,
@@ -39,12 +40,6 @@ const float distancePerTrigger = (wheelCircumference / triggersPerRevolution);
 volatile unsigned long lastTriggerTime = 0;  // Timestamp of the last magnetic trigger
 volatile unsigned long triggerCount = 0;     // Count of the total wheel triggers
 float speed = 0;                             // Current speed of the bike in km/h
-float distanceMoved = 0;                     // Total distance moved in meters
-float kcalories = 0;                         // Total calories burned
-
-const float bodyMass = 50.0;  // Your body mass in kg (this value is just a placeholder)
-// Leave the BMR value as it is if you don't know what it is
-const float bmr = 1.2;  // Basal Metabolic Rate multiplier for light activity
 
 // For the debounce:
 // For example, in my case I don't get one single "HIGH" value, but a few of them
@@ -70,24 +65,20 @@ void loop() {
   unsigned long currentTime = millis();
   unsigned long timeSinceLastTrigger = currentTime - lastTriggerTime;
 
+
   if (lastTriggerTime == 0) {
     lastTriggerTime = currentTime;
   }
 
   if (currentTime - lastTriggerTime > STOP_THRESHOLD_MS && timeSinceLastTrigger > STOP_THRESHOLD_MS) {
-    Serial.print('#');
-    Serial.print("0.00;");
-    Serial.print(distanceMoved);
-    Serial.print(";");
-    Serial.print(kcalories);
-    Serial.print(";");
-    Serial.print(radius);
-    Serial.print('*');
+     // Negative one will make the mod skip that value.
+     Serial.print('#');
+     Serial.print("0.00;-1.00;-1.00");
+     Serial.print('*');
 
-    // As we are technically going to wait at least DEBOUNCE_THRESHOLD_MS
-    // before a trigger, we wait that time. As it isn't really necessary
-    // to just keep sending so much data every single ms
-    delay(DEBOUNCE_THRESHOLD_MS);
+     // Minecraft processes at 20 ticks per second
+     // or about 50ms per tick
+     delay(50);
   }
 }
 
@@ -100,21 +91,15 @@ void magnet_detect() {
   // Debounce: ignore triggers that occur within DEBOUNCE_THRESHOLD_MS of the previous trigger
   if (timeSinceLastTrigger > DEBOUNCE_THRESHOLD_MS) {
     triggerCount++;
-    distanceMoved += distancePerTrigger;
 
     float speed = (distancePerTrigger / timeSinceLastTrigger) * 3600;
 
-    float hoursSinceLastTrigger = timeSinceLastTrigger / 3600000.0;  // Convert milliseconds to hours
-    float met = calculateMET(speed);  // Calculate MET based on speed
-    float caloriesBurned = calculateCalories(bodyMass, met, hoursSinceLastTrigger);
-    kcalories += caloriesBurned;
+    double hoursSinceLastTrigger = timeSinceLastTrigger / 3600000.0;  // Convert milliseconds to hours
 
     Serial.print('#');
     Serial.print(speed);
     Serial.print(";");
-    Serial.print(distanceMoved);
-    Serial.print(";");
-    Serial.print(kcalories);
+    Serial.print(hoursSinceLastTrigger);
     Serial.print(";");
     Serial.print(radius);
     Serial.print('*');
@@ -122,6 +107,9 @@ void magnet_detect() {
     lastTriggerTime = currentTime;
   }
 }
+
+/* Now calculated client-side. Leaving them here for future reference
+const float bodyMass = 50.0;  // Your body mass in kg (this value is just a placeholder)
 
 // Calculates the Metabolic Equivalent of Task (MET) based on speed in km/h
 // MET is used to estimate the energy expenditure during cycling
@@ -147,3 +135,4 @@ float calculateCalories(float weight, float met, float hours) {
   // To be honest, I don't remember where I got the 1.05 from, but it seems to work
   return met * weight * hours * 1.05;
 }
+*/

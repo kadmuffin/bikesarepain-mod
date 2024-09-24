@@ -14,5 +14,6 @@ public class GameRuleManager {
     // For bike speed
     public static final GameRules.Key<GameRules.IntegerValue> MAX_BIKE_SPEED = GameRules.register("maxBikeSpeedBlocksPerSecond", GameRules.Category.PLAYER, GameRules.IntegerValue.create(MAX_BIKE_SPEED_BLOCKS_PER_SECOND));
 
-    public static void init() {}
+    public static void init() {
+    }
 }

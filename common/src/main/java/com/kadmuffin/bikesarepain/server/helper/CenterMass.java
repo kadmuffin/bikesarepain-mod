@@ -1,6 +1,7 @@
 package com.kadmuffin.bikesarepain.server.helper;
 
 import org.joml.Vector3d;
+
 public class CenterMass {
     // The current tracked values (in local space, relative to initial center of mass)
     private final Vector3d trackedMassOffset;

@@ -16,19 +16,11 @@ import java.util.function.Consumer;
 
 @Environment(EnvType.CLIENT)
 public class SerialReader {
-    public enum Event {
-        SUDDEN_DISCONNECT,
-        START,
-        STOP
-    }
-
-    private SerialPort port;
-    private final SerialParser parser;
-
-    private final List<TriConsumer<Float,Double,Float>> listeners;
-    private final List<Consumer<Event>> eventListeners;
-
     private static final Logger LOGGER = LogManager.getLogger();
+    private final SerialParser parser;
+    private final List<TriConsumer<Float, Double, Float>> listeners;
+    private final List<Consumer<Event>> eventListeners;
+    private SerialPort port;
 
     public SerialReader() {
         listeners = new ArrayList<>();
@@ -50,7 +42,7 @@ public class SerialReader {
                 double triggerTimeHours = Double.parseDouble(pieces[1]) / 3600000;
                 float wheelRadius = Float.parseFloat(pieces[2]);
 
-                for (TriConsumer<Float,Double,Float> listener : listeners) {
+                for (TriConsumer<Float, Double, Float> listener : listeners) {
                     listener.accept(speed, triggerTimeHours, wheelRadius);
                 }
 
@@ -60,7 +52,34 @@ public class SerialReader {
         });
     }
 
-    public void addListener(TriConsumer<Float,Double,Float> listener) {
+    public static List<String> getPorts() {
+        SerialPort[] ports = SerialPort.getCommPorts();
+        List<String> portNames = new ArrayList<>();
+        for (SerialPort port : ports) {
+            portNames.add(port.getSystemPortName());
+        }
+
+        return portNames;
+    }
+
+    // COMX: NAME
+    public static List<String> getPortsNamed() {
+        SerialPort[] ports = SerialPort.getCommPorts();
+        List<String> portNames = new ArrayList<>();
+        for (SerialPort port : ports) {
+            // COMX: NAME [Name is limited to 35 characters]
+            String name = port.getPortDescription();
+            if (name.length() > 35) {
+                name = name.substring(0, 35);
+                name += "...";
+            }
+            portNames.add(port.getSystemPortName() + ": " + (name.isEmpty() ? "Unknown" : name));
+        }
+
+        return portNames;
+    }
+
+    public void addListener(TriConsumer<Float, Double, Float> listener) {
         listeners.add(listener);
     }
 
@@ -68,7 +87,7 @@ public class SerialReader {
         eventListeners.add(listener);
     }
 
-    public void removeListener(TriConsumer<Float,Double,Float> listener) {
+    public void removeListener(TriConsumer<Float, Double, Float> listener) {
         listeners.remove(listener);
     }
 
@@ -131,30 +150,9 @@ public class SerialReader {
         this.port.closePort();
     }
 
-    public static List<String> getPorts() {
-        SerialPort[] ports = SerialPort.getCommPorts();
-        List<String> portNames = new ArrayList<>();
-        for (SerialPort port : ports) {
-            portNames.add(port.getSystemPortName());
-        }
-
-        return portNames;
-    }
-
-    // COMX: NAME
-    public static List<String> getPortsNamed() {
-        SerialPort[] ports = SerialPort.getCommPorts();
-        List<String> portNames = new ArrayList<>();
-        for (SerialPort port : ports) {
-            // COMX: NAME [Name is limited to 35 characters]
-            String name = port.getPortDescription();
-            if (name.length() > 35) {
-                name = name.substring(0, 35);
-                name += "...";
-            }
-            portNames.add(port.getSystemPortName() + ": " + (name.isEmpty() ? "Unknown" : name));
-        }
-
-        return portNames;
+    public enum Event {
+        SUDDEN_DISCONNECT,
+        START,
+        STOP
     }
 }

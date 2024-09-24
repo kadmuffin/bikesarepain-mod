@@ -22,13 +22,14 @@ import java.util.function.Function;
 
 public class BikeItem extends TintedItem {
     private final EntityType<? extends AbstractBike> entityType;
+
     public BikeItem(EntityType<? extends AbstractBike> entityType, ResourceLocation modelName, Map<String, Function<ItemStack, Integer>> bonesToColor, List<String> bonesToIgnore, Properties properties) {
         super(modelName, bonesToColor, bonesToIgnore, properties);
         this.entityType = entityType;
     }
 
     public void placementHook(AbstractBike entity, ItemStack itemStack) {
-        entity.setHealth(entity.getMaxHealth() * (itemStack.getMaxDamage() - Math.min(itemStack.getDamageValue(), itemStack.getMaxDamage()-1)) / itemStack.getMaxDamage());
+        entity.setHealth(entity.getMaxHealth() * (itemStack.getMaxDamage() - Math.min(itemStack.getDamageValue(), itemStack.getMaxDamage() - 1)) / itemStack.getMaxDamage());
 
         if (itemStack.has(ComponentManager.SADDLED.get()) && Boolean.TRUE.equals(itemStack.get(ComponentManager.SADDLED.get()))) {
             ItemStack saddle = new ItemStack(net.minecraft.world.item.Items.SADDLE);
@@ -66,7 +67,7 @@ public class BikeItem extends TintedItem {
 
             // We need to assign the owner to the spawned entity
             AbstractBike entity = this.entityType.spawn(
-                    (ServerLevel)level,
+                    (ServerLevel) level,
                     itemStack,
                     context.getPlayer(),
                     blockPos2,

@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 
 public final class BikesArePainFabric implements ModInitializer {
     private float thirstTick = 0;
+
     @Override
     public void onInitialize() {
         // This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -28,7 +29,7 @@ public final class BikesArePainFabric implements ModInitializer {
 
                     if (thirstTick > 20) {
                         thirstTick = 0;
-                        playerAcc.getThirstManager().addDehydration((1F-effortToSpeedRatio)*0.9F);
+                        playerAcc.getThirstManager().addDehydration(0.1F + (1F - effortToSpeedRatio) * 0.9F);
                     }
                 }
             });

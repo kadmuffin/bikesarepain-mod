@@ -57,43 +57,13 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
 
         // This entrypoint is suitable for setting up client-specific logic, such as rendering.
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> dispatcher.register(ClientCommandManager.literal("bikes").then(
-                ClientCommandManager.literal("open")
-                        .executes(context -> {
-                            try {
-                                if (ClientConfig.CONFIG.instance().getPort().contains("No port")) {
-                                    context.getSource().sendFeedback(Component.literal("No port set yet."));
-                                    return 0;
-                                }
-
-                                // Check if the port is available
-                                if (BikesArePainClient.isConfigPortUnavailable()) {
-                                    context.getSource().sendFeedback(Component.literal("The chosen port is not available. Please choose another port or try again."));
-                                    return 0;
-                                }
-
-                                BikesArePainClient.getReader().setSerial();
-                                BikesArePainClient.getReader().start();
-                            } catch (Exception e) {
-                                System.out.println("Failed to open port: " + e);
-                                context.getSource().sendFeedback(Component.literal("Failed to open port: " + e));
-                                return 0;
-                            }
-
-                            context.getSource().sendFeedback(Component.literal("Opened port"));
-                            return 1;
-                        })
-                        .then(
-                        ClientCommandManager.argument("port", StringArgumentType.string())
-                                .suggests((context, builder) -> {
-                                    for (String port : SerialReader.getPorts()) {
-                                        builder.suggest(port);
-                                    }
-                                    return builder.buildFuture();
-                                })
+                        ClientCommandManager.literal("open")
                                 .executes(context -> {
-                                    String port = StringArgumentType.getString(context, "port");
                                     try {
-                                        ClientConfig.CONFIG.instance().setPort(port);
+                                        if (ClientConfig.CONFIG.instance().getPort().contains("No port")) {
+                                            context.getSource().sendFeedback(Component.literal("No port set yet."));
+                                            return 0;
+                                        }
 
                                         // Check if the port is available
                                         if (BikesArePainClient.isConfigPortUnavailable()) {
@@ -103,7 +73,6 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
 
                                         BikesArePainClient.getReader().setSerial();
                                         BikesArePainClient.getReader().start();
-                                        ClientConfig.CONFIG.save();
                                     } catch (Exception e) {
                                         System.out.println("Failed to open port: " + e);
                                         context.getSource().sendFeedback(Component.literal("Failed to open port: " + e));
@@ -113,63 +82,94 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
                                     context.getSource().sendFeedback(Component.literal("Opened port"));
                                     return 1;
                                 })
-                )).then(
-                ClientCommandManager.literal("close").executes(context -> {
-                    try {
-                        BikesArePainClient.getReader().stop();
-                    } catch (Exception e) {
-                        System.out.println("Failed to close port: " + e);
-                        context.getSource().sendFeedback(Component.literal("Failed to close port: " + e));
-                        return 0;
-                    }
+                                .then(
+                                        ClientCommandManager.argument("port", StringArgumentType.string())
+                                                .suggests((context, builder) -> {
+                                                    for (String port : SerialReader.getPorts()) {
+                                                        builder.suggest(port);
+                                                    }
+                                                    return builder.buildFuture();
+                                                })
+                                                .executes(context -> {
+                                                    String port = StringArgumentType.getString(context, "port");
+                                                    try {
+                                                        ClientConfig.CONFIG.instance().setPort(port);
 
-                    context.getSource().sendFeedback(Component.literal("Closed port"));
-                    return 1;
-                })
-        ).then(ClientCommandManager.literal("clear").executes(context -> {
+                                                        // Check if the port is available
+                                                        if (BikesArePainClient.isConfigPortUnavailable()) {
+                                                            context.getSource().sendFeedback(Component.literal("The chosen port is not available. Please choose another port or try again."));
+                                                            return 0;
+                                                        }
+
+                                                        BikesArePainClient.getReader().setSerial();
+                                                        BikesArePainClient.getReader().start();
+                                                        ClientConfig.CONFIG.save();
+                                                    } catch (Exception e) {
+                                                        System.out.println("Failed to open port: " + e);
+                                                        context.getSource().sendFeedback(Component.literal("Failed to open port: " + e));
+                                                        return 0;
+                                                    }
+
+                                                    context.getSource().sendFeedback(Component.literal("Opened port"));
+                                                    return 1;
+                                                })
+                                )).then(
+                        ClientCommandManager.literal("close").executes(context -> {
+                            try {
+                                BikesArePainClient.getReader().stop();
+                            } catch (Exception e) {
+                                System.out.println("Failed to close port: " + e);
+                                context.getSource().sendFeedback(Component.literal("Failed to close port: " + e));
+                                return 0;
+                            }
+
+                            context.getSource().sendFeedback(Component.literal("Closed port"));
+                            return 1;
+                        })
+                ).then(ClientCommandManager.literal("clear").executes(context -> {
                     BikesArePainClient.getProcessor().reset();
                     context.getSource().sendFeedback(Component.literal("Cleared data"));
                     return 1;
                 }))
                 .then(
-                ClientCommandManager.literal("scale").then(
-                        ClientCommandManager.literal("set").then(
-                                ClientCommandManager.literal("all").then(scaleSet(ClientConfig.ApplyScaleTo.BOTH))
-                        )
-                                .then(
-                                        ClientCommandManager.literal("wheel").then(
-                                                scaleSet(ClientConfig.ApplyScaleTo.WHEEL)
+                        ClientCommandManager.literal("scale").then(
+                                ClientCommandManager.literal("set").then(
+                                                ClientCommandManager.literal("all").then(scaleSet(ClientConfig.ApplyScaleTo.BOTH))
                                         )
-                                )
-                                .then(
-                                        ClientCommandManager.literal("speed").then(
-                                                scaleSet(ClientConfig.ApplyScaleTo.SPEED)
+                                        .then(
+                                                ClientCommandManager.literal("wheel").then(
+                                                        scaleSet(ClientConfig.ApplyScaleTo.WHEEL)
+                                                )
                                         )
-                                )
-                ).then(ClientCommandManager.literal("get")
-                        .executes(context -> {
-                            context.getSource().sendFeedback(Component.literal("Scale factor: " + ClientConfig.CONFIG.instance().getScaleRatiosString()));
-                            return 1;
-                        })
-                )
-        ).then(
-                ClientCommandManager.literal("unit").then(
-                        ClientCommandManager.literal("imperial").executes(context -> {
-                            ClientConfig.CONFIG.instance().setImperial(true);
-                            ClientConfig.CONFIG.save();
-                            context.getSource().sendFeedback(Component.literal("Set to imperial"));
-                            return 1;
-                        })
-                )
-                        .then(
-                                ClientCommandManager.literal("metric").executes(context -> {
-                                    ClientConfig.CONFIG.instance().setImperial(false);
-                                    ClientConfig.CONFIG.save();
-                                    context.getSource().sendFeedback(Component.literal("Set to metric"));
+                                        .then(
+                                                ClientCommandManager.literal("speed").then(
+                                                        scaleSet(ClientConfig.ApplyScaleTo.SPEED)
+                                                )
+                                        )
+                        ).then(ClientCommandManager.literal("get")
+                                .executes(context -> {
+                                    context.getSource().sendFeedback(Component.literal("Scale factor: " + ClientConfig.CONFIG.instance().getScaleRatiosString()));
                                     return 1;
                                 })
                         )
-        )));
+                ).then(
+                        ClientCommandManager.literal("unit").then(
+                                        ClientCommandManager.literal("imperial").executes(context -> {
+                                            ClientConfig.CONFIG.instance().setImperial(true);
+                                            ClientConfig.CONFIG.save();
+                                            context.getSource().sendFeedback(Component.literal("Set to imperial"));
+                                            return 1;
+                                        })
+                                )
+                                .then(
+                                        ClientCommandManager.literal("metric").executes(context -> {
+                                            ClientConfig.CONFIG.instance().setImperial(false);
+                                            ClientConfig.CONFIG.save();
+                                            context.getSource().sendFeedback(Component.literal("Set to metric"));
+                                            return 1;
+                                        })
+                                )
+                )));
 
     }
 }

@@ -1,11 +1,9 @@
 {
   "entity.bikesarepain.bicycle": "Bicycle",
-
   "key.bikesarepain.ring_bell": "Ring Bell",
   "key.categories.bikesarepain": "Bikes Are Pain",
   "key.bikesarepain.brake": "Brake",
   "key.bikesarepain.switchd": "Display Stat Switch",
-
   "item.bikesarepain.nut": "Nut",
   "item.bikesarepain.wrench": "Wrench",
   "item.bikesarepain.pedometer": "Pedometer",
@@ -25,18 +23,15 @@
   "item.bikesarepain.bicycle.tooltip.time_pedalled": "Time Pedalled: ",
   "item.bikesarepain.bicycle.tooltip.yes": "Yes",
   "item.bikesarepain.bicycle.tooltip.no": "No",
-
   "sound.bikesarepain.bicycle_spokes": "Bicycle Spokes",
   "sound.bikesarepain.bicycle_bell": "Bicycle Bell",
   "sound.bikesarepain.bicycle_movement": "Bicycle Sound",
   "sound.bikesarepain.bicycle_land": "Bicycle Landing",
-
   "bikesarepain.jserialcomm.timeout": "Lost connection to the serial port. Please run /bikes open <port> to try again.",
   "bikesarepain.jserialcomm.port_not_available": "The chosen port is not available. Manually run /bikes open <port> to try again.",
   "bikesarepain.jserialcomm.connected_to_port": "[BikesArePain] Serial reader has been initialized.",
   "bikesarepain.bicycle.cant_drop.not_full_health": "You can't split a bicycle item that isn't at full health.",
   "bikesarepain.bicycle.cant_repair.no_nuts": "You can't repair a bicycle without nuts.",
-
   "config.bikesarepain.visuals.name": "Visuals",
   "config.bikesarepain.visuals.tooltip": "Visual settings for Bikes Are Pain.",
   "config.bikesarepain.visuals.pedometer.name": "Pedometer",
@@ -52,7 +47,6 @@
   "config.bikesarepain.visuals.pitch.sync_pitch.disabled": "Client Side Only",
   "config.bikesarepain.visuals.bad_interpolation.name": "Enable client side interpolation",
   "config.bikesarepain.visuals.bad_interpolation.tooltip": "This will smooth out the rotations in the client.",
-
   "config.bikesarepain.serial.name": "Serial",
   "config.bikesarepain.serial.tooltip": "Settings for connecting with an arduino. Used for reading data from a fitness bike.",
   "config.bikesarepain.serial.link.name": "Link",
@@ -65,7 +59,6 @@
   "config.bikesarepain.serial.link.port.tooltip": "The port that the arduino is connected to.",
   "config.bikesarepain.serial.link.baudrate.name": "Baud Rate",
   "config.bikesarepain.serial.link.baudrate.tooltip": "The speed of the data transfer. Must match the arduino's baud rate.",
-
   "config.bikesarepain.serial.scale.name": "Units Scale",
   "config.bikesarepain.serial.scale.tooltip": "Used to scale the speed and wheel sizes readings before applying them. Can be set more easily with \"/bikes scale set\"",
   "config.bikesarepain.serial.scale.wheel.name": "Wheel Scale Factor",
@@ -80,13 +73,11 @@
   "config.bikesarepain.serial.scale.reference.wheel.tooltip": "The diameter of the wheel that the pedometer is calibrated to. This is used to scale the distance, calories and speed to what a real bike with this diameter would have.",
   "config.bikesarepain.serial.calories.mass.name": "Body Mass",
   "config.bikesarepain.serial.calories.mass.tooltip": "The mass of the player in kilograms. This is used to calculate the calories burned.",
-
   "config.bikesarepain.advanced.name": "Advanced",
   "config.bikesarepain.advanced.tooltip": "Advanced settings for Bikes Are Pain.",
   "config.bikesarepain.advanced.debug.name": "Debug",
   "config.bikesarepain.advanced.debug.tooltip": "Settings that are used for debugging the mod.",
   "config.bikesarepain.advanced.debug.wheel_rays.name": "Show Pitch Rays",
   "config.bikesarepain.advanced.debug.wheel_rays.tooltip": "Shows the rays that are casted for the pitch visuals.",
-
   "modmenu.summaryTranslation.bikesarepain": "Adds bikes to the game."
 }

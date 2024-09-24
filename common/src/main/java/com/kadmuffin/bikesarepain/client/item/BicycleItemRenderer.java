@@ -16,6 +16,7 @@ public class BicycleItemRenderer extends TintedItemRenderer<BicycleItem> {
     public final Supplier<List<String>> bones = () -> List.of(
             "Chest", "Propellers", "MonitorRoot", "SeatF"
     );
+
     /**
      * An item renderer that colors bones based on a provided map
      *

@@ -1,16 +1,16 @@
 package com.kadmuffin.bikesarepain.common;
 
+import com.kadmuffin.bikesarepain.BikesArePain;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import com.kadmuffin.bikesarepain.BikesArePain;
 
 public class SoundManager {
     public static final RegistrySupplier<SoundEvent> BICYCLE_SPOKES =
             BikesArePain.SOUNDS.register(
-            "bicycle_spokes",
-            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_spokes"))
-    );
+                    "bicycle_spokes",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_spokes"))
+            );
 
     public static final RegistrySupplier<SoundEvent> BICYCLE_BELL =
             BikesArePain.SOUNDS.register(

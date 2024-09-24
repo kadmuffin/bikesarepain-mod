@@ -46,82 +46,82 @@ public class PlayerMixin implements PlayerAccessor {
 
     @Unique
     public boolean bikesarepain$isJSCActive() {
-        return ((Player)(Object)this).getEntityData().get(BAPAIN_JSC_ACTIVE);
+        return ((Player) (Object) this).getEntityData().get(BAPAIN_JSC_ACTIVE);
     }
 
     @Unique
     public void bikesarepain$setJSCActive(boolean active) {
-        ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_ACTIVE, active);
+        ((Player) (Object) this).getEntityData().set(BAPAIN_JSC_ACTIVE, active);
     }
 
     @Unique
     public float bikesarepain$getJSCSpeed() {
-        return ((Player)(Object)this).getEntityData().get(BAPAIN_JSC_SPEED);
+        return ((Player) (Object) this).getEntityData().get(BAPAIN_JSC_SPEED);
     }
 
     @Unique
     public void bikesarepain$setJSCSpeed(float speed) {
-        ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_SPEED, speed);
+        ((Player) (Object) this).getEntityData().set(BAPAIN_JSC_SPEED, speed);
     }
 
     @Unique
     public float bikesarepain$getJSCRealSpeed() {
-        return ((Player)(Object)this).getEntityData().get(BAPAIN_JSC_REAL_SPEED);
+        return ((Player) (Object) this).getEntityData().get(BAPAIN_JSC_REAL_SPEED);
     }
 
     @Unique
     public void bikesarepain$setJSCRealSpeed(float speed) {
-        ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_REAL_SPEED, speed);
+        ((Player) (Object) this).getEntityData().set(BAPAIN_JSC_REAL_SPEED, speed);
     }
 
     @Unique
     public float bikesarepain$getJSCDistance() {
-        return ((Player)(Object)this).getEntityData().get(BAPAIN_JSC_DISTANCE);
+        return ((Player) (Object) this).getEntityData().get(BAPAIN_JSC_DISTANCE);
     }
 
     @Unique
     public void bikesarepain$setJSCDistance(float distance) {
-        ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_DISTANCE, distance);
+        ((Player) (Object) this).getEntityData().set(BAPAIN_JSC_DISTANCE, distance);
     }
 
     @Unique
     public float bikesarepain$getJSCCalories() {
-        return ((Player)(Object)this).getEntityData().get(BAPAIN_JSC_CALORIES);
+        return ((Player) (Object) this).getEntityData().get(BAPAIN_JSC_CALORIES);
     }
 
     @Unique
     public void bikesarepain$setJSCCalories(float calories) {
-        ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_CALORIES, calories);
+        ((Player) (Object) this).getEntityData().set(BAPAIN_JSC_CALORIES, calories);
     }
 
     @Unique
     public float bikesarepain$getJSCWheelRadius() {
-        return ((Player)(Object)this).getEntityData().get(BAPAIN_JSC_WHEELRADIUS);
+        return ((Player) (Object) this).getEntityData().get(BAPAIN_JSC_WHEELRADIUS);
     }
 
     @Unique
     public void bikesarepain$setJSCWheelRadius(float wheelRadius) {
-        ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_WHEELRADIUS, wheelRadius);
+        ((Player) (Object) this).getEntityData().set(BAPAIN_JSC_WHEELRADIUS, wheelRadius);
     }
 
     @Unique
     public int bikesarepain$getJSCSinceUpdate() {
-        return ((Player)(Object)this).getEntityData().get(BAPAIN_JSC_TIMESINCEUPDATE);
+        return ((Player) (Object) this).getEntityData().get(BAPAIN_JSC_TIMESINCEUPDATE);
     }
 
     @Unique
     public void bikesarepain$setJSCSinceUpdate(int timesinceupdate) {
-        ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_TIMESINCEUPDATE, timesinceupdate);
+        ((Player) (Object) this).getEntityData().set(BAPAIN_JSC_TIMESINCEUPDATE, timesinceupdate);
     }
 
     @Unique
     public int bikesarepain$getJSCTimePedalled() {
-        return ((Player)(Object)this).getEntityData().get(BAPAIN_JSC_TIME_PEDALLED);
+        return ((Player) (Object) this).getEntityData().get(BAPAIN_JSC_TIME_PEDALLED);
     }
 
     @Unique
     public void bikesarepain$setJSCTimePedalled(int timePedalled) {
-        ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_TIME_PEDALLED, timePedalled);
+        ((Player) (Object) this).getEntityData().set(BAPAIN_JSC_TIME_PEDALLED, timePedalled);
     }
 }
 

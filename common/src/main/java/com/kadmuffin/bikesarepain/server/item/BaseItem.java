@@ -20,6 +20,7 @@ public class BaseItem extends Item implements GeoItem {
         super(properties);
         this.model = model;
     }
+
     public ResourceLocation getModel() {
         return model;
     }

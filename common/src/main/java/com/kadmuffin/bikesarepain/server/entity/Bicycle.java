@@ -1,9 +1,9 @@
 package com.kadmuffin.bikesarepain.server.entity;
 
+import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
 import com.kadmuffin.bikesarepain.client.ClientConfig;
 import com.kadmuffin.bikesarepain.client.helper.DecagonDisplayManager;
 import com.kadmuffin.bikesarepain.common.SoundManager;
-import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ComponentManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
@@ -41,11 +41,8 @@ import org.joml.Vector3d;
 import oshi.util.tuples.Pair;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animation.AnimationState;
-import software.bernie.geckolib.animation.PlayState;
-import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.*;
 import software.bernie.geckolib.util.ClientUtil;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
@@ -53,21 +50,15 @@ import java.util.List;
 import java.util.Set;
 
 public class Bicycle extends AbstractBike implements GeoEntity {
-    public boolean showGears = false;
-    private boolean ringAlreadyPressed = false;
-    private int ticksSinceLastRing = 0;
-    private int ticksSinceLastClick = 0;
-    private int ticksSinceLastBrake = 0;
-    private int ticksLookingAtDisplay = 0;
-    private SoundType soundType = SoundType.WOOD;
-    private int countOfWrenchInteractions = 0;
-    private final DecagonDisplayManager displayManager = new DecagonDisplayManager();
-
+    protected static final RawAnimation DIE_ANIM = RawAnimation.begin().thenPlayAndHold("bike.die");
+    protected static final RawAnimation RING_BELL_ANIM = RawAnimation.begin().thenPlay("bike.bell");
+    protected static final RawAnimation BALLOON_INFLATE_ANIM = RawAnimation.begin().thenPlay("bike.balloon.inflate");
+    protected static final RawAnimation BALLOON_DEFLATE_ANIM = RawAnimation.begin().thenPlay("bike.balloon.deflate");
+    protected static final RawAnimation SCREEN_POPUP = RawAnimation.begin().thenPlay("bike.screen.popup");
     private static final EntityDataAccessor<Integer> FWHEEL_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> RWHEEL_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> GEARBOX_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> FRAME_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
-
     private static final EntityDataAccessor<Boolean> HAS_DISPLAY = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> HAS_BALLOON = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> TICKS_OUT_OF_WATER = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
@@ -81,14 +72,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private static final EntityDataAccessor<Float> DISPLAY_4 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> DISPLAY_5 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> DISPLAY_6 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
-
-
-    protected static final RawAnimation DIE_ANIM = RawAnimation.begin().thenPlayAndHold("bike.die");
-    protected static final RawAnimation RING_BELL_ANIM = RawAnimation.begin().thenPlay("bike.bell");
-    protected static final RawAnimation BALLOON_INFLATE_ANIM = RawAnimation.begin().thenPlay("bike.balloon.inflate");
-    protected static final RawAnimation BALLOON_DEFLATE_ANIM = RawAnimation.begin().thenPlay("bike.balloon.deflate");
-    protected static final RawAnimation SCREEN_POPUP = RawAnimation.begin().thenPlay("bike.screen.popup");
-
+    private final DecagonDisplayManager displayManager = new DecagonDisplayManager();
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private final CenterMass centerMass = new CenterMass(
             new Vector3d(0.0F, 1.35F, 0.0F),
@@ -96,6 +80,14 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             7,
             60
     );
+    public boolean showGears = false;
+    private boolean ringAlreadyPressed = false;
+    private int ticksSinceLastRing = 0;
+    private int ticksSinceLastClick = 0;
+    private int ticksSinceLastBrake = 0;
+    private int ticksLookingAtDisplay = 0;
+    private SoundType soundType = SoundType.WOOD;
+    private int countOfWrenchInteractions = 0;
 
     protected Bicycle(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level);
@@ -182,7 +174,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                     this.dropAllDeathLoot(serverLevel, damageSource);
                 }
 
-                this.level().broadcastEntityEvent(this, (byte)3);
+                this.level().broadcastEntityEvent(this, (byte) 3);
             }
 
             this.triggerAnim("finalAnim", "die");
@@ -222,12 +214,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 // Depending on the speed, we'll scale the volume and pitch
                 // with a sprinkle of randomness
                 final float pitch = 0.85F + Math.min(speed, 2.0F) + (float) Math.random() * 0.1F * this.soundType.getPitch();
-                float volume = this.soundType.getVolume() * 0.07F * (0.7F-speed);
+                float volume = this.soundType.getVolume() * 0.07F * (0.7F - speed);
                 float wheelRotationSpeed = speed;
                 if (speed < 0.08F && g == 0 || isReverse) {
                     wheelRotationSpeed *= 10;
                 }
-                float ticksPerClick = 1/ wheelRotationSpeed * 3F;
+                float ticksPerClick = 1 / wheelRotationSpeed * 3F;
                 if ((speed > 0.25F && g == 0) || isReverse) {
                     volume *= 1.5F;
                     ticksPerClick /= 2F;
@@ -274,10 +266,10 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         if (i <= 0) {
             return false;
         } else {
-            this.hurt(source, (float)i);
+            this.hurt(source, (float) i);
             if (this.isVehicle()) {
                 for (Entity entity : this.getIndirectPassengers()) {
-                    entity.hurt(source, (float)i);
+                    entity.hurt(source, (float) i);
                 }
             }
 
@@ -315,7 +307,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     public @NotNull InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (!this.getPassengers().isEmpty() && !this.canAddPassenger(player)){
+        if (!this.getPassengers().isEmpty() && !this.canAddPassenger(player)) {
             return super.mobInteract(player, hand);
         } else if (player.isShiftKeyDown()) {
             countOfWrenchInteractions = 0;
@@ -473,14 +465,14 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                                 true
                         );
                     }
-                    this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 0.8F+ (this.getHealth() / this.getMaxHealth() * 0.5F));
+                    this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 0.8F + (this.getHealth() / this.getMaxHealth() * 0.5F));
                     this.level().broadcastEntityEvent(this, (byte) 6);
                 }
                 return InteractionResult.sidedSuccess(this.level().isClientSide());
             }
 
             if (countOfWrenchInteractions > 20) {
-                if (this.isSaddled()){
+                if (this.isSaddled()) {
                     this.spawnAtLocation(new ItemStack(net.minecraft.world.item.Items.SADDLE));
                     this.equipSaddle(ItemStack.EMPTY, null);
                 }
@@ -590,7 +582,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     }
 
     @Override
-    protected @NotNull Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float scaleFactor)  {
+    protected @NotNull Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float scaleFactor) {
         int i = Math.max(this.getPassengers().indexOf(passenger), 0);
         boolean primaryPassenger = i == 0;
         float horizontalOffset = -0.4F;
@@ -824,7 +816,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             return;
         }
         float speed = Math.abs(this.getSpeed());
-        float volume = 0.8F * this.soundType.getVolume() * (0.7F-speed);
+        float volume = 0.8F * this.soundType.getVolume() * (0.7F - speed);
         float pitch = 0.85F + Math.min(speed, 2.0F) + (float) Math.random() * 0.1F * this.soundType.getPitch();
 
         this.playSound(SoundManager.BICYCLE_LAND.get(), volume, pitch);
@@ -835,6 +827,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     public Vec3 getFrontWheelPos() {
         return new Vec3(0, 0, 0.59);
     }
+
     @Override
     public Vec3 getFrontPivotPos() {
         return new Vec3(0, 0, 0.45);
@@ -931,7 +924,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             displayType = DecagonDisplayManager.DisplayType.SPEED_KMH;
             speed *= 3.6F;
 
-            if (useImperial){
+            if (useImperial) {
                 displayType = DecagonDisplayManager.DisplayType.SPEED_MPH;
                 speed *= 0.621371F;
             }
@@ -1042,12 +1035,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         this.entityData.set(BALLOON_INFLATED, inflated);
     }
 
-    public void setTicksOutOfWater(int ticks) {
-        this.entityData.set(TICKS_OUT_OF_WATER, ticks);
-    }
-
     public int getTicksOutOfWater() {
         return this.entityData.get(TICKS_OUT_OF_WATER);
+    }
+
+    public void setTicksOutOfWater(int ticks) {
+        this.entityData.set(TICKS_OUT_OF_WATER, ticks);
     }
 
     public boolean hasDisplay() {
@@ -1104,7 +1097,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     // When the player is looking at the display, we want to zoom in
     public float modifyFOV(AbstractClientPlayer player, float fov) {
         Vec3 seat = this.modelToWorldPos(this.getSeatPos());
-        Vec3 camera = new Vec3(seat.x, seat.y + player.getEyeHeight()*0.96F, seat.z);
+        Vec3 camera = new Vec3(seat.x, seat.y + player.getEyeHeight() * 0.96F, seat.z);
         Vec3 displayPos = this.modelToWorldPos(this.getDisplayPos());
 
         float pitch = (float) Math.toRadians(player.getXRot());

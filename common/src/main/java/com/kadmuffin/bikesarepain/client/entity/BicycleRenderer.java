@@ -42,56 +42,6 @@ public class BicycleRenderer extends AbstractBikeRenderer<Bicycle> {
             )
     );
 
-    // A method that is meant to be run at preRender and requires partial ticks
-    private float smoothRotationPartialTicks(float currentRot, float targetRot, float partialTicks) {
-        currentRot = (float) (((currentRot % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
-        targetRot = (float) (((targetRot % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
-
-        float diff = targetRot - currentRot;
-
-        if (diff > Math.PI) {
-            diff -= 2 * Math.PI;
-        } else if (diff < -Math.PI) {
-            diff += 2 * Math.PI;
-        }
-
-        // Minecraft ticks run at 20 ticks per second, so 1/20 is 1 tick
-        // in this case we are getting partial ticks, meaning that we are getting how far we are into the current tick
-        // this theoretically based on the current frame time, it is not delta time exactly though
-
-        float newRotation = currentRot + diff * partialTicks;
-
-        newRotation = (float) (((newRotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
-
-        return newRotation;
-    }
-
-    // Method that doesn't use anything other than the current and target rotation
-    private float smoothRotation(float currentRot, float targetRot) {
-        float deltaTime = Minecraft.getInstance().getFrameTimeNs() / 1_000_000_000.0f;
-
-        // Limit the delta time based on fps to prevent jumps with lag spikes
-        deltaTime = Math.min(deltaTime, 1/30F);
-
-        currentRot = (float) (((currentRot % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
-        targetRot = (float) (((targetRot % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
-
-        float diff = targetRot - currentRot;
-
-        if (diff > Math.PI) {
-            diff -= 2 * Math.PI;
-        } else if (diff < -Math.PI) {
-            diff += 2 * Math.PI;
-        }
-
-        float smoothSpeed = 80F;
-        float newRotation = currentRot + diff * smoothSpeed * deltaTime;
-
-        newRotation = (float) (((newRotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
-
-        return newRotation;
-    }
-
     public BicycleRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new DefaultedEntityGeoModel<>(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle")), bonesToColor);
 
@@ -167,6 +117,56 @@ public class BicycleRenderer extends AbstractBikeRenderer<Bicycle> {
             }
 
         }));
+    }
+
+    // A method that is meant to be run at preRender and requires partial ticks
+    private float smoothRotationPartialTicks(float currentRot, float targetRot, float partialTicks) {
+        currentRot = (float) (((currentRot % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
+        targetRot = (float) (((targetRot % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
+
+        float diff = targetRot - currentRot;
+
+        if (diff > Math.PI) {
+            diff -= 2 * Math.PI;
+        } else if (diff < -Math.PI) {
+            diff += 2 * Math.PI;
+        }
+
+        // Minecraft ticks run at 20 ticks per second, so 1/20 is 1 tick
+        // in this case we are getting partial ticks, meaning that we are getting how far we are into the current tick
+        // this theoretically based on the current frame time, it is not delta time exactly though
+
+        float newRotation = currentRot + diff * partialTicks;
+
+        newRotation = (float) (((newRotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
+
+        return newRotation;
+    }
+
+    // Method that doesn't use anything other than the current and target rotation
+    private float smoothRotation(float currentRot, float targetRot) {
+        float deltaTime = Minecraft.getInstance().getFrameTimeNs() / 1_000_000_000.0f;
+
+        // Limit the delta time based on fps to prevent jumps with lag spikes
+        deltaTime = Math.min(deltaTime, 1 / 30F);
+
+        currentRot = (float) (((currentRot % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
+        targetRot = (float) (((targetRot % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
+
+        float diff = targetRot - currentRot;
+
+        if (diff > Math.PI) {
+            diff -= 2 * Math.PI;
+        } else if (diff < -Math.PI) {
+            diff += 2 * Math.PI;
+        }
+
+        float smoothSpeed = 80F;
+        float newRotation = currentRot + diff * smoothSpeed * deltaTime;
+
+        newRotation = (float) (((newRotation % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI));
+
+        return newRotation;
     }
 
     @Override

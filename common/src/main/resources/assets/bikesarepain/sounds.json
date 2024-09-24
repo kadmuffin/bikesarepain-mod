@@ -2,24 +2,24 @@
   "bicycle_spokes": {
     "subtitle": "sound.bikesarepain.bicycle_spokes",
     "sounds": [
-        "bikesarepain:bicycle/337080_tieswijnen_spokes",
-        "bikesarepain:bicycle/337080_tieswijnen_spokes_2",
-        "bikesarepain:bicycle/337080_tieswijnen_spokes_3",
-        "bikesarepain:bicycle/337080_tieswijnen_spokes_4",
-        "bikesarepain:bicycle/337080_tieswijnen_spokes_5",
-        "bikesarepain:bicycle/337080_tieswijnen_spokes_6",
-        "bikesarepain:bicycle/337080_tieswijnen_spokes_7",
-        "bikesarepain:bicycle/337080_tieswijnen_spokes_8",
-        "bikesarepain:bicycle/337080_tieswijnen_spokes_9"
+      "bikesarepain:bicycle/337080_tieswijnen_spokes",
+      "bikesarepain:bicycle/337080_tieswijnen_spokes_2",
+      "bikesarepain:bicycle/337080_tieswijnen_spokes_3",
+      "bikesarepain:bicycle/337080_tieswijnen_spokes_4",
+      "bikesarepain:bicycle/337080_tieswijnen_spokes_5",
+      "bikesarepain:bicycle/337080_tieswijnen_spokes_6",
+      "bikesarepain:bicycle/337080_tieswijnen_spokes_7",
+      "bikesarepain:bicycle/337080_tieswijnen_spokes_8",
+      "bikesarepain:bicycle/337080_tieswijnen_spokes_9"
     ]
   },
   "bicycle_bell": {
     "subtitle": "sound.bikesarepain.bicycle_bell",
     "sounds": [
-        "bikesarepain:bicycle/546371_panosa_bell",
-        "bikesarepain:bicycle/546371_panosa_bell_2",
-        "bikesarepain:bicycle/546371_panosa_bell_3",
-        "bikesarepain:bicycle/546371_panosa_bell_4"
+      "bikesarepain:bicycle/546371_panosa_bell",
+      "bikesarepain:bicycle/546371_panosa_bell_2",
+      "bikesarepain:bicycle/546371_panosa_bell_3",
+      "bikesarepain:bicycle/546371_panosa_bell_4"
     ]
   },
   "bicycle_land": {
@@ -31,21 +31,21 @@
   "bicycle_movement": {
     "subtitle": "sound.bikesarepain.bicycle_movement",
     "sounds": [
-        "bikesarepain:bicycle/bicycle_movement",
-        "bikesarepain:bicycle/bicycle_movement_1",
-        "bikesarepain:bicycle/bicycle_movement_2",
-        "bikesarepain:bicycle/bicycle_movement_3",
-        "bikesarepain:bicycle/bicycle_movement_4",
-        "bikesarepain:bicycle/bicycle_movement_5",
-        "bikesarepain:bicycle/bicycle_movement_6",
-        "bikesarepain:bicycle/bicycle_movement_7",
-        "bikesarepain:bicycle/bicycle_movement_8",
-        "bikesarepain:bicycle/bicycle_movement_9",
-        "bikesarepain:bicycle/bicycle_movement_10",
-        "bikesarepain:bicycle/bicycle_movement_11",
-        "bikesarepain:bicycle/bicycle_movement_12",
-        "bikesarepain:bicycle/bicycle_movement_13",
-        "bikesarepain:bicycle/bicycle_movement_14"
+      "bikesarepain:bicycle/bicycle_movement",
+      "bikesarepain:bicycle/bicycle_movement_1",
+      "bikesarepain:bicycle/bicycle_movement_2",
+      "bikesarepain:bicycle/bicycle_movement_3",
+      "bikesarepain:bicycle/bicycle_movement_4",
+      "bikesarepain:bicycle/bicycle_movement_5",
+      "bikesarepain:bicycle/bicycle_movement_6",
+      "bikesarepain:bicycle/bicycle_movement_7",
+      "bikesarepain:bicycle/bicycle_movement_8",
+      "bikesarepain:bicycle/bicycle_movement_9",
+      "bikesarepain:bicycle/bicycle_movement_10",
+      "bikesarepain:bicycle/bicycle_movement_11",
+      "bikesarepain:bicycle/bicycle_movement_12",
+      "bikesarepain:bicycle/bicycle_movement_13",
+      "bikesarepain:bicycle/bicycle_movement_14"
     ]
   }
 }

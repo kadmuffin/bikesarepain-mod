@@ -30,110 +30,20 @@ public class DecagonDisplayManager {
             // RotTypeScreen, RotUnit
 
             {0f, 0f}, // 0 -> Distance + meters
-            {0f, (float) Math.PI/2}, // 1 -> Distance + km
+            {0f, (float) Math.PI / 2}, // 1 -> Distance + km
             {0f, (float) Math.PI}, // 2 -> Distance + ft
-            {0f, (float) -Math.PI/2}, // 3 -> Distance + mi
+            {0f, (float) -Math.PI / 2}, // 3 -> Distance + mi
 
-            {(float) Math.PI/2, 0f}, // 4 -> Time + sec
-            {(float) Math.PI/2, (float) Math.PI/2}, // 5 -> Time + min
-            {(float) Math.PI/2, (float) Math.PI}, // 6 -> Time + hr
-            {(float) Math.PI/2, (float) -Math.PI/2}, // 7 -> Time + day
+            {(float) Math.PI / 2, 0f}, // 4 -> Time + sec
+            {(float) Math.PI / 2, (float) Math.PI / 2}, // 5 -> Time + min
+            {(float) Math.PI / 2, (float) Math.PI}, // 6 -> Time + hr
+            {(float) Math.PI / 2, (float) -Math.PI / 2}, // 7 -> Time + day
 
             {(float) Math.PI, (float) Math.PI}, // 8 -> Speed + m/s
-            {(float) Math.PI, (float) Math.PI/2}, // 9 -> Speed + km/h
-            {(float) Math.PI, (float) -Math.PI/2}, // 10 -> Speed + mph
-            {(float) -Math.PI/2, 0f}, // 11 -> Calories + kcal
+            {(float) Math.PI, (float) Math.PI / 2}, // 9 -> Speed + km/h
+            {(float) Math.PI, (float) -Math.PI / 2}, // 10 -> Speed + mph
+            {(float) -Math.PI / 2, 0f}, // 11 -> Calories + kcal
     };
-
-    public enum DisplaySubType {
-        DISTANCE(0),
-        TIME(1),
-        SPEED(2),
-        CALORIES(3);
-
-        private final int type;
-
-        DisplaySubType(int type) {
-            this.type = type;
-        }
-
-        public int getType() {
-            return type;
-        }
-
-        public static DisplaySubType fromType(int type) {
-            for (DisplaySubType displayType : values()) {
-                if (displayType.getType() == type) {
-                    return displayType;
-                }
-            }
-            return DISTANCE;
-        }
-
-
-        public boolean shouldHide(int index) {
-            return switch (this) {
-                case DISTANCE -> index != 0;
-                case TIME -> index != 1;
-                case SPEED, CALORIES -> index != 2;
-            };
-        }
-    }
-
-    public enum DisplayType {
-        DISTANCE_METERS(0),
-        DISTANCE_KM(1),
-        DISTANCE_FT(2),
-        DISTANCE_MI(3),
-        TIME_SEC(4),
-        TIME_MIN(5),
-        TIME_HR(6),
-        TIME_DAY(7),
-        SPEED_MS(8),
-        SPEED_KMH(9),
-        SPEED_MPH(10),
-        CALORIES_KCAL(11);
-
-        private final int type;
-
-        DisplayType(int type) {
-            this.type = type;
-        }
-
-        public int getType() {
-            return type;
-        }
-
-        public DisplaySubType getSubType() {
-            return switch (this) {
-                case DISTANCE_METERS, DISTANCE_KM, DISTANCE_FT, DISTANCE_MI -> DisplaySubType.DISTANCE;
-                case TIME_SEC, TIME_MIN, TIME_HR, TIME_DAY -> DisplaySubType.TIME;
-                case SPEED_MS, SPEED_KMH, SPEED_MPH -> DisplaySubType.SPEED;
-                case CALORIES_KCAL -> DisplaySubType.CALORIES;
-            };
-        }
-
-        public static DisplayType fromType(int type) {
-            for (DisplayType displayType : values()) {
-                if (displayType.getType() == type) {
-                    return displayType;
-                }
-            }
-            return DISTANCE_METERS;
-        }
-
-        public static DisplayType fromSubType(DisplaySubType subType) {
-            return switch (subType) {
-                case DISTANCE -> DISTANCE_METERS;
-                case TIME -> TIME_SEC;
-                case SPEED -> SPEED_MS;
-                case CALORIES -> CALORIES_KCAL;
-            };
-        }
-
-    }
-
-
     private final float[] currentRotations = new float[MAX_DISPLAYS];
     private final float[] currentUnitRotations = new float[3];
     private float typeScreenRotation = 0;
@@ -149,7 +59,7 @@ public class DecagonDisplayManager {
 
         if (target != bicycle.getCachedTarget()) {
             bicycle.setCachedTarget(target);
-            bicycle.setDigitCount(target == 0 ? 1 : (int)(Math.log10(target) + 1));
+            bicycle.setDigitCount(target == 0 ? 1 : (int) (Math.log10(target) + 1));
             updateCachedDigits(bicycle);
         }
     }
@@ -350,6 +260,93 @@ public class DecagonDisplayManager {
 
         // Account for the type screen rotation
         bone.setRotX(currentUnitRotations[unitIndex] - typeScreenRotation);
+    }
+
+    public enum DisplaySubType {
+        DISTANCE(0),
+        TIME(1),
+        SPEED(2),
+        CALORIES(3);
+
+        private final int type;
+
+        DisplaySubType(int type) {
+            this.type = type;
+        }
+
+        public static DisplaySubType fromType(int type) {
+            for (DisplaySubType displayType : values()) {
+                if (displayType.getType() == type) {
+                    return displayType;
+                }
+            }
+            return DISTANCE;
+        }
+
+        public int getType() {
+            return type;
+        }
+
+        public boolean shouldHide(int index) {
+            return switch (this) {
+                case DISTANCE -> index != 0;
+                case TIME -> index != 1;
+                case SPEED, CALORIES -> index != 2;
+            };
+        }
+    }
+
+    public enum DisplayType {
+        DISTANCE_METERS(0),
+        DISTANCE_KM(1),
+        DISTANCE_FT(2),
+        DISTANCE_MI(3),
+        TIME_SEC(4),
+        TIME_MIN(5),
+        TIME_HR(6),
+        TIME_DAY(7),
+        SPEED_MS(8),
+        SPEED_KMH(9),
+        SPEED_MPH(10),
+        CALORIES_KCAL(11);
+
+        private final int type;
+
+        DisplayType(int type) {
+            this.type = type;
+        }
+
+        public static DisplayType fromType(int type) {
+            for (DisplayType displayType : values()) {
+                if (displayType.getType() == type) {
+                    return displayType;
+                }
+            }
+            return DISTANCE_METERS;
+        }
+
+        public static DisplayType fromSubType(DisplaySubType subType) {
+            return switch (subType) {
+                case DISTANCE -> DISTANCE_METERS;
+                case TIME -> TIME_SEC;
+                case SPEED -> SPEED_MS;
+                case CALORIES -> CALORIES_KCAL;
+            };
+        }
+
+        public int getType() {
+            return type;
+        }
+
+        public DisplaySubType getSubType() {
+            return switch (this) {
+                case DISTANCE_METERS, DISTANCE_KM, DISTANCE_FT, DISTANCE_MI -> DisplaySubType.DISTANCE;
+                case TIME_SEC, TIME_MIN, TIME_HR, TIME_DAY -> DisplaySubType.TIME;
+                case SPEED_MS, SPEED_KMH, SPEED_MPH -> DisplaySubType.SPEED;
+                case CALORIES_KCAL -> DisplaySubType.CALORIES;
+            };
+        }
+
     }
 
 }

@@ -1,4 +1,5 @@
 package com.kadmuffin.bikesarepain.server.item;
+
 import com.kadmuffin.bikesarepain.client.item.TintedItemRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.resources.ResourceLocation;

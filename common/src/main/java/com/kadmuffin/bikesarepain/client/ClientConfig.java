@@ -18,14 +18,7 @@ import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class ClientConfig {
-    public enum ApplyScaleTo {
-        SPEED,
-        WHEEL,
-        BOTH
-    }
-
     public static final DecimalFormat format = new DecimalFormat("#.##");
-
     public static final ConfigClassHandler<ClientConfig> CONFIG = ConfigClassHandler.createBuilder(ClientConfig.class)
             .id(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "config.client"))
             .serializer(config -> GsonConfigSerializerBuilder.create(config)
@@ -33,17 +26,14 @@ public class ClientConfig {
                     .setJson5(true)
                     .build())
             .build();
-
     @SerialEntry(comment = "Whether to sync the pitch with the server. If this is enabled, the server will use the client's visual pitch for applying gravity acceleration.")
     private boolean syncPitchWithServer = true;
-
     @SerialEntry(comment = "Display Imperial units instead of metric.")
     private boolean imperial = false;
     @SerialEntry(comment = "Amount of rays to cast per wheel for pitching the bike depending on terrain.")
     private int amountOfRaysPerWheel = 0;
     @SerialEntry(comment = "Use (probably not well done) interpolation for movement.")
     private boolean interpolation = true;
-
     @SerialEntry(comment = "Whether to automatically connect to the serial port on startup.")
     private boolean autoConnect = false;
     @SerialEntry(comment = "Display a message when the port chosen for auto connect is not available.")
@@ -52,215 +42,20 @@ public class ClientConfig {
     private String port = "COM7";
     @SerialEntry(comment = "The baud rate to connect with.")
     private int baudRate = 31250;
-
     @SerialEntry(comment = "How much to scale the speed by. Calculated with 1 / x meters needed to do a full block. ")
     private float speedScaleRatio = 1F;
     @SerialEntry(comment = "How much to scale the wheel size read by JSerialComm. You can calculate it in the same way as the speedRatio.")
     private float wheelScaleRatio = 1F;
-
     @SerialEntry(comment = "When true, the values showed at the pedometer will be calculated with a reference value in mind (maps the small fitness bike to the real bike).")
     private boolean scaleCalcByRef = true;
     @SerialEntry(comment = "Map the original wheel size to the reference for wheel/speed calculations.")
     private boolean useForCalculations = true;
     @SerialEntry(comment = "The real size of a bicycle wheel in meters.")
     private float targetWheelSize = 0.62F;
-
     @SerialEntry(comment = "The mass of the player in kilograms (or if \"imperial=true\", in pounds).")
     private float bodyMass = 70F;
-
     @SerialEntry(comment = "Show debug rays for the wheel.")
     private boolean debugShowWheelRays = false;
-
-    public Screen getScreen(Screen parent) {
-        return YetAnotherConfigLib.create(CONFIG, ((defaults, config, builder) -> builder.title(Component.literal("Bikes Are Pain Config Screen"))
-                    .category(ConfigCategory.createBuilder()
-                            .name(Component.translatable("config.bikesarepain.visuals.name"))
-                            .tooltip(Component.translatable("config.bikesarepain.visuals.tooltip"))
-                            .group(OptionGroup.createBuilder()
-                                    .name(Component.translatable("config.bikesarepain.visuals.pedometer.name"))
-                                    .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pedometer.tooltip")))
-                                    .option(Option.<Boolean>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.visuals.pedometer.imperial.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pedometer.imperial.tooltip")))
-                                            .binding(false, () -> imperial, value -> imperial = value)
-                                            .controller(TickBoxControllerBuilder::create)
-                                            .build()
-                                    )
-                                    .option(Option.<Integer>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.visuals.pitch.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pitch.tooltip")))
-                                            .binding(0, () -> amountOfRaysPerWheel, value -> amountOfRaysPerWheel = value)
-                                            .controller(opt -> IntegerSliderControllerBuilder.create(opt)
-                                                    .range(0, 16)
-                                                    .step(1)
-                                                    // If the value is 0, we want to display "Disabled" instead of "0"
-                                                    .formatValue(value -> (value == 0 ? Component.translatable("config.bikesarepain.visuals.pitch.disabled") : Component.literal(String.format("%d rays", value))))
-                                            )
-                                            .build()
-                                    )
-                                    .option(Option.<Boolean>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.visuals.pitch.sync_pitch.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pitch.sync_pitch.tooltip")))
-                                            .binding(true, () -> syncPitchWithServer, value -> syncPitchWithServer = value)
-                                            .controller(opt -> BooleanControllerBuilder.create(opt)
-                                                    .formatValue(value -> (value ? Component.translatable("config.bikesarepain.visuals.pitch.sync_pitch.enabled") : Component.translatable("config.bikesarepain.visuals.pitch.sync_pitch.disabled")))
-                                                    .coloured(true)
-                                            )
-                                            .build()
-                                    )
-                                    .option(Option.<Boolean>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.visuals.bad_interpolation.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.bad_interpolation.tooltip")))
-                                            .binding(true, () -> interpolation, value -> interpolation = value)
-                                            .controller(TickBoxControllerBuilder::create)
-                                            .build()
-                                    )
-                                    .build()
-                            )
-                            .build()
-                    )
-                    .category(ConfigCategory.createBuilder()
-                            .name(Component.translatable("config.bikesarepain.serial.name"))
-                            .tooltip(Component.translatable("config.bikesarepain.serial.tooltip"))
-                            .group(OptionGroup.createBuilder()
-                                    .name(Component.translatable("config.bikesarepain.serial.link.name"))
-                                    .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.link.tooltip")))
-                                    .option(Option.<Boolean>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.serial.link.autoconnect.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.link.autoconnect.tooltip")))
-                                            .binding(false, () -> autoConnect, value -> autoConnect = value)
-                                            .controller(TickBoxControllerBuilder::create)
-                                            .build()
-                                    )
-                                    .option(Option.<Boolean>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.serial.link.autoconnect_failed.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.link.autoconnect_failed.tooltip")))
-                                            .binding(true, () -> showPortNotAvailableMessage, value -> showPortNotAvailableMessage = value)
-                                            .controller(TickBoxControllerBuilder::create)
-                                            .build()
-                                    )
-                                    .option(Option.<String>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.serial.link.port.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.link.port.tooltip")))
-                                            .binding("No port selected", () -> port, value -> port = value)
-                                            .controller(opt -> DropdownStringControllerBuilder.create(opt)
-                                                    .values(getPorts())
-                                                    .allowEmptyValue(false)
-                                                    .allowAnyValue(false)
-                                            )
-                                            .build()
-                                    )
-                                    .option(Option.<Integer>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.serial.link.baudrate.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.link.baudrate.tooltip")))
-                                            .binding(31250, () -> baudRate, value -> baudRate = value)
-                                            .controller(opt -> CyclingListControllerBuilder.create(opt)
-                                                    .values(List.of(9600, 14400, 19200, 38400, 57600, 115200, 128000, 256000, 31250))
-                                                    .formatValue(value -> Component.literal(value + " baud"))
-                                            )
-                                        .build()
-                                    )
-                                    .build()
-                            )
-                            .group(OptionGroup.createBuilder()
-                                    .name(Component.translatable("config.bikesarepain.serial.scale.name"))
-                                    .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.tooltip")))
-                                    .option(Option.<Boolean>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.serial.scale.reference.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.reference.tooltip")))
-                                            .binding(true, () -> scaleCalcByRef, value -> scaleCalcByRef = value)
-                                            .controller(TickBoxControllerBuilder::create)
-                                            .build()
-                                    )
-                                    .option(Option.<Boolean>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.serial.scale.use_for_calculations.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.use_for_calculations.tooltip")))
-                                            .binding(true, () -> useForCalculations, value -> useForCalculations = value)
-                                            .controller(TickBoxControllerBuilder::create)
-                                            .build()
-                                    )
-                                    .option(Option.<Float>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.serial.scale.wheel.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.wheel.tooltip")))
-                                            .binding(1.5F, () -> this.wheelScaleRatio, value -> this.wheelScaleRatio = value)
-                                            .controller(opt -> FloatSliderControllerBuilder.create(opt)
-                                                    .formatValue(value -> Component.literal(ClientConfig.getUnitString(value, this.imperial)))
-                                                    .range(0.05F, 10F)
-                                                    .step(0.05F)
-                                            )
-                                            .build()
-                                    )
-                                    .option(Option.<Float>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.serial.scale.speed.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.speed.tooltip")))
-                                            .binding(1F, () -> this.speedScaleRatio, value -> this.speedScaleRatio = value)
-                                            .controller(opt -> FloatSliderControllerBuilder.create(opt)
-                                                    .formatValue(value -> Component.literal(ClientConfig.getUnitString(value, this.imperial)))
-                                                    .range(0.05F, 10F)
-                                                    .step(0.05F)
-                                            )
-                                            .build()
-                                    )
-                                    .option(Option.<Float>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.serial.scale.reference.wheel.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.reference.wheel.tooltip")))
-                                            .binding(0.622F, () -> targetWheelSize, value -> targetWheelSize = Math.max(0.01F, value))
-                                            .controller(opt -> FloatSliderControllerBuilder.create(opt)
-                                                    .formatValue(value -> Component.literal(ClientConfig.getAutoCMtoInchString(value, this.imperial)))
-                                                    .range(0.05F, 2F)
-                                                    .step((imperial ? 0.01F : 0.001F))
-                                            )
-                                            .build()
-                                    )
-                                    .option(Option.<Float>createBuilder()
-                                            .name(Component.translatable("config.bikesarepain.serial.calories.mass.name"))
-                                            .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.calories.mass.tooltip")))
-                                            .binding(70F, () -> bodyMass, value -> bodyMass = value)
-                                            .controller(opt -> FloatFieldControllerBuilder.create(opt)
-                                                    .formatValue(value -> Component.literal(imperial ?
-                                                            String.format("%s pounds", roundUpToTwo(value)) :
-                                                            String.format("%s kg", roundUpToTwo(value)))
-                                                            )
-                                                    .min(1F)
-                                            )
-                                            .build()
-                                    )
-                                    .build()
-                            )
-
-                            .build()
-                    )
-                .category(ConfigCategory.createBuilder()
-                        .name(Component.translatable("config.bikesarepain.advanced.name"))
-                        .tooltip(Component.translatable("config.bikesarepain.advanced.tooltip"))
-                        .group(OptionGroup.createBuilder()
-                                .name(Component.translatable("config.bikesarepain.advanced.debug.name"))
-                                .description(OptionDescription.of(Component.translatable("config.bikesarepain.advanced.debug.tooltip")))
-                                .option(Option.<Boolean>createBuilder()
-                                        .name(Component.translatable("config.bikesarepain.advanced.debug.wheel_rays.name"))
-                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.advanced.debug.wheel_rays.tooltip")))
-                                        .binding(false, () -> debugShowWheelRays, value -> debugShowWheelRays = value)
-                                        .controller(TickBoxControllerBuilder::create)
-                                        .build()
-                                )
-                                .build()
-                        )
-                        .build()
-                )
-        )).generateScreen(parent);
-    }
-
-    public float kilogramsToPounds(float value) {
-        return value * 2.20462f;
-    }
-
-    public float poundsToKilograms(float value) {
-        return value / 2.20462f;
-    }
-
-    public float getBodyMassKg() {
-        return imperial ? this.poundsToKilograms(this.bodyMass) : bodyMass;
-    }
 
     public static String roundUpToTwo(float value) {
         return format.format(Math.round(value * 100) / 100f);
@@ -303,8 +98,225 @@ public class ClientConfig {
         }
     }
 
+    public static double getMET(float speedKPH) {
+        if (speedKPH == 0) return 1;
+        if (speedKPH <= 15) return 5.8;
+        else if (speedKPH <= 19) return 6.8;
+        else if (speedKPH <= 22) return 8.0;
+        else if (speedKPH <= 25) return 10.0;
+        else if (speedKPH <= 30) return 12.0;
+        else return 16.8;
+    }
+
+    public static List<String> getPorts() {
+        List<String> ports = SerialReader.getPortsNamed();
+        if (ports.isEmpty()) {
+            ports.add("No port available");
+        }
+        return ports;
+    }
+
+    public static void init() {
+        CONFIG.load();
+    }
+
+    public Screen getScreen(Screen parent) {
+        return YetAnotherConfigLib.create(CONFIG, ((defaults, config, builder) -> builder.title(Component.literal("Bikes Are Pain Config Screen"))
+                .category(ConfigCategory.createBuilder()
+                        .name(Component.translatable("config.bikesarepain.visuals.name"))
+                        .tooltip(Component.translatable("config.bikesarepain.visuals.tooltip"))
+                        .group(OptionGroup.createBuilder()
+                                .name(Component.translatable("config.bikesarepain.visuals.pedometer.name"))
+                                .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pedometer.tooltip")))
+                                .option(Option.<Boolean>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.visuals.pedometer.imperial.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pedometer.imperial.tooltip")))
+                                        .binding(false, () -> imperial, value -> imperial = value)
+                                        .controller(TickBoxControllerBuilder::create)
+                                        .build()
+                                )
+                                .option(Option.<Integer>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.visuals.pitch.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pitch.tooltip")))
+                                        .binding(0, () -> amountOfRaysPerWheel, value -> amountOfRaysPerWheel = value)
+                                        .controller(opt -> IntegerSliderControllerBuilder.create(opt)
+                                                .range(0, 16)
+                                                .step(1)
+                                                // If the value is 0, we want to display "Disabled" instead of "0"
+                                                .formatValue(value -> (value == 0 ? Component.translatable("config.bikesarepain.visuals.pitch.disabled") : Component.literal(String.format("%d rays", value))))
+                                        )
+                                        .build()
+                                )
+                                .option(Option.<Boolean>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.visuals.pitch.sync_pitch.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pitch.sync_pitch.tooltip")))
+                                        .binding(true, () -> syncPitchWithServer, value -> syncPitchWithServer = value)
+                                        .controller(opt -> BooleanControllerBuilder.create(opt)
+                                                .formatValue(value -> (value ? Component.translatable("config.bikesarepain.visuals.pitch.sync_pitch.enabled") : Component.translatable("config.bikesarepain.visuals.pitch.sync_pitch.disabled")))
+                                                .coloured(true)
+                                        )
+                                        .build()
+                                )
+                                .option(Option.<Boolean>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.visuals.bad_interpolation.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.bad_interpolation.tooltip")))
+                                        .binding(true, () -> interpolation, value -> interpolation = value)
+                                        .controller(TickBoxControllerBuilder::create)
+                                        .build()
+                                )
+                                .build()
+                        )
+                        .build()
+                )
+                .category(ConfigCategory.createBuilder()
+                        .name(Component.translatable("config.bikesarepain.serial.name"))
+                        .tooltip(Component.translatable("config.bikesarepain.serial.tooltip"))
+                        .group(OptionGroup.createBuilder()
+                                .name(Component.translatable("config.bikesarepain.serial.link.name"))
+                                .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.link.tooltip")))
+                                .option(Option.<Boolean>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.serial.link.autoconnect.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.link.autoconnect.tooltip")))
+                                        .binding(false, () -> autoConnect, value -> autoConnect = value)
+                                        .controller(TickBoxControllerBuilder::create)
+                                        .build()
+                                )
+                                .option(Option.<Boolean>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.serial.link.autoconnect_failed.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.link.autoconnect_failed.tooltip")))
+                                        .binding(true, () -> showPortNotAvailableMessage, value -> showPortNotAvailableMessage = value)
+                                        .controller(TickBoxControllerBuilder::create)
+                                        .build()
+                                )
+                                .option(Option.<String>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.serial.link.port.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.link.port.tooltip")))
+                                        .binding("No port selected", () -> port, value -> port = value)
+                                        .controller(opt -> DropdownStringControllerBuilder.create(opt)
+                                                .values(getPorts())
+                                                .allowEmptyValue(false)
+                                                .allowAnyValue(false)
+                                        )
+                                        .build()
+                                )
+                                .option(Option.<Integer>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.serial.link.baudrate.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.link.baudrate.tooltip")))
+                                        .binding(31250, () -> baudRate, value -> baudRate = value)
+                                        .controller(opt -> CyclingListControllerBuilder.create(opt)
+                                                .values(List.of(9600, 14400, 19200, 38400, 57600, 115200, 128000, 256000, 31250))
+                                                .formatValue(value -> Component.literal(value + " baud"))
+                                        )
+                                        .build()
+                                )
+                                .build()
+                        )
+                        .group(OptionGroup.createBuilder()
+                                .name(Component.translatable("config.bikesarepain.serial.scale.name"))
+                                .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.tooltip")))
+                                .option(Option.<Boolean>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.serial.scale.reference.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.reference.tooltip")))
+                                        .binding(true, () -> scaleCalcByRef, value -> scaleCalcByRef = value)
+                                        .controller(TickBoxControllerBuilder::create)
+                                        .build()
+                                )
+                                .option(Option.<Boolean>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.serial.scale.use_for_calculations.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.use_for_calculations.tooltip")))
+                                        .binding(true, () -> useForCalculations, value -> useForCalculations = value)
+                                        .controller(TickBoxControllerBuilder::create)
+                                        .build()
+                                )
+                                .option(Option.<Float>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.serial.scale.wheel.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.wheel.tooltip")))
+                                        .binding(1.5F, () -> this.wheelScaleRatio, value -> this.wheelScaleRatio = value)
+                                        .controller(opt -> FloatSliderControllerBuilder.create(opt)
+                                                .formatValue(value -> Component.literal(ClientConfig.getUnitString(value, this.imperial)))
+                                                .range(0.05F, 10F)
+                                                .step(0.05F)
+                                        )
+                                        .build()
+                                )
+                                .option(Option.<Float>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.serial.scale.speed.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.speed.tooltip")))
+                                        .binding(1F, () -> this.speedScaleRatio, value -> this.speedScaleRatio = value)
+                                        .controller(opt -> FloatSliderControllerBuilder.create(opt)
+                                                .formatValue(value -> Component.literal(ClientConfig.getUnitString(value, this.imperial)))
+                                                .range(0.05F, 10F)
+                                                .step(0.05F)
+                                        )
+                                        .build()
+                                )
+                                .option(Option.<Float>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.serial.scale.reference.wheel.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.reference.wheel.tooltip")))
+                                        .binding(0.622F, () -> targetWheelSize, value -> targetWheelSize = Math.max(0.01F, value))
+                                        .controller(opt -> FloatSliderControllerBuilder.create(opt)
+                                                .formatValue(value -> Component.literal(ClientConfig.getAutoCMtoInchString(value, this.imperial)))
+                                                .range(0.05F, 2F)
+                                                .step((imperial ? 0.01F : 0.001F))
+                                        )
+                                        .build()
+                                )
+                                .option(Option.<Float>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.serial.calories.mass.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.calories.mass.tooltip")))
+                                        .binding(70F, () -> bodyMass, value -> bodyMass = value)
+                                        .controller(opt -> FloatFieldControllerBuilder.create(opt)
+                                                .formatValue(value -> Component.literal(imperial ?
+                                                        String.format("%s pounds", roundUpToTwo(value)) :
+                                                        String.format("%s kg", roundUpToTwo(value)))
+                                                )
+                                                .min(1F)
+                                        )
+                                        .build()
+                                )
+                                .build()
+                        )
+
+                        .build()
+                )
+                .category(ConfigCategory.createBuilder()
+                        .name(Component.translatable("config.bikesarepain.advanced.name"))
+                        .tooltip(Component.translatable("config.bikesarepain.advanced.tooltip"))
+                        .group(OptionGroup.createBuilder()
+                                .name(Component.translatable("config.bikesarepain.advanced.debug.name"))
+                                .description(OptionDescription.of(Component.translatable("config.bikesarepain.advanced.debug.tooltip")))
+                                .option(Option.<Boolean>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.advanced.debug.wheel_rays.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.advanced.debug.wheel_rays.tooltip")))
+                                        .binding(false, () -> debugShowWheelRays, value -> debugShowWheelRays = value)
+                                        .controller(TickBoxControllerBuilder::create)
+                                        .build()
+                                )
+                                .build()
+                        )
+                        .build()
+                )
+        )).generateScreen(parent);
+    }
+
+    public float kilogramsToPounds(float value) {
+        return value * 2.20462f;
+    }
+
+    public float poundsToKilograms(float value) {
+        return value / 2.20462f;
+    }
+
+    public float getBodyMassKg() {
+        return imperial ? this.poundsToKilograms(this.bodyMass) : bodyMass;
+    }
+
     public boolean isAutoConnect() {
         return autoConnect;
+    }
+
+    public void setAutoConnect(boolean value) {
+        this.autoConnect = value;
     }
 
     public String getPortRaw() {
@@ -322,44 +334,40 @@ public class ClientConfig {
         return port;
     }
 
-    public int getBaudRate() {
-        return baudRate;
-    }
-
-    public float getWheelScaleRatio() {
-        return wheelScaleRatio;
-    }
-
-    public float getSpeedScaleRatio() {
-        return speedScaleRatio;
-    }
-
-    public void setAutoConnect(boolean value) {
-        this.autoConnect = value;
-    }
-
     public void setPort(String value) {
         this.port = value;
+    }
+
+    public int getBaudRate() {
+        return baudRate;
     }
 
     public void setBaudRate(int value) {
         this.baudRate = value;
     }
 
+    public float getWheelScaleRatio() {
+        return wheelScaleRatio;
+    }
+
     public void setWheelScaleRatio(float value) {
         this.wheelScaleRatio = value;
+    }
+
+    public float getSpeedScaleRatio() {
+        return speedScaleRatio;
     }
 
     public void setSpeedScaleRatio(float value) {
         this.speedScaleRatio = value;
     }
 
-    public void setImperial(boolean value) {
-        this.imperial = value;
-    }
-
     public boolean isImperial() {
         return imperial;
+    }
+
+    public void setImperial(boolean value) {
+        this.imperial = value;
     }
 
     public boolean useInterpolation() {
@@ -407,7 +415,7 @@ public class ClientConfig {
     }
 
     public float getTargetWheelSize() {
-        return this.targetWheelSize/2F;
+        return this.targetWheelSize / 2F;
     }
 
     public boolean useMappedForCalculations() {
@@ -422,26 +430,8 @@ public class ClientConfig {
         return this.debugShowWheelRays;
     }
 
-    public static double getMET(float speedKPH) {
-        if (speedKPH == 0) return 1;
-        if (speedKPH <= 15) return 5.8;
-        else if (speedKPH <= 19) return 6.8;
-        else if (speedKPH <= 22) return 8.0;
-        else if (speedKPH <= 25) return 10.0;
-        else if (speedKPH <= 30) return 12.0;
-        else return 16.8;
-    }
-
     public float calculateCalories(double speedKPH, double timeHours) {
         return (float) (getMET((float) speedKPH) * this.getBodyMassKg() * timeHours);
-    }
-
-    public static List<String> getPorts() {
-        List<String> ports = SerialReader.getPortsNamed();
-        if (ports.isEmpty()) {
-            ports.add("No port available");
-        }
-        return ports;
     }
 
     public void setScale(float scaleBlock, float scaleMeter, ApplyScaleTo target) {
@@ -469,7 +459,9 @@ public class ClientConfig {
         );
     }
 
-    public static void init() {
-        CONFIG.load();
+    public enum ApplyScaleTo {
+        SPEED,
+        WHEEL,
+        BOTH
     }
 }

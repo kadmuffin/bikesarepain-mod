@@ -139,7 +139,7 @@ public class BicycleRecipeBase implements CraftingRecipe, RecipeInput {
         public static final MapCodec<BicycleRecipeBase> CODEC = RecordCodecBuilder.mapCodec((instance) -> {
             return instance.group(Codec.STRING.fieldOf("group").forGetter((shapedRecipe) -> {
                 return shapedRecipe.group;
-            }),Codec.STRING.fieldOf("dye_copy").forGetter((shapedRecipe) -> {
+            }), Codec.STRING.fieldOf("dye_copy").forGetter((shapedRecipe) -> {
                 return shapedRecipe.nbtCopyInstructions;
             }), CraftingBookCategory.CODEC.fieldOf("category").orElse(CraftingBookCategory.MISC).forGetter((shapedRecipe) -> {
                 return shapedRecipe.category;
@@ -150,19 +150,9 @@ public class BicycleRecipeBase implements CraftingRecipe, RecipeInput {
             })).apply(instance, BicycleRecipeBase::new);
         });
         public static final StreamCodec<RegistryFriendlyByteBuf, BicycleRecipeBase> STREAM_CODEC = StreamCodec.of(BicycleRecipeBase.Serializer::toNetwork, BicycleRecipeBase.Serializer::fromNetwork);
-
-        public Serializer() {
-        }
-
         public static final Serializer INSTANCE = new Serializer();
         public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "shaped_crafting_bicycle");
-
-        public MapCodec<BicycleRecipeBase> codec() {
-            return CODEC;
-        }
-
-        public StreamCodec<RegistryFriendlyByteBuf, BicycleRecipeBase> streamCodec() {
-            return STREAM_CODEC;
+        public Serializer() {
         }
 
         private static BicycleRecipeBase fromNetwork(RegistryFriendlyByteBuf buffer) {
@@ -180,6 +170,14 @@ public class BicycleRecipeBase implements CraftingRecipe, RecipeInput {
             buffer.writeEnum(recipe.category);
             ShapedRecipePattern.STREAM_CODEC.encode(buffer, recipe.pattern);
             ItemStack.STREAM_CODEC.encode(buffer, recipe.result);
+        }
+
+        public MapCodec<BicycleRecipeBase> codec() {
+            return CODEC;
+        }
+
+        public StreamCodec<RegistryFriendlyByteBuf, BicycleRecipeBase> streamCodec() {
+            return STREAM_CODEC;
         }
     }
 }

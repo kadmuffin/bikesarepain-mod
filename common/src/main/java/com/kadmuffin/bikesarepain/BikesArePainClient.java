@@ -98,7 +98,7 @@ public class BikesArePainClient {
                     reader.stop();
                     try {
                         reader.setSerial();
-                        if (reader.start())  {
+                        if (reader.start()) {
                             player.displayClientMessage(
                                     Component.translatable("bikesarepain.jserialcomm.connected_to_port"),
                                     false

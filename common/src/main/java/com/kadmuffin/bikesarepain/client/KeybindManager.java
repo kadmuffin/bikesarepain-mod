@@ -12,30 +12,27 @@ import net.minecraft.client.KeyMapping;
 
 @Environment(EnvType.CLIENT)
 public class KeybindManager {
-    public static boolean alreadyRinging = false;
-    public static boolean alreadyBraking = false;
-    public static boolean alreadySwitchedType = false;
-
     public static final KeyMapping RING_BELL = new KeyMapping(
             "key.bikesarepain.ring_bell",
             InputConstants.Type.KEYSYM,
             InputConstants.KEY_B,
             "key.categories.bikesarepain"
     );
-
     public static final KeyMapping BRAKE = new KeyMapping(
             "key.bikesarepain.brake",
             InputConstants.Type.KEYSYM,
             InputConstants.KEY_V,
             "key.categories.bikesarepain"
     );
-
     public static final KeyMapping SWITCHD = new KeyMapping(
             "key.bikesarepain.switchd",
             InputConstants.Type.KEYSYM,
             InputConstants.KEY_N,
             "key.categories.bikesarepain"
     );
+    public static boolean alreadyRinging = false;
+    public static boolean alreadyBraking = false;
+    public static boolean alreadySwitchedType = false;
 
     public static void init() {
         KeyMappingRegistry.register(RING_BELL);

@@ -9,82 +9,28 @@ import net.fabricmc.api.Environment;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.function.Consumer;
 
 @Environment(EnvType.CLIENT)
 public class DataProcessor {
-    public enum SQLState {
-        OTHER(0),
-        SUCCESS(1),
-        TABLE_VERSION_IS_INCOMPATIBLE(2);
-
-        private final int value;
-
-        SQLState(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
-
-        public static SQLState fromInt(int value) {
-            for (SQLState failure : SQLState.values()) {
-                if (failure.getValue() == value) {
-                    return failure;
-                }
-            }
-            return OTHER;
-        }
-    }
-
-    public static class DataPoint {
-        // Timestamp in milliseconds (since data collection started)
-        public long timestamp;
-        // Speed in km/h (at this point in time)
-        public double speed;
-        // Distance moved in this time interval in meters
-        public double distance;
-        // The calories burned in the time period
-        public double calories;
-
-        public DataPoint(long timestamp, double speed, double distance, double calories) {
-            this.timestamp = timestamp;
-            this.speed = speed;
-            this.distance = distance;
-            this.calories = calories;
-        }
-
-        public boolean isZero() {
-            return speed == 0 && distance == 0 && calories == 0;
-        }
-
-        public boolean isEquals(DataPoint other) {
-            return timestamp == other.timestamp && speed == other.speed && distance == other.distance && calories == other.calories;
-        }
-
-        public String toString() {
-            return "DataPoint{timestamp=" + timestamp + ", speed=" + speed + ", distance=" + distance + ", calories=" + calories + "}";
-        }
-    }
-
-    private final Queue<Float> speedAvgQueue;
-    private List<DataPoint> dataPoints;
-    private final List<Consumer<DataPoint>> onChangeListeners;
-    private final List<Consumer<DataPoint>> onNothingChangedListeners;
-    private float sumSpeed;
-    private double totalCalories;
-    private double totalDistance;
-    private float wheelRadius;
-
     // Round to nearest "nice" interval (1, 2, 5, 10, 15, 30 seconds, 1, 2, 5, 10, 15, 30 minutes, 1 hour, 6 hours, 12 hours, 1 day)
     public static final long[] niceIntervals = {
             1000, 2000, 5000, 10000, 15000, 30000, 60000,
             120000, 300000, 600000, 900000, 1800000, 3600000,
             21600000, 43200000, 86400000
     };
-
+    private final Queue<Float> speedAvgQueue;
+    private final List<Consumer<DataPoint>> onChangeListeners;
+    private final List<Consumer<DataPoint>> onNothingChangedListeners;
+    private List<DataPoint> dataPoints;
+    private float sumSpeed;
+    private double totalCalories;
+    private double totalDistance;
+    private float wheelRadius;
     public DataProcessor() {
         speedAvgQueue = new LinkedList<>();
         dataPoints = new ArrayList<>();
@@ -353,6 +299,61 @@ public class DataProcessor {
 
     public DataPoint getLatestDataPoint() {
         return dataPoints.isEmpty() ? null : dataPoints.getLast();
+    }
+
+    public enum SQLState {
+        OTHER(0),
+        SUCCESS(1),
+        TABLE_VERSION_IS_INCOMPATIBLE(2);
+
+        private final int value;
+
+        SQLState(int value) {
+            this.value = value;
+        }
+
+        public static SQLState fromInt(int value) {
+            for (SQLState failure : SQLState.values()) {
+                if (failure.getValue() == value) {
+                    return failure;
+                }
+            }
+            return OTHER;
+        }
+
+        public int getValue() {
+            return value;
+        }
+    }
+
+    public static class DataPoint {
+        // Timestamp in milliseconds (since data collection started)
+        public long timestamp;
+        // Speed in km/h (at this point in time)
+        public double speed;
+        // Distance moved in this time interval in meters
+        public double distance;
+        // The calories burned in the time period
+        public double calories;
+
+        public DataPoint(long timestamp, double speed, double distance, double calories) {
+            this.timestamp = timestamp;
+            this.speed = speed;
+            this.distance = distance;
+            this.calories = calories;
+        }
+
+        public boolean isZero() {
+            return speed == 0 && distance == 0 && calories == 0;
+        }
+
+        public boolean isEquals(DataPoint other) {
+            return timestamp == other.timestamp && speed == other.speed && distance == other.distance && calories == other.calories;
+        }
+
+        public String toString() {
+            return "DataPoint{timestamp=" + timestamp + ", speed=" + speed + ", distance=" + distance + ", calories=" + calories + "}";
+        }
     }
 
 }

@@ -21,8 +21,9 @@ public class TintedItemRenderer<T extends TintedItem> extends GeoItemRenderer<T>
 
     /**
      * An item renderer that colors bones based on a provided map
-     * @param modelName The path to the model to render
-     * @param bonesToColor A list of bone names to color
+     *
+     * @param modelName     The path to the model to render
+     * @param bonesToColor  A list of bone names to color
      * @param bonesToIgnore A list of bone names to ignore when coloring bones every bone (with "*")
      */
     public TintedItemRenderer(ResourceLocation modelName, List<String> bonesToColor, List<String> bonesToIgnore) {

@@ -8,7 +8,10 @@ import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.DyedItemColor;
 
 import java.util.List;
@@ -22,6 +25,15 @@ public class ItemManager {
             16777215,
             3878696,
             3878696);
+    public static final Map<String, Function<ItemStack, Integer>> bonesToColorBicycleItem = Utils.createBonesToColorMap(
+            Map.of(
+                    List.of("hexadecagon"), (item) -> getBicycleItemColor(item, 0),
+                    List.of("hexadecagon3"), (item) -> getBicycleItemColor(item, 1),
+                    List.of("hexadecagon2", "Support", "ClickyThing", "ItemInventory", "Chest", "BladesF", "BladesB", "Cover", "Union", "SteeringFixed", "WoodThing",
+                            "Cover2", "RodT", "RodD2", "BarT2", "RodD1", "hexadecagon4", "WheelStuff"), (item) -> getBicycleItemColor(item, 2),
+                    List.of("Cap1", "Cap2"), (item) -> getBicycleItemColor(item, 3)
+            )
+    );
 
     private static int getBicycleItemColor(ItemStack item, int index) {
         if (index < 0 || index >= 4) {
@@ -46,24 +58,17 @@ public class ItemManager {
         }
 
         return item.getComponents().getOrDefault(DataComponents.DYED_COLOR, new DyedItemColor(bicycleColors.get(index), false)).rgb();
-    }
-
-    public static final RegistrySupplier<CreativeModeTab> BIKES_MOD_TAB = BikesArePain.TABS.register("bikes_mod_tab", () ->
+    }    public static final RegistrySupplier<CreativeModeTab> BIKES_MOD_TAB = BikesArePain.TABS.register("bikes_mod_tab", () ->
             CreativeTabRegistry.create(
                     Component.literal("Bikes Are Pain"),
                     () -> new ItemStack(ItemManager.BICYCLE_ITEM.get())
             )
     );
 
-    public static final Map<String, Function<ItemStack, Integer>> bonesToColorBicycleItem = Utils.createBonesToColorMap(
-            Map.of(
-                    List.of("hexadecagon"), (item) -> getBicycleItemColor(item, 0),
-                    List.of("hexadecagon3"), (item) -> getBicycleItemColor(item, 1),
-                    List.of("hexadecagon2", "Support", "ClickyThing", "ItemInventory", "Chest", "BladesF", "BladesB", "Cover", "Union", "SteeringFixed", "WoodThing",
-                            "Cover2", "RodT", "RodD2", "BarT2", "RodD1", "hexadecagon4", "WheelStuff"), (item) -> getBicycleItemColor(item, 2),
-                    List.of("Cap1", "Cap2"), (item) -> getBicycleItemColor(item, 3)
-            )
-    );
+    public static void init() {
+        BikesArePain.TABS.register();
+        BikesArePain.ITEMS.register();
+    }
 
     public static final RegistrySupplier<Item> BICYCLE_ITEM = BikesArePain.ITEMS.register("bicycle", () ->
             new BicycleItem(EntityManager.BICYCLE.get(),
@@ -91,9 +96,9 @@ public class ItemManager {
             new BaseItem(
                     ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "nut"),
                     new Item.Properties()
-                    .stacksTo(64)
-                    .rarity(Rarity.COMMON)
-                    .arch$tab(ItemManager.BIKES_MOD_TAB)
+                            .stacksTo(64)
+                            .rarity(Rarity.COMMON)
+                            .arch$tab(ItemManager.BIKES_MOD_TAB)
             )
     );
 
@@ -101,10 +106,10 @@ public class ItemManager {
             new BaseItem(
                     ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "wrench"),
                     new Item.Properties()
-                    .stacksTo(1)
-                    .rarity(Rarity.UNCOMMON)
-                    .arch$tab(ItemManager.BIKES_MOD_TAB)
-                    .durability(100)
+                            .stacksTo(1)
+                            .rarity(Rarity.UNCOMMON)
+                            .arch$tab(ItemManager.BIKES_MOD_TAB)
+                            .durability(100)
             )
     );
 
@@ -112,13 +117,13 @@ public class ItemManager {
             new BaseItem(
                     ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "pedometer"),
                     new Item.Properties()
-                    .stacksTo(1)
-                    .rarity(Rarity.UNCOMMON)
-                    .arch$tab(ItemManager.BIKES_MOD_TAB)
-                    .component(ComponentManager.SAVE_TIME.get(), true)
-                    .component(ComponentManager.SAVE_DISTANCE.get(), true)
-                    .component(ComponentManager.DISTANCE_MOVED.get(), 0.0F)
-                    .component(ComponentManager.TICKS_MOVED.get(), 0)
+                            .stacksTo(1)
+                            .rarity(Rarity.UNCOMMON)
+                            .arch$tab(ItemManager.BIKES_MOD_TAB)
+                            .component(ComponentManager.SAVE_TIME.get(), true)
+                            .component(ComponentManager.SAVE_DISTANCE.get(), true)
+                            .component(ComponentManager.DISTANCE_MOVED.get(), 0.0F)
+                            .component(ComponentManager.TICKS_MOVED.get(), 0)
             )
     );
 
@@ -172,17 +177,14 @@ public class ItemManager {
 
     public static final RegistrySupplier<Item> FLOAT_MODIFIER_ITEM = BikesArePain.ITEMS.register("float_on_water_modifier", () ->
             new Item(
-                new Item.Properties()
-                        .stacksTo(1)
-                        .rarity(Rarity.EPIC)
-                        .arch$tab(ItemManager.BIKES_MOD_TAB)
-        )
+                    new Item.Properties()
+                            .stacksTo(1)
+                            .rarity(Rarity.EPIC)
+                            .arch$tab(ItemManager.BIKES_MOD_TAB)
+            )
     );
 
 
-    public static void init() {
-        BikesArePain.TABS.register();
-        BikesArePain.ITEMS.register();
-    }
+
 
 }

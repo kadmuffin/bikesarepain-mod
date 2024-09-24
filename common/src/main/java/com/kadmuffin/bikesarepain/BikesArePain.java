@@ -84,7 +84,8 @@ public final class BikesArePain {
                                                                                                                                     ), source.getPlayer(), source.getPlayer().level());
 
                                                                                                                                     return 1;
-                                                                                                                                } catch (Exception e) {
+                                                                                                                                } catch (
+                                                                                                                                        Exception e) {
                                                                                                                                     System.out.println("Error: " + e);
                                                                                                                                     return 0;
                                                                                                                                 }

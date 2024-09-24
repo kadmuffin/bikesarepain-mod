@@ -21,46 +21,6 @@ import static com.kadmuffin.bikesarepain.BikesArePain.MOD_ID;
 public final class BikesArePainNeoForge {
     private SerialReader reader;
 
-    private RequiredArgumentBuilder<ClientCommandRegistrationEvent.ClientCommandSourceStack, Float> setScale(ClientConfig.ApplyScaleTo applyTo) {
-        return ClientCommandRegistrationEvent.argument("scale1", FloatArgumentType.floatArg(
-                        0.01F,
-                        50F
-                ))
-                .then(ClientCommandRegistrationEvent.literal("block")
-                        .then(ClientCommandRegistrationEvent.literal("is")
-                                .then(ClientCommandRegistrationEvent.argument("scale2", FloatArgumentType.floatArg(
-                                                        0.01F,
-                                                        50F
-                                                ))
-                                                .then(ClientCommandRegistrationEvent.literal("meter")
-                                                        .executes(context -> {
-                                                            float scale1 = FloatArgumentType.getFloat(context, "scale1");
-                                                            float scale2 = FloatArgumentType.getFloat(context, "scale2");
-                                                            ClientConfig.CONFIG.instance().setScale(scale1, scale2, applyTo);
-                                                            context.getSource().arch$sendSuccess(() -> Component.literal("Set scale factor"), false);
-                                                            return 1;
-                                                        })
-                                                )
-                                )
-                        )
-                )
-
-                .then(ClientCommandRegistrationEvent.literal("meter")
-                        .then(ClientCommandRegistrationEvent.argument("scale2", FloatArgumentType.floatArg(
-                                            0.01F,
-                                            50F
-                                        ))
-                                        .executes(context -> {
-                                            float scale1 = FloatArgumentType.getFloat(context, "scale1");
-                                            float scale2 = FloatArgumentType.getFloat(context, "scale2");
-                                            ClientConfig.CONFIG.instance().setScale(scale1, scale2, applyTo);
-                                            context.getSource().arch$sendSuccess(() -> Component.literal("Set scale factor"), false);
-                                            return 1;
-                                        })
-                        )
-                );
-    }
-
     public BikesArePainNeoForge() {
         // Run our common setup.
         BikesArePain.init();
@@ -153,55 +113,95 @@ public final class BikesArePainNeoForge {
                                     return 1;
                                 })
                         )
-                                .then(ClientCommandRegistrationEvent.literal("scale")
-                                        .then(ClientCommandRegistrationEvent.literal("set")
-                                                .then(
-                                                        ClientCommandRegistrationEvent.literal("all").then(
-                                                                setScale(ClientConfig.ApplyScaleTo.BOTH)
-                                                        )
+                        .then(ClientCommandRegistrationEvent.literal("scale")
+                                .then(ClientCommandRegistrationEvent.literal("set")
+                                        .then(
+                                                ClientCommandRegistrationEvent.literal("all").then(
+                                                        setScale(ClientConfig.ApplyScaleTo.BOTH)
                                                 )
-                                                .then(
-                                                        ClientCommandRegistrationEvent.literal("wheel").then(
-                                                                setScale(ClientConfig.ApplyScaleTo.WHEEL)
-                                                        )
-                                                )
-                                                .then(
-                                                        ClientCommandRegistrationEvent.literal("speed").then(
-                                                                setScale(ClientConfig.ApplyScaleTo.SPEED)
-                                                        )
-                                                )
-                                        ).then(
-                                                ClientCommandRegistrationEvent.literal("get")
-                                                        .then(ClientCommandRegistrationEvent.literal("scale")
-                                                                .executes(context -> {
-                                                                    context.getSource().arch$sendSuccess(() -> Component.literal(ClientConfig.CONFIG.instance().getScaleRatiosString()), false);
-                                                                    return 1;
-                                                                })
-                                                        )
                                         )
+                                        .then(
+                                                ClientCommandRegistrationEvent.literal("wheel").then(
+                                                        setScale(ClientConfig.ApplyScaleTo.WHEEL)
+                                                )
+                                        )
+                                        .then(
+                                                ClientCommandRegistrationEvent.literal("speed").then(
+                                                        setScale(ClientConfig.ApplyScaleTo.SPEED)
+                                                )
+                                        )
+                                ).then(
+                                        ClientCommandRegistrationEvent.literal("get")
+                                                .then(ClientCommandRegistrationEvent.literal("scale")
+                                                        .executes(context -> {
+                                                            context.getSource().arch$sendSuccess(() -> Component.literal(ClientConfig.CONFIG.instance().getScaleRatiosString()), false);
+                                                            return 1;
+                                                        })
+                                                )
                                 )
-                                        .then(ClientCommandRegistrationEvent.literal("unit")
-                                                .then(ClientCommandRegistrationEvent.literal("imperial")
-                                                        .executes(context -> {
-                                                            ClientConfig.CONFIG.instance().setImperial(true);
-                                                            ClientConfig.CONFIG.save();
-                                                            context.getSource().arch$sendSuccess(() -> Component.literal("Set unit system to imperial"), false);
-                                                            return 1;
-                                                        })
-                                                )
-                                                .then(ClientCommandRegistrationEvent.literal("metric")
-                                                        .executes(context -> {
-                                                            ClientConfig.CONFIG.instance().setImperial(false);
-                                                            ClientConfig.CONFIG.save();
-                                                            context.getSource().arch$sendSuccess(() -> Component.literal("Set unit system to metric"), false);
-                                                            return 1;
-                                                        })
-                                                )
-                                        );
+                        )
+                        .then(ClientCommandRegistrationEvent.literal("unit")
+                                .then(ClientCommandRegistrationEvent.literal("imperial")
+                                        .executes(context -> {
+                                            ClientConfig.CONFIG.instance().setImperial(true);
+                                            ClientConfig.CONFIG.save();
+                                            context.getSource().arch$sendSuccess(() -> Component.literal("Set unit system to imperial"), false);
+                                            return 1;
+                                        })
+                                )
+                                .then(ClientCommandRegistrationEvent.literal("metric")
+                                        .executes(context -> {
+                                            ClientConfig.CONFIG.instance().setImperial(false);
+                                            ClientConfig.CONFIG.save();
+                                            context.getSource().arch$sendSuccess(() -> Component.literal("Set unit system to metric"), false);
+                                            return 1;
+                                        })
+                                )
+                        );
 
                 dispatcher.register(command);
             });
         }
+    }
+
+    private RequiredArgumentBuilder<ClientCommandRegistrationEvent.ClientCommandSourceStack, Float> setScale(ClientConfig.ApplyScaleTo applyTo) {
+        return ClientCommandRegistrationEvent.argument("scale1", FloatArgumentType.floatArg(
+                        0.01F,
+                        50F
+                ))
+                .then(ClientCommandRegistrationEvent.literal("block")
+                        .then(ClientCommandRegistrationEvent.literal("is")
+                                .then(ClientCommandRegistrationEvent.argument("scale2", FloatArgumentType.floatArg(
+                                                        0.01F,
+                                                        50F
+                                                ))
+                                                .then(ClientCommandRegistrationEvent.literal("meter")
+                                                        .executes(context -> {
+                                                            float scale1 = FloatArgumentType.getFloat(context, "scale1");
+                                                            float scale2 = FloatArgumentType.getFloat(context, "scale2");
+                                                            ClientConfig.CONFIG.instance().setScale(scale1, scale2, applyTo);
+                                                            context.getSource().arch$sendSuccess(() -> Component.literal("Set scale factor"), false);
+                                                            return 1;
+                                                        })
+                                                )
+                                )
+                        )
+                )
+
+                .then(ClientCommandRegistrationEvent.literal("meter")
+                        .then(ClientCommandRegistrationEvent.argument("scale2", FloatArgumentType.floatArg(
+                                                0.01F,
+                                                50F
+                                        ))
+                                        .executes(context -> {
+                                            float scale1 = FloatArgumentType.getFloat(context, "scale1");
+                                            float scale2 = FloatArgumentType.getFloat(context, "scale2");
+                                            ClientConfig.CONFIG.instance().setScale(scale1, scale2, applyTo);
+                                            context.getSource().arch$sendSuccess(() -> Component.literal("Set scale factor"), false);
+                                            return 1;
+                                        })
+                        )
+                );
     }
 
 

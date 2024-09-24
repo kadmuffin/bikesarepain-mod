@@ -43,65 +43,9 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public abstract class AbstractBike extends AbstractHorse implements PlayerRideableJumping, Saddleable {
-    protected boolean jumping;
-
-    private boolean saveTime = false;
-    private boolean saveDistance = false;
-
-    public float clientOnlyBikePitch = 0.0F;
-    private float rearWheelSpeed = 0.0F;
-
-    private BlockPos lastPos = null;
-
-    public static class RotationData {
-        public float rotation;
-        public long lastUpdated;
-
-        public RotationData() {
-            this.rotation = 0;
-            this.lastUpdated = 0;
-        }
-
-        public RotationData(float rotation, long lastUpdated) {
-            this.rotation = rotation;
-            this.lastUpdated = lastUpdated;
-        }
-
-        public void setRotation(float rotation) {
-            this.rotation = rotation;
-            this.lastUpdated = System.currentTimeMillis();
-        }
-
-        public float getRotation() {
-            return this.rotation;
-        }
-
-        // Recalculates if needed, updates the last value and returns the new value
-        public float reCalculateIfOld(Supplier<Float> valueSupplier, float originalForNoInterpolation) {
-            if (ClientConfig.CONFIG.instance().useInterpolation()) {
-                float maxTimePerFrameMs = Minecraft.getInstance().getFps() / 1000.0f;
-                if (System.currentTimeMillis() - this.lastUpdated > maxTimePerFrameMs) {
-                    this.setRotation(valueSupplier.get());
-                }
-                return this.rotation;
-            }
-
-            return originalForNoInterpolation;
-        }
-    }
-
-    // Store already computed rotations for:
-    // backWheelRotation
-    // steeringYaw
-    // tilt
-    // and when the frame it was last updated
-    public final Map<String, RotationData> rotations = new HashMap<>();
-
-
     // Let devs add event listener for when the bike is moving
     // This is a list storing those lambdas
     private static final List<TriConsumer<AbstractBike, Float, Boolean>> onMoveListeners = new ArrayList<>();
-
     // Entity Data
     private static final EntityDataAccessor<Float> SYNCED_BIKE_PITCH = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> BLOCKS_TRAVELLED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
@@ -116,8 +60,18 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private static final EntityDataAccessor<Float> INTERNAL_SPEED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> BRAKING = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> HEALTH_AFF_SPEED = SynchedEntityData.defineId(AbstractBike.class, EntityDataSerializers.BOOLEAN);
-
-
+    // Store already computed rotations for:
+    // backWheelRotation
+    // steeringYaw
+    // tilt
+    // and when the frame it was last updated
+    public final Map<String, RotationData> rotations = new HashMap<>();
+    public float clientOnlyBikePitch = 0.0F;
+    protected boolean jumping;
+    private boolean saveTime = false;
+    private boolean saveDistance = false;
+    private float rearWheelSpeed = 0.0F;
+    private BlockPos lastPos = null;
     protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level);
         this.rotations.put("backWheelRotation", new RotationData());
@@ -132,6 +86,28 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 .add(Attributes.MOVEMENT_SPEED, 0.22499999403953552)
                 .add(Attributes.FALL_DAMAGE_MULTIPLIER, 0.7D)
                 .add(Attributes.JUMP_STRENGTH, 0.5D);
+    }
+
+    public static EntityDataAccessor<Boolean> getHasChest() {
+        return HAS_CHEST;
+    }
+
+    /**
+     * Adds a listener for when the bike is moving
+     *
+     * @param listener A lambda that takes the bike, the speed in meters per tick and if the bike is moving forward
+     */
+    public static void addOnMoveListener(TriConsumer<AbstractBike, Float, Boolean> listener) {
+        onMoveListeners.add(listener);
+    }
+
+    /**
+     * Removes a listener for when the bike is moving
+     *
+     * @param listener The listener to remove
+     */
+    public static void removeOnMoveListener(TriConsumer<AbstractBike, Float, Boolean> listener) {
+        onMoveListeners.remove(listener);
     }
 
     @Override
@@ -184,10 +160,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return super.getControllingPassenger();
     }
 
-    public static EntityDataAccessor<Boolean> getHasChest() {
-        return HAS_CHEST;
-    }
-
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new BikeBondWithPlayerGoal(this, 1.3));
@@ -204,10 +176,12 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     }
 
     @Override
-    public void heal(float healAmount) {}
+    public void heal(float healAmount) {
+    }
 
     @Override
-    protected void followMommy() {}
+    protected void followMommy() {
+    }
 
     @Override
     public boolean canEatGrass() {
@@ -250,7 +224,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return super.getDismountLocationForPassenger(passenger);
     }
 
-
     @Override
     public @NotNull InteractionResult mobInteract(Player player, InteractionHand hand) {
         if (!this.getPassengers().isEmpty() && !this.canAddPassenger(player)) {
@@ -276,19 +249,19 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
         if (showRays) {
             float particleScale = 0.2F * this.getModelScalingFactor();
-            this.level().addParticle(new DustParticleOptions(new Vector3f(255F,0F,0F), particleScale), frontWheel.x, frontWheel.y, frontWheel.z, 0, 0, 0);
-            this.level().addParticle(new DustParticleOptions(new Vector3f(0F,0F,255F), particleScale), backWheel.x, backWheel.y, backWheel.z, 0, 0, 0);
+            this.level().addParticle(new DustParticleOptions(new Vector3f(255F, 0F, 0F), particleScale), frontWheel.x, frontWheel.y, frontWheel.z, 0, 0, 0);
+            this.level().addParticle(new DustParticleOptions(new Vector3f(0F, 0F, 255F), particleScale), backWheel.x, backWheel.y, backWheel.z, 0, 0, 0);
 
             if (rayFront.getType() == HitResult.Type.BLOCK) {
-                this.level().addParticle(new DustParticleOptions(new Vector3f(0F,255F,0F), particleScale), rayFrontPos.x, rayFrontPos.y, rayFrontPos.z, 0, 0, 0);
+                this.level().addParticle(new DustParticleOptions(new Vector3f(0F, 255F, 0F), particleScale), rayFrontPos.x, rayFrontPos.y, rayFrontPos.z, 0, 0, 0);
             } else {
-                this.level().addParticle(new DustParticleOptions(new Vector3f(255F,255F,0F), particleScale), rayFrontPos.x, rayFrontPos.y, rayFrontPos.z, 0, 0, 0);
+                this.level().addParticle(new DustParticleOptions(new Vector3f(255F, 255F, 0F), particleScale), rayFrontPos.x, rayFrontPos.y, rayFrontPos.z, 0, 0, 0);
             }
 
             if (rayBack.getType() == HitResult.Type.BLOCK) {
-                this.level().addParticle(new DustParticleOptions(new Vector3f(0F,255F,0F), particleScale), rayBackPos.x, rayBackPos.y, rayBackPos.z, 0, 0, 0);
+                this.level().addParticle(new DustParticleOptions(new Vector3f(0F, 255F, 0F), particleScale), rayBackPos.x, rayBackPos.y, rayBackPos.z, 0, 0, 0);
             } else {
-                this.level().addParticle(new DustParticleOptions(new Vector3f(255F,255F,0F), particleScale), rayBackPos.x, rayBackPos.y, rayBackPos.z, 0, 0, 0);
+                this.level().addParticle(new DustParticleOptions(new Vector3f(255F, 255F, 0F), particleScale), rayBackPos.x, rayBackPos.y, rayBackPos.z, 0, 0, 0);
             }
         }
 
@@ -312,7 +285,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             // Front wheel on ground, back wheel in air
             newRadiansPitch = (float) Math.atan2(distanceBack, frontWheel.distanceTo(backWheel));
         } else {
-            newRadiansPitch += (float) (this.getSpeed()*0.5F*Math.PI);
+            newRadiansPitch += (float) (this.getSpeed() * 0.5F * Math.PI);
         }
 
         return newRadiansPitch;
@@ -384,9 +357,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             if (!this.isSaddled()) {
                 if (this.getSpeed() > 0.05F) {
                     // HUrt value that goes in 0.5 steps
-                    float hurtAmount = Math.round(this.getSpeed()*5F / 0.5F) * 0.5F;
+                    float hurtAmount = Math.round(this.getSpeed() * 5F / 0.5F) * 0.5F;
 
-                    if (hurtAmount>0 && this.random.nextInt(100) < 10 * hurtAmount) {
+                    if (hurtAmount > 0 && this.random.nextInt(100) < 10 * hurtAmount) {
                         playerEntity.hurt(new DamageSources(this.registryAccess()).sting(this), hurtAmount);
                     }
                 }
@@ -396,7 +369,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 BlockPos currentPos = new BlockPos((int) this.getX(), (int) this.getY(), (int) this.getZ());
 
                 if (this.getSpeed() > 0.05F && this.isSavingDistance() && (this.lastPos == null || !this.lastPos.equals(currentPos))) {
-                    this.setBlocksTravelled(this.getBlocksTravelled()+this.getSpeed() / this.getWheelRadius());
+                    this.setBlocksTravelled(this.getBlocksTravelled() + this.getSpeed() / this.getWheelRadius());
                     this.lastPos = currentPos;
                 }
             }
@@ -451,7 +424,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                     damage = entity.getBbWidth() * entity.getBbHeight() * originalDamage;
 
                     // Do a random change of the bike getting damaged
-                    if (this.random.nextInt(100) < 25* damage) {
+                    if (this.random.nextInt(100) < 25 * damage) {
                         this.hurt(new DamageSources(this.registryAccess()).sting(this), damage);
                     }
                 });
@@ -486,7 +459,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         if (!this.level().isClientSide()) {
             this.setLastRotY(controllingPassenger.getYRot());
         }
-        return this.updateRotations(new Vec2(controllingPassenger.getXRot()*0.5F, controllingPassenger.getYRot()));
+        return this.updateRotations(new Vec2(controllingPassenger.getXRot() * 0.5F, controllingPassenger.getYRot()));
     }
 
     public void updateMovement(float sideways, float forward) {
@@ -504,7 +477,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 this.getSteeringYaw() / this.getMaxSteeringAngle() * 0.5F
         ) * this.getSpeed() * 1.4F : 0;
 
-        this.getCenterMass().setPlayerOffset(new Vector3d(f + steerInf,0,0));
+        this.getCenterMass().setPlayerOffset(new Vector3d(f + steerInf, 0, 0));
 
         // Rotate the wheels based on our speed knowing that
         // the g is a magnitude in blocks
@@ -544,12 +517,12 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             }
         }
         if (!isJSerialCommActive) {
-            rotation = (g * this.getMaxPedalAnglePerSecond())/20F;
+            rotation = (g * this.getMaxPedalAnglePerSecond()) / 20F;
             movSpeed = rotation * this.getWheelRadius();
         }
 
         if (this.isBraking() && this.onGround()) {
-            lastSpeed = (float) (lastSpeed * Math.exp(-this.getBrakeMultiplier()*0.25F));
+            lastSpeed = (float) (lastSpeed * Math.exp(-this.getBrakeMultiplier() * 0.25F));
             if (lastSpeed > 0F) {
                 this.playBrakeSound();
                 BlockPos floorPos = this.blockPosition().below();
@@ -582,7 +555,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 ParticleOptions particle = new BlockParticleOption(ParticleTypes.BLOCK, floorState);
 
                 // Add particles to the front and back wheel
-                for (int i = 0; i < amount*2; i++) {
+                for (int i = 0; i < amount * 2; i++) {
                     this.level().addParticle(particle, this.getX() + frontWheelParticlePos.x, this.getY() + frontWheelParticlePos.y, this.getZ() + frontWheelParticlePos.z, 0, 0, 0);
                     this.level().addParticle(particle, this.getX() + backWheelParticlePos.x, this.getY() + backWheelParticlePos.y, this.getZ() + backWheelParticlePos.z, 0, 0, 0);
                 }
@@ -604,7 +577,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         // Correct for model's usage of pitch calculation
         float pitch = -this.getSyncedPitch();
         if (Math.abs(pitch) > 0.05F) {
-            gravityAcceleration = (float) (Math.sin(pitch) * this.getGravity())*0.25F;
+            gravityAcceleration = (float) (Math.sin(pitch) * this.getGravity()) * 0.25F;
             float maxGravityAcc = 0.1F;
             gravityAcceleration = Math.max(-maxGravityAcc, Math.min(maxGravityAcc, gravityAcceleration));
         }
@@ -621,7 +594,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             float acceleration = (movSpeed - lastSpeed) * (1.15F - this.inertiaFactor());
             movSpeed = lastSpeed + acceleration + gravityAcceleration;
         }
-        final float maxSpeed = this.level().getGameRules().getRule(GameRuleManager.MAX_BIKE_SPEED).get()/20F;
+        final float maxSpeed = this.level().getGameRules().getRule(GameRuleManager.MAX_BIKE_SPEED).get() / 20F;
         movSpeed = Math.clamp(movSpeed, -maxSpeed, maxSpeed);
 
         rotation = movSpeed / this.getWheelRadius();
@@ -632,7 +605,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.setBackWheelRotation(Utils.wrapRotation(backWheelRotation));
 
         // Calculate the tilt of the bike
-        float newTilt = (float) (Math.PI/2 + this.getCenterMass().calculateRollAngle());
+        float newTilt = (float) (Math.PI / 2 + this.getCenterMass().calculateRollAngle());
         newTilt = Math.clamp(newTilt, -this.getMaxTiltAngle(), this.getMaxTiltAngle());
 
         float tilt = this.getTilt();
@@ -661,20 +634,45 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     protected abstract @NotNull Vec3 getPassengerAttachmentPoint(Entity passenger, EntityDimensions dimensions, float scaleFactor);
 
     // Getters and Setters
-    public float getTilt() { return this.entityData.get(TILT);}
-    public void setTilt(float tilt) { this.entityData.set(TILT, tilt);}
+    public float getTilt() {
+        return this.entityData.get(TILT);
+    }
 
-    public float getSteeringYaw() { return this.entityData.get(STEERING_YAW);}
-    public void setSteeringYaw(float steeringYaw) { this.entityData.set(STEERING_YAW, steeringYaw);}
+    public void setTilt(float tilt) {
+        this.entityData.set(TILT, tilt);
+    }
 
-    public float getBackWheelRotation() { return this.entityData.get(BACKWHEEL_ROTATION);}
-    public void setBackWheelRotation(float backWheelRotation) { this.entityData.set(BACKWHEEL_ROTATION, backWheelRotation);}
+    public float getSteeringYaw() {
+        return this.entityData.get(STEERING_YAW);
+    }
 
-    public float getFrontWheelRotation() { return this.entityData.get(FRONWHEEL_ROTATION);}
-    public void setFrontWheelRotation(float frontWheelRotation) { this.entityData.set(FRONWHEEL_ROTATION, frontWheelRotation);}
+    public void setSteeringYaw(float steeringYaw) {
+        this.entityData.set(STEERING_YAW, steeringYaw);
+    }
 
-    public float getLastSpeed() { return this.entityData.get(LAST_SPEED);}
-    public void setLastSpeed(float lastSpeed) { this.entityData.set(LAST_SPEED, lastSpeed);}
+    public float getBackWheelRotation() {
+        return this.entityData.get(BACKWHEEL_ROTATION);
+    }
+
+    public void setBackWheelRotation(float backWheelRotation) {
+        this.entityData.set(BACKWHEEL_ROTATION, backWheelRotation);
+    }
+
+    public float getFrontWheelRotation() {
+        return this.entityData.get(FRONWHEEL_ROTATION);
+    }
+
+    public void setFrontWheelRotation(float frontWheelRotation) {
+        this.entityData.set(FRONWHEEL_ROTATION, frontWheelRotation);
+    }
+
+    public float getLastSpeed() {
+        return this.entityData.get(LAST_SPEED);
+    }
+
+    public void setLastSpeed(float lastSpeed) {
+        this.entityData.set(LAST_SPEED, lastSpeed);
+    }
 
     public float getSpeedHealthMul(float healthRatio) {
         return 0.85F;
@@ -687,13 +685,22 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public float getInternalSpeed() {
         return this.entityData.get(INTERNAL_SPEED);
     }
-    public void setInternalSpeed(float internalSpeed) { this.entityData.set(INTERNAL_SPEED, internalSpeed);}
 
-    public boolean isBraking() { return this.entityData.get(BRAKING);}
-    public void setBraking(boolean braking) { this.entityData.set(BRAKING, braking);}
+    public void setInternalSpeed(float internalSpeed) {
+        this.entityData.set(INTERNAL_SPEED, internalSpeed);
+    }
+
+    public boolean isBraking() {
+        return this.entityData.get(BRAKING);
+    }
+
+    public void setBraking(boolean braking) {
+        this.entityData.set(BRAKING, braking);
+    }
 
     /**
      * Gets the speed of the rear wheel in Revolutions per tick
+     *
      * @return The speed of the rear wheel in Revolutions per tick
      */
     public float getRearWheelSpeed() {
@@ -707,28 +714,43 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     // These define the bike's physical properties
     public abstract CenterMass getCenterMass();
+
     public abstract float getMaxTiltAngle();
+
     public abstract float getMaxSteeringAngle();
+
     public abstract Vec3 getModelSize();
+
     public abstract float getMaxPedalAnglePerSecond();
+
     public abstract float getMaxTurnRate();
+
     public abstract float getTurnScalingFactor();
+
     public abstract float inertiaFactor();
+
     public abstract float getPedalMultiplier();
+
     public abstract float getBrakeMultiplier();
+
     public abstract void playBrakeSound();
+
     public abstract Vec3 getFrontWheelPos();
+
     public abstract Vec3 getFrontPivotPos();
+
     public abstract Vec3 getBackWheelPos();
 
     /**
      * Gets the radius of the wheel in meters (where 1 block = 1 meter)
+     *
      * @return The radius of the wheel in meters
      */
     public abstract float getWheelRadius();
 
     /**
      * The real size of the wheel in the model, that is later scaled to `getWheelRadius()`
+     *
      * @return The real size of the wheel in the model (in blocks)
      */
     public abstract float getModelWheelRadius();
@@ -739,7 +761,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     }
 
     public float getTheoreticalMaxSpeed() {
-        return (this.getMaxPedalAnglePerSecond()/20F) * this.getWheelRadius();
+        return (this.getMaxPedalAnglePerSecond() / 20F) * this.getWheelRadius();
     }
 
     public void actuallyHeal(float healAmount) {
@@ -898,25 +920,46 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return this.entityData.get(SYNCED_BIKE_PITCH);
     }
 
+    // Event listeners
+
     public void setSyncedPitch(float pitch) {
         this.entityData.set(SYNCED_BIKE_PITCH, pitch);
     }
 
-    // Event listeners
+    public static class RotationData {
+        public float rotation;
+        public long lastUpdated;
 
-    /**
-     * Adds a listener for when the bike is moving
-     * @param listener A lambda that takes the bike, the speed in meters per tick and if the bike is moving forward
-     */
-    public static void addOnMoveListener(TriConsumer<AbstractBike, Float, Boolean> listener) {
-        onMoveListeners.add(listener);
-    }
+        public RotationData() {
+            this.rotation = 0;
+            this.lastUpdated = 0;
+        }
 
-    /**
-     * Removes a listener for when the bike is moving
-     * @param listener The listener to remove
-     */
-    public static void removeOnMoveListener(TriConsumer<AbstractBike, Float, Boolean> listener) {
-        onMoveListeners.remove(listener);
+        public RotationData(float rotation, long lastUpdated) {
+            this.rotation = rotation;
+            this.lastUpdated = lastUpdated;
+        }
+
+        public float getRotation() {
+            return this.rotation;
+        }
+
+        public void setRotation(float rotation) {
+            this.rotation = rotation;
+            this.lastUpdated = System.currentTimeMillis();
+        }
+
+        // Recalculates if needed, updates the last value and returns the new value
+        public float reCalculateIfOld(Supplier<Float> valueSupplier, float originalForNoInterpolation) {
+            if (ClientConfig.CONFIG.instance().useInterpolation()) {
+                float maxTimePerFrameMs = Minecraft.getInstance().getFps() / 1000.0f;
+                if (System.currentTimeMillis() - this.lastUpdated > maxTimePerFrameMs) {
+                    this.setRotation(valueSupplier.get());
+                }
+                return this.rotation;
+            }
+
+            return originalForNoInterpolation;
+        }
     }
 }

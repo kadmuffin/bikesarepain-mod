@@ -17,6 +17,43 @@ import org.jetbrains.annotations.NotNull;
 import static com.kadmuffin.bikesarepain.BikesArePain.MOD_ID;
 
 public class PacketManager {
+    public static void processArduinoData(ArduinoData packet, Player player, Level level) {
+        PlayerAccessor playerAcc = ((PlayerAccessor) player);
+
+        final float scaleFactorWheel = packet.scaleFactorWheel;
+        final float scaleFactorSpeed = packet.scaleFactorSpeed;
+
+        final float maxWheelSize = level.getGameRules().getRule(GameRuleManager.MAX_BIKE_WHEEL_SIZE).get();
+        final float minWheelSize = level.getGameRules().getRule(GameRuleManager.MIN_BIKE_WHEEL_SIZE).get() / 100F;
+
+        float wheelSize = packet.wheelRadius * scaleFactorWheel;
+        wheelSize = Math.min(maxWheelSize, Math.max(minWheelSize, wheelSize));
+
+        playerAcc.bikesarepain$setJSCActive(packet.enabled);
+        playerAcc.bikesarepain$setJSCSpeed(packet.speed * scaleFactorSpeed);
+        playerAcc.bikesarepain$setJSCWheelRadius(wheelSize);
+
+        playerAcc.bikesarepain$setJSCRealSpeed(packet.scaledSpeed);
+        playerAcc.bikesarepain$setJSCDistance(packet.distanceMoved);
+        playerAcc.bikesarepain$setJSCCalories(packet.kcalories);
+
+        playerAcc.bikesarepain$setJSCSinceUpdate(0);
+    }
+
+    public static void init() {
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeypressPacket.TYPE, KeypressPacket.CODEC, KeypressPacket.RECEIVER);
+        NetworkManager.registerReceiver(
+                NetworkManager.c2s(),
+                PacketManager.ArduinoData.TYPE,
+                PacketManager.ArduinoData.CODEC,
+                PacketManager.ArduinoData.RECEIVER);
+        NetworkManager.registerReceiver(
+                NetworkManager.c2s(),
+                PacketManager.EmptyArduinoData.TYPE,
+                PacketManager.EmptyArduinoData.CODEC,
+                PacketManager.EmptyArduinoData.RECEIVER);
+    }
+
     public enum KeyPress {
         RING_BELL(0),
         BRAKE(1),
@@ -37,7 +74,7 @@ public class PacketManager {
             return null;
         }
 
-       // Get the type of the keypress
+        // Get the type of the keypress
         public int getType() {
             return type;
         }
@@ -110,7 +147,7 @@ public class PacketManager {
 
         public static final NetworkManager.NetworkReceiver<EmptyArduinoData> RECEIVER = (packet, context) -> {
             Player player = context.getPlayer();
-            if (player != null){
+            if (player != null) {
                 if (player.getVehicle() instanceof AbstractBike) {
                     PlayerAccessor playerAcc = ((PlayerAccessor) player);
                     playerAcc.bikesarepain$setJSCActive(packet.enabled);
@@ -129,30 +166,9 @@ public class PacketManager {
         }
     }
 
-    public static void processArduinoData(ArduinoData packet, Player player, Level level) {
-        PlayerAccessor playerAcc = ((PlayerAccessor) player);
-
-        final float scaleFactorWheel = packet.scaleFactorWheel;
-        final float scaleFactorSpeed = packet.scaleFactorSpeed;
-
-        final float maxWheelSize = level.getGameRules().getRule(GameRuleManager.MAX_BIKE_WHEEL_SIZE).get();
-        final float minWheelSize = level.getGameRules().getRule(GameRuleManager.MIN_BIKE_WHEEL_SIZE).get()/100F;
-
-        float wheelSize = packet.wheelRadius * scaleFactorWheel;
-        wheelSize = Math.min(maxWheelSize, Math.max(minWheelSize, wheelSize));
-
-        playerAcc.bikesarepain$setJSCActive(packet.enabled);
-        playerAcc.bikesarepain$setJSCSpeed(packet.speed * scaleFactorSpeed);
-        playerAcc.bikesarepain$setJSCWheelRadius(wheelSize);
-
-        playerAcc.bikesarepain$setJSCRealSpeed(packet.scaledSpeed);
-        playerAcc.bikesarepain$setJSCDistance(packet.distanceMoved);
-        playerAcc.bikesarepain$setJSCCalories(packet.kcalories);
-
-        playerAcc.bikesarepain$setJSCSinceUpdate(0);
-    }
-
-    public record ArduinoData(boolean enabled, float speed, float scaledSpeed, float distanceMoved, float kcalories, float wheelRadius, float scaleFactorWheel, float scaleFactorSpeed) implements CustomPacketPayload {
+    public record ArduinoData(boolean enabled, float speed, float scaledSpeed, float distanceMoved, float kcalories,
+                              float wheelRadius, float scaleFactorWheel,
+                              float scaleFactorSpeed) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<ArduinoData> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "arduino_data"));
         public static final StreamCodec<RegistryFriendlyByteBuf, ArduinoData> CODEC = StreamCodec.of(
                 (buf, obj) -> {
@@ -169,7 +185,7 @@ public class PacketManager {
         );
         public static final NetworkManager.NetworkReceiver<ArduinoData> RECEIVER = (packet, context) -> {
             Player player = context.getPlayer();
-            if (player != null){
+            if (player != null) {
                 if (player.getVehicle() instanceof AbstractBike bike) {
                     // Scale factor is controlled by the player by running
                     // /bikes scale set <factor1> block is <factor2> meter
@@ -209,19 +225,5 @@ public class PacketManager {
         public @NotNull Type<? extends CustomPacketPayload> type() {
             return TYPE;
         }
-    }
-
-    public static void init() {
-        NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeypressPacket.TYPE, KeypressPacket.CODEC, KeypressPacket.RECEIVER);
-        NetworkManager.registerReceiver(
-                NetworkManager.c2s(),
-                PacketManager.ArduinoData.TYPE,
-                PacketManager.ArduinoData.CODEC,
-                PacketManager.ArduinoData.RECEIVER);
-        NetworkManager.registerReceiver(
-                NetworkManager.c2s(),
-                PacketManager.EmptyArduinoData.TYPE,
-                PacketManager.EmptyArduinoData.CODEC,
-                PacketManager.EmptyArduinoData.RECEIVER);
     }
 }

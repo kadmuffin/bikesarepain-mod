@@ -90,7 +90,7 @@ public class TooltipManager {
                 }
 
                 lines.add(2, Component.translatable("item.bikesarepain.bicycle.tooltip.health")
-                                .withColor(CommonColors.GRAY)
+                        .withColor(CommonColors.GRAY)
                         .append(Component.literal(durabilityPercentage + "%")
                                 .withStyle(durabilityPercentage == 100 ? net.minecraft.ChatFormatting.GREEN
                                         : durabilityPercentage > 75 ? net.minecraft.ChatFormatting.DARK_GREEN

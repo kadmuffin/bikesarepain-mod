@@ -32,7 +32,7 @@ subprojects {
 
     jar {
         from(rootProject.projectDir) {
-            include 'LICENSE.md', 'NOTICE.md'
+            include 'LICENSE.md', 'NOTICE.md', 'README.md'
             rename { filename -> "${filename.replace('.md', '')}_${rootProject.archives_name}.md" }
             into '/'
         }

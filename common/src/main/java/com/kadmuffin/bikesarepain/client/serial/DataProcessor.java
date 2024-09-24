@@ -266,6 +266,7 @@ public class DataProcessor {
 
     public void autoAggregateData() {
         if (dataPoints.isEmpty()) return;
+        if (dataPoints.size() < 10) return;
 
         long startTime = dataPoints.getFirst().timestamp;
         long endTime = dataPoints.getLast().timestamp;
@@ -292,7 +293,7 @@ public class DataProcessor {
         // Now calculate average speed
         this.speedAvgQueue.add(speed);
         this.sumSpeed += speed;
-        if (speedAvgQueue.size() > 3) {
+        if (speedAvgQueue.size() > 2) {
             sumSpeed -= speedAvgQueue.poll();
         }
 
@@ -305,8 +306,8 @@ public class DataProcessor {
         // Round to last two decimal places
         avgSpeed = (float) (Math.round(avgSpeed * 100.0) / 100.0);
 
-        double distance = speed * triggerTimeHours * 1000;
-        double calories = ClientConfig.CONFIG.instance().calculateCalories(speed, triggerTimeHours);
+        double distance = avgSpeed * triggerTimeHours * 1000;
+        double calories = ClientConfig.CONFIG.instance().calculateCalories(avgSpeed, triggerTimeHours);
 
         this.totalDistance += distance;
         this.totalCalories += calories;
@@ -314,7 +315,7 @@ public class DataProcessor {
         long timestamp = System.currentTimeMillis();
 
         DataPoint point = new DataPoint(timestamp, avgSpeed, distance, calories);
-        boolean somethingChanged = point.isEquals(dataPoints.getLast());
+        boolean somethingChanged = (dataPoints.isEmpty() || point.speed != avgSpeed);
         dataPoints.add(point);
 
         // Notify listeners

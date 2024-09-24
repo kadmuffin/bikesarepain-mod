@@ -43,7 +43,8 @@ public class SerialReader {
 
             try {
                 float speed = Float.parseFloat(pieces[0]);
-                double triggerTimeHours = Double.parseDouble(pieces[1]);
+                // pieces[1] is in miliseconds, convert to hours
+                double triggerTimeHours = Double.parseDouble(pieces[1]) / 3600000;
                 float wheelRadius = Float.parseFloat(pieces[2]);
 
                 for (TriConsumer<Float,Double,Float> listener : listeners) {

@@ -46,7 +46,7 @@ float speed = 0;                             // Current speed of the bike in km/
 // So, unless the time between the last HIGH value and the current HIGH value is greater than 50ms, I ignore it
 // This is something I fine-tuned in my bike, it might be different for you
 // Though most likely it is not necessary to change this value
-const int DEBOUNCE_THRESHOLD_MS = 50;  // Minimum time between triggers to count as valid
+const int DEBOUNCE_THRESHOLD_MS = 60;  // Minimum time between triggers to count as valid
 
 // This is something I also fine-tuned in my bike
 // I tried a high value like 2000ms, then after pedaling and viewing the bike moving
@@ -73,12 +73,13 @@ void loop() {
   if (currentTime - lastTriggerTime > STOP_THRESHOLD_MS && timeSinceLastTrigger > STOP_THRESHOLD_MS) {
      // Negative one will make the mod skip that value.
      Serial.print('#');
-     Serial.print("0.00;-1.00;-1.00");
+     Serial.print("0.00;0.00;0.00");
      Serial.print('*');
+     Serial.print("\n");
 
      // Minecraft processes at 20 ticks per second
      // or about 50ms per tick
-     delay(50);
+     delay(60);
   }
 }
 
@@ -94,15 +95,14 @@ void magnet_detect() {
 
     float speed = (distancePerTrigger / timeSinceLastTrigger) * 3600;
 
-    double hoursSinceLastTrigger = timeSinceLastTrigger / 3600000.0;  // Convert milliseconds to hours
-
     Serial.print('#');
     Serial.print(speed);
     Serial.print(";");
-    Serial.print(hoursSinceLastTrigger);
+    Serial.print(timeSinceLastTrigger);
     Serial.print(";");
     Serial.print(radius);
     Serial.print('*');
+    Serial.print("\n");
 
     lastTriggerTime = currentTime;
   }

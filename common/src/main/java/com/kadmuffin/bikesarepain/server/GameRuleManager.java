@@ -4,7 +4,7 @@ import net.minecraft.world.level.GameRules;
 
 public class GameRuleManager {
     public static final int MAX_BIKE_WHEEL_VAL = 2;
-    public static final int MIN_BIKE_WHEEL_VAL = 50;
+    public static final int MIN_BIKE_WHEEL_VAL = 1;
     public static final int MAX_BIKE_SPEED_BLOCKS_PER_SECOND = 10;
 
     // For wheel size

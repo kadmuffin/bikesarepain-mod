@@ -7,13 +7,19 @@ import com.kadmuffin.bikesarepain.client.serial.DataProcessor;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
 import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.networking.NetworkManager;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.network.chat.Component;
 
+@Environment(EnvType.CLIENT)
 public class BikesArePainClient {
     private static final SerialReader reader = new SerialReader();
     private static final DataProcessor processor = new DataProcessor();
 
     public static void init() {
+        ClientConfig.init();
+        TooltipManager.init();
+
         reader.addListener((speed, triggerTimeHours, wheelRadius) -> {
             if (wheelRadius > 0F) {
                 processor.setWheelRadius(wheelRadius);
@@ -83,10 +89,6 @@ public class BikesArePainClient {
                     break;
             }
         }));
-
-
-        ClientConfig.init();
-        TooltipManager.init();
 
         PlayerEvent.PLAYER_JOIN.register((player) -> {
             // Check if the port in ClientConfig.CONFIG.instance().getPort()

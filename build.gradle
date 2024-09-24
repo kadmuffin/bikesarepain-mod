@@ -83,7 +83,6 @@ subprojects {
         }
 
         implementation "com.fazecast:jSerialComm:${rootProject.jserialcomm_version}"
-        implementation "org.xerial:sqlite-jdbc:${rootProject.sqlite_version}"
     }
 
     java {

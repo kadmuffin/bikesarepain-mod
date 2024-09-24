@@ -15,7 +15,9 @@ public class BikesArePainClient {
 
     public static void init() {
         reader.addListener((speed, triggerTimeHours, wheelRadius) -> {
-            processor.setWheelRadius(wheelRadius);
+            if (wheelRadius > 0F) {
+                processor.setWheelRadius(wheelRadius);
+            }
             processor.update(speed, triggerTimeHours);
         });
 
@@ -41,6 +43,14 @@ public class BikesArePainClient {
                             inGameWheel,
                             ClientConfig.CONFIG.instance().getWheelScaleRatio(),
                             ClientConfig.CONFIG.instance().getSpeedScaleRatio()
+                    )
+            );
+        });
+
+        processor.addNothingChangedListener(dataPoint -> {
+            NetworkManager.sendToServer(
+                    new PacketManager.EmptyArduinoData(
+                            true, false
                     )
             );
         });

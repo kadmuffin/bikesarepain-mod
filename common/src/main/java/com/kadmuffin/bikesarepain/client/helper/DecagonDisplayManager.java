@@ -1,10 +1,13 @@
 package com.kadmuffin.bikesarepain.client.helper;
 
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import software.bernie.geckolib.cache.object.GeoBone;
 
 import java.util.Arrays;
 
+@Environment(EnvType.CLIENT)
 public class DecagonDisplayManager {
     private static final int MAX_DISPLAYS = 6;
     private static final float DECIMAL_PRECISION = 1000;

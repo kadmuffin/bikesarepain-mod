@@ -3,6 +3,8 @@ package com.kadmuffin.bikesarepain.client.serial;
 import com.kadmuffin.bikesarepain.BikesArePain;
 import com.kadmuffin.bikesarepain.client.ClientConfig;
 import dev.architectury.platform.Platform;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,6 +12,7 @@ import java.sql.Statement;
 import java.util.*;
 import java.util.function.Consumer;
 
+@Environment(EnvType.CLIENT)
 public class DataProcessor {
     public enum SQLState {
         OTHER(0),

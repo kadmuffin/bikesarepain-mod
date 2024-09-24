@@ -3,6 +3,8 @@ package com.kadmuffin.bikesarepain.client.entity;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import software.bernie.geckolib.animatable.GeoAnimatable;
@@ -13,7 +15,7 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import java.util.Map;
 import java.util.function.Function;
 
-
+@Environment(EnvType.CLIENT)
 public class AbstractBikeRenderer<T extends AbstractBike & GeoAnimatable> extends GeoEntityRenderer<T> {
     private final Map<String, Function<T, Integer>> bonesToColor;
 

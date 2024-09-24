@@ -2,6 +2,8 @@ package com.kadmuffin.bikesarepain.client.item;
 
 import com.kadmuffin.bikesarepain.server.item.BicycleItem;
 import com.kadmuffin.bikesarepain.server.item.ComponentManager;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import software.bernie.geckolib.renderer.layer.FastBoneFilterGeoLayer;
@@ -9,6 +11,7 @@ import software.bernie.geckolib.renderer.layer.FastBoneFilterGeoLayer;
 import java.util.List;
 import java.util.function.Supplier;
 
+@Environment(EnvType.CLIENT)
 public class BicycleItemRenderer extends TintedItemRenderer<BicycleItem> {
     public final Supplier<List<String>> bones = () -> List.of(
             "Chest", "Propellers", "MonitorRoot", "SeatF"

@@ -4,6 +4,8 @@ import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import com.kadmuffin.bikesarepain.client.serial.SerialParser;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.TriConsumer;
@@ -12,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+@Environment(EnvType.CLIENT)
 public class SerialReader {
     public enum Event {
         SUDDEN_DISCONNECT,

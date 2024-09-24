@@ -7,6 +7,8 @@ import com.kadmuffin.bikesarepain.client.helper.Utils;
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -21,6 +23,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@Environment(EnvType.CLIENT)
 public class BicycleRenderer extends AbstractBikeRenderer<Bicycle> {
 
     public static final Supplier<List<String>> bones = () -> List.of("ActualRoot", "Bike", "ActualWheel", "ActualWheel2", "Cap2", "RearGears", "Pedals", "WheelUnion", "Handlebar", "SeatF", "MonitorRoot", "Display",

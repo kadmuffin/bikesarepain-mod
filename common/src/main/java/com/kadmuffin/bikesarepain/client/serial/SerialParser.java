@@ -3,12 +3,15 @@ package com.kadmuffin.bikesarepain.client.serial;
 import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortDataListener;
 import com.fazecast.jSerialComm.SerialPortEvent;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@Environment(EnvType.CLIENT)
 public class SerialParser implements SerialPortDataListener {
     private final char startMarker;
     private final char endMarker;

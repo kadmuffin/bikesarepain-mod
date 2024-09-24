@@ -7,6 +7,8 @@ import dev.isxander.yacl3.api.controller.*;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -14,6 +16,7 @@ import net.minecraft.resources.ResourceLocation;
 import java.text.DecimalFormat;
 import java.util.List;
 
+@Environment(EnvType.CLIENT)
 public class ClientConfig {
     public enum ApplyScaleTo {
         SPEED,
@@ -179,7 +182,7 @@ public class ClientConfig {
                                     .option(Option.<Float>createBuilder()
                                             .name(Component.translatable("config.bikesarepain.serial.scale.wheel.name"))
                                             .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.wheel.tooltip")))
-                                            .binding(2F, () -> this.wheelScaleRatio, value -> this.wheelScaleRatio = value)
+                                            .binding(1.5F, () -> this.wheelScaleRatio, value -> this.wheelScaleRatio = value)
                                             .controller(opt -> FloatSliderControllerBuilder.create(opt)
                                                     .formatValue(value -> Component.literal(ClientConfig.getUnitString(value, this.imperial)))
                                                     .range(0.05F, 10F)
@@ -190,7 +193,7 @@ public class ClientConfig {
                                     .option(Option.<Float>createBuilder()
                                             .name(Component.translatable("config.bikesarepain.serial.scale.speed.name"))
                                             .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.speed.tooltip")))
-                                            .binding(1.45F, () -> this.speedScaleRatio, value -> this.speedScaleRatio = value)
+                                            .binding(1F, () -> this.speedScaleRatio, value -> this.speedScaleRatio = value)
                                             .controller(opt -> FloatSliderControllerBuilder.create(opt)
                                                     .formatValue(value -> Component.literal(ClientConfig.getUnitString(value, this.imperial)))
                                                     .range(0.05F, 10F)
@@ -201,10 +204,10 @@ public class ClientConfig {
                                     .option(Option.<Float>createBuilder()
                                             .name(Component.translatable("config.bikesarepain.serial.scale.reference.wheel.name"))
                                             .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.scale.reference.wheel.tooltip")))
-                                            .binding(0.62F, () -> targetWheelSize, value -> targetWheelSize = Math.max(0.01F, value))
+                                            .binding(0.622F, () -> targetWheelSize, value -> targetWheelSize = Math.max(0.01F, value))
                                             .controller(opt -> FloatSliderControllerBuilder.create(opt)
                                                     .formatValue(value -> Component.literal(ClientConfig.getAutoCMtoInchString(value, this.imperial)))
-                                                    .range(0.05F, 3F)
+                                                    .range(0.05F, 2F)
                                                     .step((imperial ? 0.01F : 0.001F))
                                             )
                                             .build()

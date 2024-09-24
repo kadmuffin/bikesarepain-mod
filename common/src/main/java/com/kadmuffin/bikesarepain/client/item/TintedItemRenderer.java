@@ -3,6 +3,8 @@ package com.kadmuffin.bikesarepain.client.item;
 import com.kadmuffin.bikesarepain.server.item.TintedItem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import software.bernie.geckolib.cache.object.GeoBone;
@@ -11,6 +13,7 @@ import software.bernie.geckolib.renderer.GeoItemRenderer;
 
 import java.util.List;
 
+@Environment(EnvType.CLIENT)
 public class TintedItemRenderer<T extends TintedItem> extends GeoItemRenderer<T> {
     private final List<String> bonesToIgnore;
     private final List<String> bonesToColor;

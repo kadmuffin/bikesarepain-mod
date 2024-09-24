@@ -3,6 +3,8 @@ package com.kadmuffin.bikesarepain.client.item;
 import com.kadmuffin.bikesarepain.server.item.BikeItem;
 import com.kadmuffin.bikesarepain.server.item.ComponentManager;
 import dev.architectury.event.events.client.ClientTooltipEvent;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.CommonColors;
@@ -10,6 +12,7 @@ import software.bernie.geckolib.util.Color;
 
 import java.util.Objects;
 
+@Environment(EnvType.CLIENT)
 public class TooltipManager {
     public static void init() {
         ClientTooltipEvent.ITEM.register((stack, lines, context, tooltipFlag) -> {

@@ -797,20 +797,35 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return this.getControllingPassenger() instanceof Player ? (Player) this.getControllingPassenger() : null;
     }
 
+    public int getTicksPedalled() {
+        if (this.getFirstPassenger() instanceof Player player) {
+            PlayerAccessor mixPlayer = (PlayerAccessor) player;
+            if (mixPlayer.bikesarepain$isJSCActive()) {
+                return mixPlayer.bikesarepain$getJSCTimePedalled();
+            }
+        }
+
+        return this.entityData.get(TICKS_PEDALLED);
+    }
+
+    public void setTicksPedalled(int ticksPedalled) {
+        if (this.getFirstPassenger() instanceof Player player) {
+            PlayerAccessor mixPlayer = (PlayerAccessor) player;
+            if (mixPlayer.bikesarepain$isJSCActive()) {
+                mixPlayer.bikesarepain$setJSCTimePedalled(ticksPedalled);
+                return;
+            }
+        }
+
+        this.entityData.set(TICKS_PEDALLED, ticksPedalled);
+    }
+
     public float getBlocksTravelled() {
         return this.entityData.get(BLOCKS_TRAVELLED);
     }
 
-    public int getTicksPedalled() {
-        return this.entityData.get(TICKS_PEDALLED);
-    }
-
     public void setBlocksTravelled(float blocksTravelled) {
         this.entityData.set(BLOCKS_TRAVELLED, blocksTravelled);
-    }
-
-    public void setTicksPedalled(int ticksPedalled) {
-        this.entityData.set(TICKS_PEDALLED, ticksPedalled);
     }
 
     public void setSaveTime(boolean saveTime) {
@@ -904,7 +919,4 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public static void removeOnMoveListener(TriConsumer<AbstractBike, Float, Boolean> listener) {
         onMoveListeners.remove(listener);
     }
-
-    // Effort calculation
-    // As the
 }

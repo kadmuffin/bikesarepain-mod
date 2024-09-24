@@ -28,6 +28,8 @@ public class PlayerMixin implements PlayerAccessor {
     private static final EntityDataAccessor<Float> BAPAIN_JSC_WHEELRADIUS = SynchedEntityData.defineId(Player.class, EntityDataSerializers.FLOAT);
     @Unique
     private static final EntityDataAccessor<Integer> BAPAIN_JSC_TIMESINCEUPDATE = SynchedEntityData.defineId(Player.class, EntityDataSerializers.INT);
+    @Unique
+    private static final EntityDataAccessor<Integer> BAPAIN_JSC_TIME_PEDALLED = SynchedEntityData.defineId(Player.class, EntityDataSerializers.INT);
 
 
     @Inject(at = @At("TAIL"), method = "defineSynchedData(Lnet/minecraft/network/syncher/SynchedEntityData$Builder;)V")
@@ -39,6 +41,7 @@ public class PlayerMixin implements PlayerAccessor {
         builder.define(BAPAIN_JSC_CALORIES, 0.0F);
         builder.define(BAPAIN_JSC_WHEELRADIUS, 0.0F);
         builder.define(BAPAIN_JSC_TIMESINCEUPDATE, 0);
+        builder.define(BAPAIN_JSC_TIME_PEDALLED, 0);
     }
 
     @Unique
@@ -109,6 +112,16 @@ public class PlayerMixin implements PlayerAccessor {
     @Unique
     public void bikesarepain$setJSCSinceUpdate(int timesinceupdate) {
         ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_TIMESINCEUPDATE, timesinceupdate);
+    }
+
+    @Unique
+    public int bikesarepain$getJSCTimePedalled() {
+        return ((Player)(Object)this).getEntityData().get(BAPAIN_JSC_TIME_PEDALLED);
+    }
+
+    @Unique
+    public void bikesarepain$setJSCTimePedalled(int timePedalled) {
+        ((Player)(Object)this).getEntityData().set(BAPAIN_JSC_TIME_PEDALLED, timePedalled);
     }
 }
 

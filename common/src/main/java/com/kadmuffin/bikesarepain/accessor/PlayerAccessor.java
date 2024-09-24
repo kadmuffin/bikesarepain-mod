@@ -15,4 +15,6 @@ public interface PlayerAccessor {
     void bikesarepain$setJSCWheelRadius(float wheelRadius);
     int bikesarepain$getJSCSinceUpdate();
     void bikesarepain$setJSCSinceUpdate(int sinceUpdate);
+    int bikesarepain$getJSCTimePedalled();
+    void bikesarepain$setJSCTimePedalled(int timePedalled);
 }

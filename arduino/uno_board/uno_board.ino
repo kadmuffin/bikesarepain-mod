@@ -5,22 +5,22 @@
 // The only thing that the mod expects at this commit is that the arduino sends the
 // data in a specific format. The format is as follows:
 // #<speed>;<timeSinceLastTrigger>;<wheelRadius>*
-// The speed is in km/h, timeSinceLastTrigger is in hours and wheelRadius is in meters
+// The speed is in km/h, timeSinceLastTrigger is in miliseconds and wheelRadius is in meters
 // It is important to keep the "#" and "*" characters as they are used to identify the start and end of the data
 // Also, keep in mind that you should tell the mod when the bike is stopped by sending a speed of 0.00 with the same format.
-// The mod uses "timeSinceLastTrigger" for calories calculations, but when the speed is zero it is ignored.
+// The mod uses "timeSinceLastTrigger" for distance and calories calculation.
 
-// This is the pin your hall sensor is connected to
+// This is the pin that your hall sensor is connected to.
 // Assuming you don't need to adjust this code for your specific bike,
 // you can connect the hall sensor to pin 2 and the ground
-// The sensor in my bike has only two pins, so I connected the other pin to the ground
+// (assuming that you only have two pins)
 const int hallPin = 2;  // Adjust to your actual pin
 
 // Adjust 'triggersPerRevolution' based on how many times the hall sensor triggers per wheel revolution
 // In my case, my fitness bike triggers twice per wheel revolution
 // To do that, you can do this:
 // 1. Put a piece of color tape on the border of the wheel
-// 2. Load into your arduino a sketch that prints the time between triggers (you can use the sketch named "hall_sensor_test.ino")
+// 2. Load into a sketch into your arduino that prints the time between triggers (you can use the sketch named "hall_sensor_test.ino")
 // 3. Spin the wheel very slowly and see how many times you see a high value between low values (so low-high-high-low still counts as 1 trigger)
 // 4. Once you have the number of triggers per revolution, replace the value below
 const double triggersPerRevolution = 2;  // Replace with your measured value
@@ -43,7 +43,7 @@ float speed = 0;                             // Current speed of the bike in km/
 
 // For the debounce:
 // For example, in my case I don't get one single "HIGH" value, but a few of them
-// So, unless the time between the last HIGH value and the current HIGH value is greater than 50ms, I ignore it
+// So, unless the time between the last HIGH value and the current HIGH value is greater than 60ms, I ignore it
 // This is something I fine-tuned in my bike, it might be different for you
 // Though most likely it is not necessary to change this value
 const int DEBOUNCE_THRESHOLD_MS = 60;  // Minimum time between triggers to count as valid
@@ -108,7 +108,7 @@ void magnet_detect() {
   }
 }
 
-/* Now calculated client-side. Leaving them here for future reference
+/* Now calculated client-side. Leaving them here for future reference.
 const float bodyMass = 50.0;  // Your body mass in kg (this value is just a placeholder)
 
 // Calculates the Metabolic Equivalent of Task (MET) based on speed in km/h
@@ -132,7 +132,8 @@ float calculateMET(float speed) {
 // Calculates the calories burned using body weight, MET value, and time passed
 float calculateCalories(float weight, float met, float hours) {
   // Calorie calculation formula: Calories = MET * weight (kg) * time (hours) * 1.05
-  // To be honest, I don't remember where I got the 1.05 from, but it seems to work
+  // The 1.05 is something I added to account for friction, but the original
+  // formula does not use it.
   return met * weight * hours * 1.05;
 }
 */

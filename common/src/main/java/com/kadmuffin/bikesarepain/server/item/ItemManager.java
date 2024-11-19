@@ -8,12 +8,16 @@ import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ColorRGBA;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.DyedItemColor;
+import software.bernie.geckolib.util.Color;
+import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -21,10 +25,10 @@ import java.util.function.Function;
 public class ItemManager {
 
     public static final List<Integer> bicycleColors = List.of(
-            16777215,
-            16777215,
-            3878696,
-            3878696);
+            Color.ofRGB(240, 240, 240).getColor(),
+            Color.ofRGB(240, 240, 240).getColor(),
+            Color.ofRGB(59, 47, 40).getColor(),
+            Color.ofRGB(59, 47, 40).getColor());
     public static final Map<String, Function<ItemStack, Integer>> bonesToColorBicycleItem = Utils.createBonesToColorMap(
             Map.of(
                     List.of("hexadecagon"), (item) -> getBicycleItemColor(item, 0),

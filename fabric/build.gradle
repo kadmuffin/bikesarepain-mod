@@ -51,7 +51,6 @@ dependencies {
 
     modImplementation("com.terraformersmc:modmenu:${project.modmenu_version}")
     modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}-fabric"
-
 }
 
 processResources {

@@ -709,7 +709,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     @Override
     protected float getWaterSlowDown() {
         if (this.isBalloonInflated()) {
-            return 0.96F;
+            return 0.9F;
         }
 
         return super.getWaterSlowDown();
@@ -718,8 +718,8 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     @Override
     public @NotNull Vec3 getFluidFallingAdjustedMovement(double gravity, boolean isFalling, Vec3 deltaMovement) {
         if (this.hasBalloon()) {
-            double floatStrength = 0.05; // Adjust this value to control buoyancy
-            double verticalDamping = 0.9; // Slight dampening to create bouncy effect
+            double floatStrength = 0.02; // Adjust this value to control buoyancy
+            double verticalDamping = 0.3; // Dampening to create bouncy effect
 
             double adjustedY = deltaMovement.y * verticalDamping + floatStrength;
 

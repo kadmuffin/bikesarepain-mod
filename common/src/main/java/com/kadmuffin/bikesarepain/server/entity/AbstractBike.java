@@ -72,6 +72,10 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private boolean saveDistance = false;
     private float rearWheelSpeed = 0.0F;
     private BlockPos lastPos = null;
+    private float lastPitchAvg = 0;
+    private int lastTickCount = 0;
+    private int lastWaitTimePitch = 0;
+    private double lastEyeY = 0;
     protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level);
         this.rotations.put("backWheelRotation", new RotationData());
@@ -291,60 +295,89 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return newRadiansPitch;
     }
 
+    private int calculateMinWaitForPitchCalc() {
+        final float speed = getSpeed();
+        int adjustedSpeed = (int) (20 - (20 / (1 + speed * 4)));
+        return Math.max(2, Math.min(adjustedSpeed, 20));
+    }
+
     @Override
     public void tick() {
         super.tick();
 
-        if (this.level().isClientSide()) {
-            float averagePitch;
-            if (ClientConfig.CONFIG.instance().pitchBasedOnBlocks()) {
-                final int maxRaycasts = ClientConfig.CONFIG.instance().getAmountOfRaysPerWheel();
-                // Convert to diameter (well, a bit less than that), and split it into the amount of raycasts
-                final float raycastSteps = this.getWheelRadius() * 1.5F / maxRaycasts;
+        if (this.level().isClientSide() && ClientConfig.CONFIG.instance().pitchBasedOnBlocks()) {
+            final double eyeY = this.getEyeY();
+            final double upwardsMov = eyeY - lastEyeY;
+            lastEyeY = eyeY;
 
-                // At (0,0,contactpoint)
-                Vec3 frontWheelPos = this.getFrontWheelPos().scale(this.getModelScalingFactor());
-                Vec3 backWheelPos = this.getBackWheelPos().scale(this.getModelScalingFactor());
-                Vec3 pivotPoint = this.getFrontPivotPos().scale(this.getModelScalingFactor());
-
-                // We start at the negative side of the wheel
-                float currentRaycastCoordinate = -(maxRaycasts / 2F) * raycastSteps;
-
-                List<Float> calculatedPitches = new ArrayList<>();
-
-                for (int i = 0; i < maxRaycasts; i++) {
-                    // First we need to calculate the Y coordinate
-                    // knowing the formula for a circle, we can approximate the height
-                    // at this point in the circle
-                    float y = this.getWheelRadius() - (float) Math.sqrt(Math.pow(this.getWheelRadius(), 2) - Math.pow(currentRaycastCoordinate, 2));
-                    Vec3 frontPos = frontWheelPos.add(0, y, currentRaycastCoordinate);
-
-                    // Manually rotate it around pivot point
-                    Vec3 rotatedFront = frontPos.subtract(pivotPoint).yRot(this.getSteeringYaw()).add(pivotPoint);
-
-                    Vec3 frontWheel = this.modelToWorldPos(rotatedFront);
-                    Vec3 backWheel = this.modelToWorldPos(backWheelPos.add(0, y, currentRaycastCoordinate));
-
-                    calculatedPitches.add(this.calculateBikePitchDown(frontWheel, backWheel, ClientConfig.CONFIG.instance().showDebugWheelRays()));
-
-                    currentRaycastCoordinate += raycastSteps; // Increment after processing
-
-                }
-
-                // Calculate the average pitch
-                averagePitch = calculatedPitches.stream().reduce(0F, Float::sum) / calculatedPitches.size();
-
-                averagePitch *= 1 - Math.min(this.getSpeed() / 0.5F, 1);
-            } else {
-                averagePitch = 0;
+            if (Math.abs(upwardsMov) > 0.45F) {
+                this.lastWaitTimePitch = 1;
             }
-            this.clientOnlyBikePitch = this.clientOnlyBikePitch + (averagePitch - this.clientOnlyBikePitch) * 0.25F;
 
-            if (Minecraft.getInstance().player != null) {
+            final boolean waitSatisfied = this.lastTickCount >= this.lastWaitTimePitch;
+            final boolean runPitchCalc = !this.isInWater() && !this.isInLava() && waitSatisfied;
+
+            if (waitSatisfied) {
+                this.lastTickCount = 0;
+                this.lastWaitTimePitch = this.calculateMinWaitForPitchCalc();
+
+                if (runPitchCalc) {
+                    this.lastTickCount = 0;
+                    this.lastWaitTimePitch = this.calculateMinWaitForPitchCalc();
+
+                    final int maxRaycasts = ClientConfig.CONFIG.instance().getAmountOfRaysPerWheel();
+                    // Convert to diameter (well, a bit less than that), and split it into the amount of raycasts
+                    final float raycastSteps = this.getWheelRadius() * 1.5F / maxRaycasts;
+
+                    // At (0,0,contactpoint)
+                    Vec3 frontWheelPos = this.getFrontWheelPos().scale(this.getModelScalingFactor());
+                    Vec3 backWheelPos = this.getBackWheelPos().scale(this.getModelScalingFactor());
+                    Vec3 pivotPoint = this.getFrontPivotPos().scale(this.getModelScalingFactor());
+
+                    // We start at the negative side of the wheel
+                    float currentRaycastCoordinate = -(maxRaycasts / 2F) * raycastSteps;
+
+                    List<Float> calculatedPitches = new ArrayList<>();
+
+                    for (int i = 0; i < maxRaycasts; i++) {
+                        // First we need to calculate the Y coordinate
+                        // knowing the formula for a circle, we can approximate the height
+                        // at this point in the circle
+                        float y = this.getWheelRadius() - (float) Math.sqrt(Math.pow(this.getWheelRadius(), 2) - Math.pow(currentRaycastCoordinate, 2));
+                        Vec3 frontPos = frontWheelPos.add(0, y, currentRaycastCoordinate);
+
+                        // Manually rotate it around pivot point
+                        Vec3 rotatedFront = frontPos.subtract(pivotPoint).yRot(this.getSteeringYaw()).add(pivotPoint);
+
+                        Vec3 frontWheel = this.modelToWorldPos(rotatedFront);
+                        Vec3 backWheel = this.modelToWorldPos(backWheelPos.add(0, y, currentRaycastCoordinate));
+
+                        calculatedPitches.add(this.calculateBikePitchDown(frontWheel, backWheel, ClientConfig.CONFIG.instance().showDebugWheelRays()));
+
+                        currentRaycastCoordinate += raycastSteps; // Increment after processing
+
+                    }
+
+                    // Calculate the average pitch
+                    this.lastPitchAvg = calculatedPitches.stream().reduce(0F, Float::sum) / calculatedPitches.size();
+
+                    this.lastPitchAvg *= 1 - Math.min(this.getSpeed() / 0.5F, 1);
+                } else {
+                    this.lastPitchAvg = 0;
+                }
+            } else {
+                this.lastTickCount = Math.min(this.lastTickCount, this.lastWaitTimePitch) + 1;
+            }
+
+            float newValue = this.clientOnlyBikePitch + (this.lastPitchAvg - this.clientOnlyBikePitch) * 0.25F;
+            boolean updateServer = Math.abs(this.clientOnlyBikePitch - newValue)> 0.01F;
+            this.clientOnlyBikePitch = newValue;
+
+            if (Minecraft.getInstance().player != null && updateServer) {
                 UUID clientPlayer = Minecraft.getInstance().player.getUUID();
                 if (this.getFirstPassenger() instanceof Player player && player.getUUID() == clientPlayer) {
                     if (ClientConfig.CONFIG.instance().syncPitchWithServer()) {
-                        this.setSyncedPitch(averagePitch);
+                        this.setSyncedPitch(this.lastPitchAvg);
                     } else {
                         this.setSyncedPitch(0);
                     }

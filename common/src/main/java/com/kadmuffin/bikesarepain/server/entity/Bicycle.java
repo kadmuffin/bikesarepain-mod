@@ -624,18 +624,25 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     protected <E extends Bicycle> PlayState inflateAnimation(final AnimationState<E> event) {
         if (this.hasBalloon()) {
             if (this.isInWater()) {
-                event.setAndContinue(BALLOON_INFLATE_ANIM);
-                this.playSound(SoundEvents.ANVIL_PLACE, 0.5F, 1.7F);
+                // Reset ticks and so the balloon stays inflated when in water
                 this.setTicksOutOfWater(0);
-            } else if (this.isBalloonInflated()) {
-                if (this.getTicksOutOfWater() > 20 || this.getPassengers().isEmpty()) {
+                event.setAndContinue(BALLOON_INFLATE_ANIM);
+                return PlayState.CONTINUE;
+            }
+
+            if (this.isBalloonInflated()) {
+                boolean shouldDeflate =
+                        this.getTicksOutOfWater() > 100;
+
+                if (shouldDeflate) {
                     event.setAndContinue(BALLOON_DEFLATE_ANIM);
                     this.playSound(SoundEvents.ANVIL_HIT, 0.5F, 0.4F);
                     this.setBalloonInflated(false);
+                } else {
+                    // Track time out of water
+                    this.setTicksOutOfWater(this.getTicksOutOfWater() + 1);
                 }
-                this.setTicksOutOfWater(this.getTicksOutOfWater() + 1);
             }
-
         }
 
         return PlayState.CONTINUE;
@@ -705,24 +712,17 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     public @NotNull Vec3 getFluidFallingAdjustedMovement(double gravity, boolean isFalling, Vec3 deltaMovement) {
-        if (this.isBalloonInflated()) {
-            // Float effect when the balloon is inflated
-            float randomness = this.random.nextFloat() * 0.078F;
+        if (this.hasBalloon()) {
+            double floatStrength = 0.05; // Adjust this value to control buoyancy
+            double verticalDamping = 0.9; // Slight dampening to create bouncy effect
 
-            // Adapted version of the original code
-            // so that we don't sink and allow modifications of gravity
-            if (gravity != 0.0 && !this.isSprinting()) {
-                double d;
-                if (isFalling && Math.abs(deltaMovement.y - 0.005) >= 0.003 && Math.abs(deltaMovement.y - gravity / 16.0) < 0.003) {
-                    d = -0.003;
-                } else {
-                    d = deltaMovement.y - gravity / 16.0;
-                }
+            double adjustedY = deltaMovement.y * verticalDamping + floatStrength;
 
-                return new Vec3(deltaMovement.x, d + randomness, deltaMovement.z);
-            } else {
-                return deltaMovement;
-            }
+            return new Vec3(
+                    deltaMovement.x,
+                    Math.min(adjustedY, 0.1), // Limit upward movement
+                    deltaMovement.z
+            );
         }
 
         return super.getFluidFallingAdjustedMovement(gravity, isFalling, deltaMovement);

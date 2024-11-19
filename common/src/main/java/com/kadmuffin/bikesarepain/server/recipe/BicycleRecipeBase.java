@@ -19,7 +19,6 @@ import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class BicycleRecipeBase implements CraftingRecipe, RecipeInput {
     final ShapedRecipePattern pattern;

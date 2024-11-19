@@ -8,16 +8,13 @@ import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ColorRGBA;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.DyedItemColor;
 import software.bernie.geckolib.util.Color;
-import software.bernie.geckolib.util.GeckoLibUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;

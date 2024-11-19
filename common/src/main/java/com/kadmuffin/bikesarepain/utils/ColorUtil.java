@@ -15,9 +15,7 @@ public class ColorUtil {
     public static List<Integer> toRGB(List<Integer> colors) {
         ArrayList<Integer> noAlphaColors = new ArrayList<>();
 
-        colors.forEach(color -> {
-            noAlphaColors.add(toRGB(color));
-        });
+        colors.forEach(color -> noAlphaColors.add(toRGB(color)));
 
         return noAlphaColors;
     }

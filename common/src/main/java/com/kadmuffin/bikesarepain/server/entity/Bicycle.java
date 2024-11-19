@@ -162,6 +162,11 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     }
 
     @Override
+    public boolean canJump() {
+        return !this.isBalloonInflated() && super.canJump();
+    }
+
+    @Override
     public void die(DamageSource damageSource) {
         if (!this.isRemoved() && !this.dead) {
             Entity entity = damageSource.getEntity();

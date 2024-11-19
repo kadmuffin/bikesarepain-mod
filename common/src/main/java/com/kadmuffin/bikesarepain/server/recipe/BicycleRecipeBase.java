@@ -19,6 +19,7 @@ import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class BicycleRecipeBase implements CraftingRecipe, RecipeInput {
     final ShapedRecipePattern pattern;
@@ -77,7 +78,20 @@ public class BicycleRecipeBase implements CraftingRecipe, RecipeInput {
 
     @Override
     public boolean matches(CraftingInput input, Level level) {
-        return this.pattern.matches(input);
+        ArrayList<ItemStack> items = new ArrayList<>();
+
+        input.items().forEach(item -> {
+            ItemStack itemCopy = item.copy();
+            itemCopy.remove(DataComponents.DYED_COLOR);
+
+            items.add(itemCopy);
+        });
+
+        return this.pattern.matches(CraftingInput.of(
+                input.width(),
+                input.height(),
+                items
+        ));
     }
 
     @Override

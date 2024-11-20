@@ -323,240 +323,245 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     public @NotNull InteractionResult mobInteract(Player player, InteractionHand hand) {
         if (!this.getPassengers().isEmpty() && !this.canAddPassenger(player)) {
             return super.mobInteract(player, hand);
-        } else if (player.isShiftKeyDown()) {
-            countOfWrenchInteractions = 0;
-            if (player.getItemInHand(hand).getItem() == ItemManager.WRENCH_ITEM.get()) {
-                // Toggle the showGears state
-                this.showGears = !this.showGears;
-
-                // Determine the sound to play based on the new state
-                SoundEvent soundEvent = this.showGears ? SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF : SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON;
-
-                // Play the corresponding sound
-                this.playSound(soundEvent, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
-
-                return InteractionResult.sidedSuccess(this.level().isClientSide());
-            }
-
-            if (player.getItemInHand(hand).getItem() == net.minecraft.world.item.Items.SADDLE) {
-                if (this.isSaddled()) {
-                    return InteractionResult.sidedSuccess(this.level().isClientSide());
-                }
-                this.equipSaddle(player.getItemInHand(hand), player.getSoundSource());
-
-                if (!player.isCreative()) {
-                    player.getItemInHand(hand).shrink(1);
-                }
-                return InteractionResult.sidedSuccess(this.level().isClientSide());
-            }
-
-            if (player.getItemInHand(hand).getItem() == net.minecraft.world.item.Items.CHEST) {
-                if (this.hasChest()) {
-                    return InteractionResult.sidedSuccess(this.level().isClientSide());
-                }
-                this.setChested(true);
-                this.playSound(SoundEvents.CHEST_CLOSE, 1.0F, 1.0F);
-                this.createInventory();
-
-                if (!player.isCreative()) {
-                    player.getItemInHand(hand).shrink(1);
-                }
-                return InteractionResult.sidedSuccess(this.level().isClientSide());
-            }
-
-            if (player.getItemInHand(hand).getItem() == ItemManager.PEDOMETER_ITEM.get()) {
-                if (this.hasDisplay()) {
-                    return InteractionResult.sidedSuccess(this.level().isClientSide());
-                }
-
-                this.triggerAnim("finalAnim", "screen");
-                this.setHasDisplay(true);
-                this.playSound(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.0F, 1.0F);
-
-                // Load the data from the item
-                ItemStack itemStack = player.getItemInHand(hand);
-                this.setBlocksTravelled(itemStack.getOrDefault(ComponentManager.DISTANCE_MOVED.get(), 0.0F));
-                this.setTicksPedalled(itemStack.getOrDefault(ComponentManager.TICKS_MOVED.get(), 0));
-
-                if (!player.isCreative()) {
-                    player.getItemInHand(hand).shrink(1);
-                }
-
-                return InteractionResult.sidedSuccess(this.level().isClientSide());
-            }
-
-            if (player.getItemInHand(hand).getItem() == ItemManager.FLOAT_MODIFIER_ITEM.get()) {
-                if (this.hasBalloon()) {
-                    return InteractionResult.sidedSuccess(this.level().isClientSide());
-                }
-
-                this.setHasBalloon(true);
-                this.playSound(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.0F, 1.0F);
-
-                if (!player.isCreative()) {
-                    player.getItemInHand(hand).shrink(1);
-                }
-
-                return InteractionResult.sidedSuccess(this.level().isClientSide());
-            }
-
-            if (player.getItemInHand(hand).getItem() != net.minecraft.world.item.Items.AIR) {
-                this.openCustomInventoryScreen(player);
-                return InteractionResult.sidedSuccess(this.level().isClientSide());
-            }
-
-            this.playSound(SoundEvents.ITEM_FRAME_BREAK, 1.0F, 1.6F);
-
-            // Summon an item
-            this.spawnAtLocation(this.getBicycleItem(true));
-
-            // Remove saddle so it doesn't drop twice
-            this.equipSaddle(ItemStack.EMPTY, null);
-
-            if (this.hasChest()) {
-                this.spawnAtLocation(net.minecraft.world.item.Items.CHEST);
-            }
-
-            this.dropEquipment();
-
-            this.remove(RemovalReason.DISCARDED);
-            return InteractionResult.sidedSuccess(this.level().isClientSide());
         }
-        if (player.getItemInHand(hand).getItem() == ItemManager.WRENCH_ITEM.get()) {
-            // If the health is not full, we will make a sound and particles
-            // and return early as we cannot split the item without full health
-            if (this.getHealth() < this.getMaxHealth()) {
-                this.countOfWrenchInteractions = 0;
-                if (this.showGears) {
-                    if (player.getInventory().hasAnyOf(Set.of(ItemManager.NUT_ITEM.get()))) {
-                        if (!player.isCreative()) {
-                            //player.getOffhandItem().shrink(1);
-                            // Get the first nut in the inventory
-                            for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-                                ItemStack hopefullyNut = player.getInventory().getItem(i);
-                                if (hopefullyNut.getItem() == ItemManager.NUT_ITEM.get()) {
-                                    hopefullyNut.shrink(1);
-                                    break;
+        if (this.getServer() instanceof MinecraftServer server) {
+            ServerLevel serverLevel = server.getLevel(this.level().dimension());
+
+            if (player.isShiftKeyDown()) {
+                countOfWrenchInteractions = 0;
+                if (player.getItemInHand(hand).getItem() == ItemManager.WRENCH_ITEM.get()) {
+                    // Toggle the showGears state
+                    this.showGears = !this.showGears;
+
+                    // Determine the sound to play based on the new state
+                    SoundEvent soundEvent = this.showGears ? SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF : SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON;
+
+                    // Play the corresponding sound
+                    this.playSound(soundEvent, 1.0F, Mth.nextFloat(this.random, 1F, 1.5F));
+
+                    return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+                }
+
+                if (player.getItemInHand(hand).getItem() == net.minecraft.world.item.Items.SADDLE) {
+                    if (this.isSaddled()) {
+                        return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+                    }
+                    this.equipSaddle(player.getItemInHand(hand), player.getSoundSource());
+
+                    if (!player.isCreative()) {
+                        player.getItemInHand(hand).shrink(1);
+                    }
+                    return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+                }
+
+                if (player.getItemInHand(hand).getItem() == net.minecraft.world.item.Items.CHEST) {
+                    if (this.hasChest()) {
+                        return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+                    }
+                    this.setChested(true);
+                    this.playSound(SoundEvents.CHEST_CLOSE, 1.0F, 1.0F);
+                    this.createInventory();
+
+                    if (!player.isCreative()) {
+                        player.getItemInHand(hand).shrink(1);
+                    }
+                    return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+                }
+
+                if (player.getItemInHand(hand).getItem() == ItemManager.PEDOMETER_ITEM.get()) {
+                    if (this.hasDisplay()) {
+                        return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+                    }
+
+                    this.triggerAnim("finalAnim", "screen");
+                    this.setHasDisplay(true);
+                    this.playSound(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.0F, 1.0F);
+
+                    // Load the data from the item
+                    ItemStack itemStack = player.getItemInHand(hand);
+                    this.setBlocksTravelled(itemStack.getOrDefault(ComponentManager.DISTANCE_MOVED.get(), 0.0F));
+                    this.setTicksPedalled(itemStack.getOrDefault(ComponentManager.TICKS_MOVED.get(), 0));
+
+                    if (!player.isCreative()) {
+                        player.getItemInHand(hand).shrink(1);
+                    }
+
+                    return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+                }
+
+                if (player.getItemInHand(hand).getItem() == ItemManager.FLOAT_MODIFIER_ITEM.get()) {
+                    if (this.hasBalloon()) {
+                        return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+                    }
+
+                    this.setHasBalloon(true);
+                    this.playSound(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.0F, 1.0F);
+
+                    if (!player.isCreative()) {
+                        player.getItemInHand(hand).shrink(1);
+                    }
+
+                    return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+                }
+
+                if (player.getItemInHand(hand).getItem() != net.minecraft.world.item.Items.AIR) {
+                    this.openCustomInventoryScreen(player);
+                    return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+                }
+
+                this.playSound(SoundEvents.ITEM_FRAME_BREAK, 1.0F, 1.6F);
+
+                // Summon an item
+                this.spawnAtLocation(serverLevel, this.getBicycleItem(true));
+
+                // Remove saddle so it doesn't drop twice
+                this.equipSaddle(ItemStack.EMPTY, null);
+
+                if (this.hasChest()) {
+                    this.spawnAtLocation(serverLevel, net.minecraft.world.item.Items.CHEST);
+                }
+
+                this.dropEquipment(serverLevel);
+
+                this.remove(RemovalReason.DISCARDED);
+                return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+            }
+            if (player.getItemInHand(hand).getItem() == ItemManager.WRENCH_ITEM.get()) {
+                // If the health is not full, we will make a sound and particles
+                // and return early as we cannot split the item without full health
+                if (this.getHealth() < this.getMaxHealth()) {
+                    this.countOfWrenchInteractions = 0;
+                    if (this.showGears) {
+                        if (player.getInventory().hasAnyOf(Set.of(ItemManager.NUT_ITEM.get()))) {
+                            if (!player.isCreative()) {
+                                //player.getOffhandItem().shrink(1);
+                                // Get the first nut in the inventory
+                                for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                                    ItemStack hopefullyNut = player.getInventory().getItem(i);
+                                    if (hopefullyNut.getItem() == ItemManager.NUT_ITEM.get()) {
+                                        hopefullyNut.shrink(1);
+                                        break;
+                                    }
                                 }
+
+                                player.getItemInHand(hand).hurtAndBreak(1, player, EquipmentSlot.OFFHAND);
                             }
 
-                            player.getItemInHand(hand).hurtAndBreak(1, player, EquipmentSlot.OFFHAND);
-                        }
+                            this.actuallyHeal(1.0F);
+                            float healthPercentage = (this.getHealth() / this.getMaxHealth());
 
-                        this.actuallyHeal(1.0F);
-                        float healthPercentage = (this.getHealth() / this.getMaxHealth());
+                            if (this.getHealth() == this.getMaxHealth()) {
+                                this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 1.0F);
+                            } else {
+                                // Play the repair sound (the lower the health, the lower the pitch)
+                                float maxPitch = 1.28F;
+                                float minPitch = 0.8F;
+                                float pitch = minPitch + healthPercentage * (maxPitch - minPitch);
+                                this.playSound(SoundEvents.ANVIL_USE, 1.0F, pitch);
+                            }
 
-                        if (this.getHealth() == this.getMaxHealth()) {
-                            this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 1.0F);
+                            // Do some particles
+                            this.level().broadcastEntityEvent(this, (byte) 7);
                         } else {
-                            // Play the repair sound (the lower the health, the lower the pitch)
-                            float maxPitch = 1.28F;
-                            float minPitch = 0.8F;
-                            float pitch = minPitch + healthPercentage * (maxPitch - minPitch);
-                            this.playSound(SoundEvents.ANVIL_USE, 1.0F, pitch);
+                            if (this.level().isClientSide()) {
+                                AbstractClientPlayer localPlayer = (AbstractClientPlayer) player;
+                                localPlayer.displayClientMessage(
+                                        Component.translatable("bikesarepain.bicycle.cant_repair.no_nuts").withStyle(ChatFormatting.RED),
+                                        true
+                                );
+                            }
+                            this.playSound(SoundEvents.ANVIL_HIT, 1.0F, 1.8F);
+                            this.level().broadcastEntityEvent(this, (byte) 6);
                         }
 
-                        // Do some particles
-                        this.level().broadcastEntityEvent(this, (byte) 7);
+                        return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
                     } else {
                         if (this.level().isClientSide()) {
                             AbstractClientPlayer localPlayer = (AbstractClientPlayer) player;
                             localPlayer.displayClientMessage(
-                                    Component.translatable("bikesarepain.bicycle.cant_repair.no_nuts").withStyle(ChatFormatting.RED),
+                                    Component.translatable("bikesarepain.bicycle.cant_drop.not_full_health").withStyle(ChatFormatting.RED),
                                     true
                             );
                         }
-                        this.playSound(SoundEvents.ANVIL_HIT, 1.0F, 1.8F);
+                        this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 0.8F + (this.getHealth() / this.getMaxHealth() * 0.5F));
                         this.level().broadcastEntityEvent(this, (byte) 6);
                     }
+                    return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
+                }
 
-                    return InteractionResult.sidedSuccess(this.level().isClientSide());
-                } else {
-                    if (this.level().isClientSide()) {
-                        AbstractClientPlayer localPlayer = (AbstractClientPlayer) player;
-                        localPlayer.displayClientMessage(
-                                Component.translatable("bikesarepain.bicycle.cant_drop.not_full_health").withStyle(ChatFormatting.RED),
-                                true
-                        );
+                if (countOfWrenchInteractions > 20) {
+                    if (this.isSaddled()) {
+                        this.spawnAtLocation(serverLevel, new ItemStack(net.minecraft.world.item.Items.SADDLE));
+                        this.equipSaddle(ItemStack.EMPTY, null);
                     }
-                    this.playSound(SoundEvents.ANVIL_LAND, 1.0F, 0.8F + (this.getHealth() / this.getMaxHealth() * 0.5F));
-                    this.level().broadcastEntityEvent(this, (byte) 6);
+
+                    ItemStack frame = new ItemStack(ItemManager.FRAME_ITEM.get());
+                    if (this.getFrameColor() != ItemManager.bicycleColors.get(2))
+                        frame.set(DataComponents.DYED_COLOR, new DyedItemColor(this.getFrameColor(), true));
+
+                    this.spawnAtLocation(serverLevel, frame);
+
+                    ItemStack fWheel = new ItemStack(ItemManager.WHEEL_ITEM.get());
+                    if (this.getFWheelColor() != ItemManager.bicycleColors.getFirst())
+                        fWheel.set(DataComponents.DYED_COLOR, new DyedItemColor(this.getFWheelColor(), true));
+
+                    this.spawnAtLocation(serverLevel, fWheel);
+
+                    ItemStack rWheel = new ItemStack(ItemManager.WHEEL_ITEM.get());
+                    if (this.getRWheelColor() != ItemManager.bicycleColors.get(1))
+                        rWheel.set(DataComponents.DYED_COLOR, new DyedItemColor(this.getRWheelColor(), true));
+
+                    this.spawnAtLocation(serverLevel, rWheel);
+
+                    ItemStack gearbox = new ItemStack(ItemManager.GEARBOX_ITEM.get());
+                    if (this.getGearboxColor() != ItemManager.bicycleColors.get(3))
+                        gearbox.set(DataComponents.DYED_COLOR, new DyedItemColor(this.getGearboxColor(), true));
+
+                    this.spawnAtLocation(serverLevel, gearbox);
+
+                    this.spawnAtLocation(serverLevel, new ItemStack(ItemManager.HANDLEBAR_ITEM.get()));
+
+                    ItemStack iron = new ItemStack(net.minecraft.world.item.Items.IRON_INGOT);
+                    iron.setCount(3);
+                    this.spawnAtLocation(serverLevel, iron);
+
+                    if (this.hasDisplay()) {
+                        ItemStack pedometer = new ItemStack(ItemManager.PEDOMETER_ITEM.get());
+                        pedometer.set(ComponentManager.DISTANCE_MOVED.get(), this.getBlocksTravelled());
+                        pedometer.set(ComponentManager.TICKS_MOVED.get(), this.getTicksPedalled());
+                        this.spawnAtLocation(serverLevel, pedometer);
+                    }
+
+                    if (this.hasBalloon()) {
+                        this.spawnAtLocation(serverLevel, ItemManager.FLOAT_MODIFIER_ITEM.get());
+                    }
+
+                    if (this.hasChest()) {
+                        this.spawnAtLocation(serverLevel, net.minecraft.world.item.Items.CHEST);
+                    }
+
+                    this.dropEquipment(serverLevel);
+
+                    this.playSound(SoundEvents.ITEM_FRAME_BREAK, 1.0F, 1.6F);
+
+                    this.remove(RemovalReason.DISCARDED);
+                    return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
                 }
-                return InteractionResult.sidedSuccess(this.level().isClientSide());
+
+                if (!this.showGears) {
+                    countOfWrenchInteractions++;
+                    // Increase pitch as we get closer to the max
+                    this.playSound(SoundEvents.BAMBOO_PLACE, 1.0F, 0.8F + (countOfWrenchInteractions / 19F));
+                } else {
+                    this.playSound(SoundEvents.BAMBOO_HIT, 1.0F, 0.8F);
+                }
+                return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
             }
-
-            if (countOfWrenchInteractions > 20) {
-                if (this.isSaddled()) {
-                    this.spawnAtLocation(new ItemStack(net.minecraft.world.item.Items.SADDLE));
-                    this.equipSaddle(ItemStack.EMPTY, null);
-                }
-
-                ItemStack frame = new ItemStack(ItemManager.FRAME_ITEM.get());
-                if (this.getFrameColor() != ItemManager.bicycleColors.get(2))
-                    frame.set(DataComponents.DYED_COLOR, new DyedItemColor(this.getFrameColor(), true));
-
-                this.spawnAtLocation(frame);
-
-                ItemStack fWheel = new ItemStack(ItemManager.WHEEL_ITEM.get());
-                if (this.getFWheelColor() != ItemManager.bicycleColors.getFirst())
-                    fWheel.set(DataComponents.DYED_COLOR, new DyedItemColor(this.getFWheelColor(), true));
-
-                this.spawnAtLocation(fWheel);
-
-                ItemStack rWheel = new ItemStack(ItemManager.WHEEL_ITEM.get());
-                if (this.getRWheelColor() != ItemManager.bicycleColors.get(1))
-                    rWheel.set(DataComponents.DYED_COLOR, new DyedItemColor(this.getRWheelColor(), true));
-
-                this.spawnAtLocation(rWheel);
-
-                ItemStack gearbox = new ItemStack(ItemManager.GEARBOX_ITEM.get());
-                if (this.getGearboxColor() != ItemManager.bicycleColors.get(3))
-                    gearbox.set(DataComponents.DYED_COLOR, new DyedItemColor(this.getGearboxColor(), true));
-
-                this.spawnAtLocation(gearbox);
-
-                this.spawnAtLocation(new ItemStack(ItemManager.HANDLEBAR_ITEM.get()));
-
-                ItemStack iron = new ItemStack(net.minecraft.world.item.Items.IRON_INGOT);
-                iron.setCount(3);
-                this.spawnAtLocation(iron);
-
-                if (this.hasDisplay()) {
-                    ItemStack pedometer = new ItemStack(ItemManager.PEDOMETER_ITEM.get());
-                    pedometer.set(ComponentManager.DISTANCE_MOVED.get(), this.getBlocksTravelled());
-                    pedometer.set(ComponentManager.TICKS_MOVED.get(), this.getTicksPedalled());
-                    this.spawnAtLocation(pedometer);
-                }
-
-                if (this.hasBalloon()) {
-                    this.spawnAtLocation(ItemManager.FLOAT_MODIFIER_ITEM.get());
-                }
-
-                if (this.hasChest()) {
-                    this.spawnAtLocation(net.minecraft.world.item.Items.CHEST);
-                }
-
-                this.dropEquipment();
-
-                this.playSound(SoundEvents.ITEM_FRAME_BREAK, 1.0F, 1.6F);
-
-                this.remove(RemovalReason.DISCARDED);
-                return InteractionResult.sidedSuccess(this.level().isClientSide());
-            }
-
-            if (!this.showGears) {
-                countOfWrenchInteractions++;
-                // Increase pitch as we get closer to the max
-                this.playSound(SoundEvents.BAMBOO_PLACE, 1.0F, 0.8F + (countOfWrenchInteractions / 19F));
-            } else {
-                this.playSound(SoundEvents.BAMBOO_HIT, 1.0F, 0.8F);
-            }
-            return InteractionResult.sidedSuccess(this.level().isClientSide());
         }
 
         countOfWrenchInteractions = 0;
         this.doPlayerRide(player);
-        return InteractionResult.sidedSuccess(this.level().isClientSide());
+        return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.PASS;
     }
 
     // Play bell sound

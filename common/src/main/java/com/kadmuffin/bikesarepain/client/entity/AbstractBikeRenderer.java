@@ -7,6 +7,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.model.GeoModel;
@@ -36,9 +37,11 @@ public class AbstractBikeRenderer<T extends AbstractBike & GeoAnimatable> extend
     }
 
     @Override
-    public void render(T entity, float entityYaw, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        poseStack.scale(entity.getModelScalingFactor(), entity.getModelScalingFactor(), entity.getModelScalingFactor());
+    public void render(EntityRenderState entityRenderState, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        float scale = this.getAnimatable().getModelScalingFactor();
 
-        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+        poseStack.scale(scale, scale, scale);
+
+        super.render(entityRenderState, poseStack, bufferSource, packedLight);
     }
 }

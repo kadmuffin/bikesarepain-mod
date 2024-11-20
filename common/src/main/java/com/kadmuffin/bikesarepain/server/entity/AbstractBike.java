@@ -233,15 +233,18 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     @Override
     public @NotNull InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (!this.getPassengers().isEmpty() && !this.canAddPassenger(player)) {
-            return super.mobInteract(player, hand);
-
-        } else if (player.isShiftKeyDown()) {
-            this.openCustomInventoryScreen(player);
-            return InteractionResult.sidedSuccess(this.level().isClientSide);
+        if (this.level().isClientSide()) {
+            if (!this.getPassengers().isEmpty() && !this.canAddPassenger(player)) {
+                return super.mobInteract(player, hand);
+            } else if (player.isShiftKeyDown()) {
+                this.openCustomInventoryScreen(player);
+                return InteractionResult.SUCCESS;
+            }
+            this.doPlayerRide(player);
+            return InteractionResult.SUCCESS;
         }
-        this.doPlayerRide(player);
-        return InteractionResult.sidedSuccess(this.level().isClientSide);
+
+        return InteractionResult.PASS;
     }
 
     public float calculateBikePitchDown(Vec3 frontWheel, Vec3 backWheel, boolean showRays) {

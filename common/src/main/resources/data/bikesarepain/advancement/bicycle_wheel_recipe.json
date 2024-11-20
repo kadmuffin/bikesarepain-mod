@@ -1,0 +1,39 @@
+{
+  "criteria": {
+    "requirement": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "bikesarepain:nut"
+          },
+          {
+            "items": "#minecraft:wool"
+          },
+          {
+            "items": "minecraft:stick"
+          }
+        ]
+      }
+    }
+  },
+  "rewards": {
+    "recipes": [
+      "bikesarepain:bicycle_wheel",
+      "bikesarepain:bicycle_wheel_red",
+      "bikesarepain:bicycle_wheel_black",
+      "bikesarepain:bicycle_wheel_blue",
+      "bikesarepain:bicycle_wheel_brown",
+      "bikesarepain:bicycle_wheel_cyan",
+      "bikesarepain:bicycle_wheel_green",
+      "bikesarepain:bicycle_wheel_gray",
+      "bikesarepain:bicycle_wheel_light_blue",
+      "bikesarepain:bicycle_wheel_lime",
+      "bikesarepain:bicycle_wheel_magenta",
+      "bikesarepain:bicycle_wheel_orange",
+      "bikesarepain:bicycle_wheel_pink",
+      "bikesarepain:bicycle_wheel_purple",
+      "bikesarepain:bicycle_wheel_yellow"
+    ]
+  }
+}

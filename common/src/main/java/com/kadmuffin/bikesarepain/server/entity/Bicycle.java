@@ -17,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -196,12 +197,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     protected void dropAllDeathLoot(ServerLevel level, DamageSource damageSource) {
-        this.dropEquipment();
+        this.dropEquipment(level);
 
         // Summon a bicycle item
         ItemStack itemStack = this.getBicycleItem(false);
 
-        this.spawnAtLocation(itemStack);
+        this.spawnAtLocation(level, itemStack);
     }
 
 

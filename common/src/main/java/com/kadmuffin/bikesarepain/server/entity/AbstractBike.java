@@ -637,7 +637,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             float acceleration = (movSpeed - lastSpeed) * (1.15F - this.inertiaFactor());
             movSpeed = lastSpeed + acceleration + gravityAcceleration;
         }
-        final float maxSpeed = this.level().getGameRules().getRule(GameRuleManager.MAX_BIKE_SPEED).get() / 20F;
+
+        float maxSpeed = GameRuleManager.MAX_BIKE_SPEED_BLOCKS_PER_SECOND;
+        if (this.level().getServer() instanceof MinecraftServer server) {
+            maxSpeed = server.getGameRules().getRule(GameRuleManager.MAX_BIKE_SPEED).get() / 20F;
+        }
         movSpeed = Math.clamp(movSpeed, -maxSpeed, maxSpeed);
 
         rotation = movSpeed / this.getWheelRadius();

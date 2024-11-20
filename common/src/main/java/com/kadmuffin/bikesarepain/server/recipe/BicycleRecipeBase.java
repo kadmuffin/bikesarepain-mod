@@ -13,12 +13,17 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class BicycleRecipeBase implements CraftingRecipe, RecipeInput {
     final ShapedRecipePattern pattern;
@@ -26,6 +31,7 @@ public class BicycleRecipeBase implements CraftingRecipe, RecipeInput {
     final String nbtCopyInstructions;
     final CraftingBookCategory category;
     final String group;
+    PlacementInfo info;
 
     public BicycleRecipeBase(String group, String nbtCopyInstructions, CraftingBookCategory category, ShapedRecipePattern pattern, ItemStack result) {
         this.nbtCopyInstructions = nbtCopyInstructions;
@@ -36,43 +42,45 @@ public class BicycleRecipeBase implements CraftingRecipe, RecipeInput {
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public @NotNull RecipeSerializer<? extends CraftingRecipe> getSerializer() {
         return RecipeManager.BICYCLE_RECIPE_SERIALIZER.get();
     }
 
-    @Override
     public String getGroup() {
-        return this.group;
+        return group;
     }
 
     @Override
-    public net.minecraft.world.item.crafting.RecipeType<?> getType() {
+    public @NotNull RecipeType<CraftingRecipe> getType() {
         return RecipeType.CRAFTING;
     }
 
     @Override
-    public CraftingBookCategory category() {
+    public @NotNull PlacementInfo placementInfo() {
+        if (this.info == null) {
+            // Create placement info
+            this.info = PlacementInfo.createFromOptionals(this.pattern.ingredients());
+        }
+
+        return this.info;
+    }
+
+    @Override
+    public @NotNull CraftingBookCategory category() {
         return this.category;
     }
 
-    @Override
-    public ItemStack getResultItem(HolderLookup.Provider registries) {
+    public ItemStack getResult() {
         return this.result;
     }
 
-    @Override
-    public NonNullList<Ingredient> getIngredients() {
+    public List<Optional<Ingredient>> getIngredients() {
         return this.pattern.ingredients();
     }
 
     @Override
     public boolean showNotification() {
         return true;
-    }
-
-    @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width >= this.pattern.width() && height >= this.pattern.height();
     }
 
     @Override
@@ -94,8 +102,8 @@ public class BicycleRecipeBase implements CraftingRecipe, RecipeInput {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
-        ItemStack result = this.getResultItem(registries).copy();
+    public @NotNull ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
+        ItemStack result = this.getResult().copy();
 
         this.parseInstruction(result, input);
 
@@ -111,14 +119,8 @@ public class BicycleRecipeBase implements CraftingRecipe, RecipeInput {
     }
 
     @Override
-    public boolean isIncomplete() {
-        NonNullList<Ingredient> nonNullList = this.getIngredients();
-        return nonNullList.isEmpty() || nonNullList.stream().filter((ingredient) -> !ingredient.isEmpty()).anyMatch((ingredient) -> ingredient.getItems().length == 0);
-    }
-
-    @Override
-    public ItemStack getItem(int index) {
-        return this.getIngredients().get(index).getItems()[0];
+    public @NotNull ItemStack getItem(int index) {
+        return this.getIngredients().get(index).orElse(Ingredient.of(Items.AIR)).items().getFirst().value().getDefaultInstance();
     }
 
     @Override

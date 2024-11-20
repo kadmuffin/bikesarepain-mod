@@ -544,8 +544,7 @@
 			}
 		},
 		"bike.balloon.inflate": {
-			"loop": "hold_on_last_frame",
-			"animation_length": 0.9167,
+			"animation_length": 0.5,
 			"bones": {
 				"WoodThing": {
 					"scale": {
@@ -710,6 +709,59 @@
 							"easing": "linear"
 						}
 					}
+				},
+				"WheelStuff": {
+					"scale": {
+						"0.0": {
+							"vector": [1, 1, 1],
+							"easing": "linear"
+						},
+						"0.6667": {
+							"vector": [0, 1, 0],
+							"easing": "linear"
+						}
+					}
+				}
+			},
+			"sound_effects": {
+				"0.625": {
+					"effect": "banana"
+				}
+			}
+		},
+		"bike.balloon.inflate.hold": {
+			"loop": true,
+			"animation_length": 0.650,
+			"bones": {
+				"WoodThing": {
+					"scale": {
+						"vector": [1, 1, 15.125],
+						"easing": "linear"
+					}
+				},
+				"hexadecagon": {
+					"scale": {
+						"vector": [1, 1, 4.2],
+						"easing": "linear"
+					}
+				},
+				"Propeller1": {
+					"rotation": {
+						"vector": [0, 90, 0],
+						"easing": "linear"
+					}
+				},
+				"Propeller2": {
+					"rotation": {
+						"vector": [0, -90, 0],
+						"easing": "linear"
+					}
+				},
+				"WheelStuff": {
+					"scale": {
+						"vector": [0, 1, 0],
+						"easing": "linear"
+					}
 				}
 			},
 			"sound_effects": {
@@ -719,7 +771,6 @@
 			}
 		},
 		"bike.balloon.deflate": {
-			"loop": "hold_on_last_frame",
 			"animation_length": 0.3333,
 			"bones": {
 				"WoodThing": {
@@ -815,6 +866,18 @@
 							"easing": "linear"
 						}
 					}
+				},
+				"WheelStuff": {
+					"scale": {
+						"0.0": {
+							"vector": [0, 0, 0],
+							"easing": "linear"
+						},
+						"0.2917": {
+							"vector": [1, 1, 1],
+							"easing": "linear"
+						}
+					}
 				}
 			}
 		},
@@ -877,55 +940,55 @@
 				},
 				"Bike": {
 					"rotation": {
-						"vector": [0, 0, "query.bikesarepain_tilt"],
+						"vector": ["linear", "linear", "linear"],
 						"easing": "linear"
 					}
 				},
 				"SpinningThing": {
 					"rotation": {
-						"vector": [0, 0, "query.bikesarepain_backwheel_rot"],
+						"vector": ["linear", "linear", "linear"],
 						"easing": "linear"
 					}
 				},
 				"SpinningThing2": {
 					"rotation": {
-						"vector": [0, 0, "query.bikesarepain_backwheel_rot"],
+						"vector": ["linear", "linear", "linear"],
 						"easing": "linear"
 					}
 				},
 				"RearGears": {
 					"rotation": {
-						"vector": [0, 0, "query.bikesarepain_backwheel_rot"],
+						"vector": ["linear", "linear", "linear"],
 						"easing": "linear"
 					}
 				},
 				"Pedals": {
 					"rotation": {
-						"vector": [0, 0, "query.bikesarepain_backwheel_rot"],
+						"vector": ["linear", "linear", "linear"],
 						"easing": "linear"
 					}
 				},
 				"WheelUnion": {
 					"rotation": {
-						"vector": [0, "query.bikesarepain_steering_yaw", 0],
+						"vector": ["linear", "linear", "linear"],
 						"easing": "linear"
 					}
 				},
 				"ActualWheel2": {
 					"rotation": {
-						"vector": [0, 0, "query.bikesarepain_frontwheel_rot"],
+						"vector": ["linear", "linear", "linear"],
 						"easing": "linear"
 					}
 				},
 				"Handlebar": {
 					"rotation": {
-						"vector": [0, "query.bikesarepain_steering_yaw", 0],
+						"vector": ["linear", "linear", "linear"],
 						"easing": "linear"
 					}
 				},
 				"ActualWheel": {
 					"rotation": {
-						"vector": [0, 0, "query.bikesarepain_backwheel_rot"],
+						"vector": [0, 0, 0],
 						"easing": "linear"
 					}
 				}

@@ -52,7 +52,7 @@ import java.util.Set;
 public class Bicycle extends AbstractBike implements GeoEntity {
     protected static final RawAnimation DIE_ANIM = RawAnimation.begin().thenPlayAndHold("bike.die");
     protected static final RawAnimation RING_BELL_ANIM = RawAnimation.begin().thenPlay("bike.bell");
-    protected static final RawAnimation BALLOON_INFLATE_ANIM = RawAnimation.begin().thenPlay("bike.balloon.inflate");
+    protected static final RawAnimation BALLOON_INFLATE_ANIM = RawAnimation.begin().thenPlay("bike.balloon.inflate").thenPlay("bike.balloon.inflate.hold");
     protected static final RawAnimation BALLOON_DEFLATE_ANIM = RawAnimation.begin().thenPlay("bike.balloon.deflate");
     protected static final RawAnimation SCREEN_POPUP = RawAnimation.begin().thenPlay("bike.screen.popup");
     private static final EntityDataAccessor<Integer> FWHEEL_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
@@ -146,6 +146,14 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             return 0;
         }
         return 5;
+    }
+
+    @Override
+    public boolean shouldCalculatePitch() {
+        if (this.isBalloonInflated()) {
+            return this.getTicksOutOfWater() > 30;
+        }
+        return super.shouldCalculatePitch();
     }
 
     @Override
@@ -604,7 +612,13 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "finalAnim", event -> PlayState.CONTINUE)
+        controllers.add(new AnimationController<>(this, "finalAnim", event -> {
+            if (event.getController().getAnimationState() == AnimationController.State.STOPPED) {
+                event.getController().forceAnimationReset();
+            }
+
+            return PlayState.CONTINUE;
+        })
                 .triggerableAnim("die", DIE_ANIM)
                 .triggerableAnim("bell", RING_BELL_ANIM).setSoundKeyframeHandler(
                         state -> {
@@ -631,8 +645,10 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             if (this.isInWater()) {
                 // Reset ticks and so the balloon stays inflated when in water
                 this.setTicksOutOfWater(0);
-                event.setAndContinue(BALLOON_INFLATE_ANIM);
-                return PlayState.CONTINUE;
+                this.setClientPitch(0);
+                this.setSyncedPitch(0);
+
+                return event.setAndContinue(BALLOON_INFLATE_ANIM);
             }
 
             if (this.isBalloonInflated()) {
@@ -640,9 +656,11 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                         this.getTicksOutOfWater() > 100;
 
                 if (shouldDeflate) {
-                    event.setAndContinue(BALLOON_DEFLATE_ANIM);
                     this.playSound(SoundEvents.ANVIL_HIT, 0.5F, 0.4F);
                     this.setBalloonInflated(false);
+                    this.setClientPitch(0);
+                    this.setSyncedPitch(0);
+                    return event.setAndContinue(BALLOON_DEFLATE_ANIM);
                 } else {
                     // Track time out of water
                     this.setTicksOutOfWater(this.getTicksOutOfWater() + 1);

@@ -175,13 +175,13 @@ public class BicycleRenderer extends AbstractBikeRenderer<Bicycle> {
             animatable.rotations.get("backWheelRotation").setRotation(this.smoothRotationPartialTicks(animatable.rotations.get("backWheelRotation").rotation, animatable.getBackWheelRotation(), partialTick));
             animatable.rotations.get("steeringYaw").setRotation(this.smoothRotationPartialTicks(animatable.rotations.get("steeringYaw").rotation, animatable.getSteeringYaw(), partialTick));
             animatable.rotations.get("tilt").setRotation(this.smoothRotationPartialTicks(animatable.rotations.get("tilt").rotation, animatable.getTilt(), partialTick));
-            animatable.rotations.get("pitch").setRotation(this.smoothRotationPartialTicks(animatable.rotations.get("pitch").rotation, animatable.clientOnlyBikePitch, partialTick));
+            animatable.rotations.get("pitch").setRotation(this.smoothRotationPartialTicks(animatable.rotations.get("pitch").rotation, animatable.getClientPitch(), partialTick));
         } else {
             // Just set the rotation directly
             animatable.rotations.get("backWheelRotation").setRotation(animatable.getBackWheelRotation());
             animatable.rotations.get("steeringYaw").setRotation(animatable.getSteeringYaw());
             animatable.rotations.get("tilt").setRotation(animatable.getTilt());
-            animatable.rotations.get("pitch").setRotation(animatable.clientOnlyBikePitch);
+            animatable.rotations.get("pitch").setRotation(animatable.getClientPitch());
         }
         super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight, packedOverlay, colour);
     }

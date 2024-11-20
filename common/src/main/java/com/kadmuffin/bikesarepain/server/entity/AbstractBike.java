@@ -66,7 +66,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     // tilt
     // and when the frame it was last updated
     public final Map<String, RotationData> rotations = new HashMap<>();
-    public float clientOnlyBikePitch = 0.0F;
+    private float clientOnlyBikePitch = 0.0F;
     protected boolean jumping;
     private boolean saveTime = false;
     private boolean saveDistance = false;
@@ -203,7 +203,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         // Calculate the pitch of the bike
         // taking into account the strength of the jump
         if (this.level().isClientSide()) {
-            this.clientOnlyBikePitch += strength * 0.25F;
+            this.setClientPitch(this.getClientPitch()+ strength * 0.25F);
         }
     }
 
@@ -224,7 +224,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     @Override
     public @NotNull Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
-        this.clientOnlyBikePitch = 0.0F;
+        this.setClientPitch(0.0F);
         return super.getDismountLocationForPassenger(passenger);
     }
 
@@ -305,7 +305,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public void tick() {
         super.tick();
 
-        if (this.level().isClientSide() && ClientConfig.CONFIG.instance().pitchBasedOnBlocks()) {
+        if (this.level().isClientSide() && ClientConfig.CONFIG.instance().pitchBasedOnBlocks()
+        && this.shouldCalculatePitch()
+        ) {
+            this.setClientPitch((float) Math.clamp(this.getClientPitch(), -Math.PI, Math.PI));
+
             final double eyeY = this.getEyeY();
             final double upwardsMov = eyeY - lastEyeY;
             lastEyeY = eyeY;
@@ -369,9 +373,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 this.lastTickCount = Math.min(this.lastTickCount, this.lastWaitTimePitch) + 1;
             }
 
-            float newValue = this.clientOnlyBikePitch + (this.lastPitchAvg - this.clientOnlyBikePitch) * 0.25F;
-            boolean updateServer = Math.abs(this.clientOnlyBikePitch - newValue)> 0.01F;
-            this.clientOnlyBikePitch = newValue;
+            float newValue = this.getClientPitch() + (this.lastPitchAvg - this.getClientPitch()) * 0.25F;
+            boolean updateServer = Math.abs(this.getClientPitch() - newValue)> 0.01F;
+            this.setClientPitch(newValue);
 
             if (Minecraft.getInstance().player != null && updateServer) {
                 UUID clientPlayer = Minecraft.getInstance().player.getUUID();
@@ -745,6 +749,10 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.rearWheelSpeed = rearWheelSpeed;
     }
 
+    public boolean shouldCalculatePitch() {
+        return !this.isInLiquid();
+    }
+
     // These define the bike's physical properties
     public abstract CenterMass getCenterMass();
 
@@ -941,11 +949,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.entityData.set(LAST_ROT_Y, lastRotY);
     }
 
-    public float getPitch() {
+    public float getClientPitch() {
         return this.clientOnlyBikePitch;
     }
 
-    public void setPitch(float pitch) {
+    public void setClientPitch(float pitch) {
         this.clientOnlyBikePitch = pitch;
     }
 

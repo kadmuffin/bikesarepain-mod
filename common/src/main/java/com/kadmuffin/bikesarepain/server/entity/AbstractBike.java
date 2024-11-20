@@ -17,6 +17,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -184,7 +186,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     }
 
     @Override
-    protected void followMommy() {
+    protected void followMommy(ServerLevel serverLevel) {
     }
 
     @Override

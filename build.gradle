@@ -85,7 +85,7 @@ subprojects {
         minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
         mappings loom.layered() {
             officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-${rootProject.minecraft_version}:${rootProject.parchmentmc_version}@zip")
+            parchment("org.parchmentmc.data:parchment-${rootProject.parchmentmc_target}:${rootProject.parchmentmc_version}@zip")
         }
 
         implementation "com.fazecast:jSerialComm:${rootProject.jserialcomm_version}"

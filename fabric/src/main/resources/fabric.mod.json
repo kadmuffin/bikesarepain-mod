@@ -25,22 +25,18 @@
     ]
   },
   "mixins": [
-    "bikesarepain.mixins.json",
-    "bikesarepain.fabric.mixins.json"
+    "bikesarepain.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.16.0",
-    "minecraft": ["1.21", "1.21.1"],
+    "fabricloader": ">=0.16.7",
+    "minecraft": ["1.21.3"],
     "java": ">=21",
-    "architectury": ">=13.0.6",
+    "architectury": ">=14.0.4",
     "fabric-api": "*",
-    "geckolib": ">=4.5.0",
-    "yet_another_config_lib_v3": "*"
+    "geckolib": ">=4.7.1",
+    "yet_another_config_lib_v3": ">=3.6.1"
   },
   "recommends": {
     "modmenu": "*"
-  },
-  "suggest": {
-    "dehydration": ">=1.3.7"
   }
 }

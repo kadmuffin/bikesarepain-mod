@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
+import software.bernie.geckolib.object.Color;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -255,19 +256,19 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
         if (showRays) {
             float particleScale = 0.2F * this.getModelScalingFactor();
-            this.level().addParticle(new DustParticleOptions(new Vector3f(255F, 0F, 0F), particleScale), frontWheel.x, frontWheel.y, frontWheel.z, 0, 0, 0);
-            this.level().addParticle(new DustParticleOptions(new Vector3f(0F, 0F, 255F), particleScale), backWheel.x, backWheel.y, backWheel.z, 0, 0, 0);
+            this.level().addParticle(new DustParticleOptions(Color.ofRGB(255, 0, 0).argbInt(), particleScale), frontWheel.x, frontWheel.y, frontWheel.z, 0, 0, 0);
+            this.level().addParticle(new DustParticleOptions(Color.ofRGB(0F, 0F, 255F).argbInt(), particleScale), backWheel.x, backWheel.y, backWheel.z, 0, 0, 0);
 
             if (rayFront.getType() == HitResult.Type.BLOCK) {
-                this.level().addParticle(new DustParticleOptions(new Vector3f(0F, 255F, 0F), particleScale), rayFrontPos.x, rayFrontPos.y, rayFrontPos.z, 0, 0, 0);
+                this.level().addParticle(new DustParticleOptions(Color.ofRGB(0F, 255F, 0F).argbInt(), particleScale), rayFrontPos.x, rayFrontPos.y, rayFrontPos.z, 0, 0, 0);
             } else {
-                this.level().addParticle(new DustParticleOptions(new Vector3f(255F, 255F, 0F), particleScale), rayFrontPos.x, rayFrontPos.y, rayFrontPos.z, 0, 0, 0);
+                this.level().addParticle(new DustParticleOptions(Color.ofRGB(255F, 255F, 0F).argbInt(), particleScale), rayFrontPos.x, rayFrontPos.y, rayFrontPos.z, 0, 0, 0);
             }
 
             if (rayBack.getType() == HitResult.Type.BLOCK) {
-                this.level().addParticle(new DustParticleOptions(new Vector3f(0F, 255F, 0F), particleScale), rayBackPos.x, rayBackPos.y, rayBackPos.z, 0, 0, 0);
+                this.level().addParticle(new DustParticleOptions(Color.ofRGB(0F, 255F, 0F).argbInt(), particleScale), rayBackPos.x, rayBackPos.y, rayBackPos.z, 0, 0, 0);
             } else {
-                this.level().addParticle(new DustParticleOptions(new Vector3f(255F, 255F, 0F), particleScale), rayBackPos.x, rayBackPos.y, rayBackPos.z, 0, 0, 0);
+                this.level().addParticle(new DustParticleOptions(Color.ofRGB(255F, 255F, 0F).argbInt(), particleScale), rayBackPos.x, rayBackPos.y, rayBackPos.z, 0, 0, 0);
             }
         }
 

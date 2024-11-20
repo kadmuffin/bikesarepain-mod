@@ -127,9 +127,9 @@ public class BicycleRenderer extends AbstractBikeRenderer<Bicycle> {
         float diff = targetRot - currentRot;
 
         if (diff > Math.PI) {
-            diff -= 2 * Math.PI;
+            diff -= (float) (2 * Math.PI);
         } else if (diff < -Math.PI) {
-            diff += 2 * Math.PI;
+            diff += (float) (2 * Math.PI);
         }
 
         // Minecraft ticks run at 20 ticks per second, so 1/20 is 1 tick
@@ -156,9 +156,9 @@ public class BicycleRenderer extends AbstractBikeRenderer<Bicycle> {
         float diff = targetRot - currentRot;
 
         if (diff > Math.PI) {
-            diff -= 2 * Math.PI;
+            diff -= (float) (2 * Math.PI);
         } else if (diff < -Math.PI) {
-            diff += 2 * Math.PI;
+            diff += (float) (2 * Math.PI);
         }
 
         float smoothSpeed = 80F;

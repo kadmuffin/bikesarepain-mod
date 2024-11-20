@@ -7,7 +7,6 @@ import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -67,14 +66,10 @@ public class ItemManager {
             )
     );
 
-    public static void init() {
-        BikesArePain.TABS.register();
-        BikesArePain.ITEMS.register();
-    }
 
-    public static final RegistrySupplier<Item> BICYCLE_ITEM = BikesArePain.ITEMS.register("bicycle", () ->
+    public static final RegistrySupplier<Item> BICYCLE_ITEM = BikesArePain.ITEMS.register(ItemKeyManager.BICYCLE_ID.getPath(), () ->
             new BicycleItem(EntityManager.BICYCLE.get(),
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle"),
+                    ItemKeyManager.BICYCLE_ID,
                     bonesToColorBicycleItem,
                     List.of(),
                     new BikeItem.Properties()
@@ -91,33 +86,36 @@ public class ItemManager {
                             .component(ComponentManager.HAS_BALLOON.get(), false)
                             .component(ComponentManager.HAS_DISPLAY.get(), false)
                             .component(ComponentManager.BICYCLE_COLORS.get(), bicycleColors)
+                            .setId(ItemKeyManager.BICYCLE_KEY)
             )
     );
 
-    public static final RegistrySupplier<Item> NUT_ITEM = BikesArePain.ITEMS.register("nut", () ->
+    public static final RegistrySupplier<Item> NUT_ITEM = BikesArePain.ITEMS.register(ItemKeyManager.NUT_ID.getPath(), () ->
             new BaseItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "nut"),
+                    ItemKeyManager.NUT_ID,
                     new Item.Properties()
                             .stacksTo(64)
                             .rarity(Rarity.COMMON)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
+                            .setId(ItemKeyManager.NUT_KEY)
             )
     );
 
-    public static final RegistrySupplier<Item> WRENCH_ITEM = BikesArePain.ITEMS.register("wrench", () ->
+    public static final RegistrySupplier<Item> WRENCH_ITEM = BikesArePain.ITEMS.register(ItemKeyManager.WRENCH_ID, () ->
             new BaseItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "wrench"),
+                    ItemKeyManager.WRENCH_ID,
                     new Item.Properties()
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
                             .durability(100)
+                            .setId(ItemKeyManager.WRENCH_KEY)
             )
     );
 
-    public static final RegistrySupplier<Item> PEDOMETER_ITEM = BikesArePain.ITEMS.register("pedometer", () ->
+    public static final RegistrySupplier<Item> PEDOMETER_ITEM = BikesArePain.ITEMS.register(ItemKeyManager.PEDOMETER_ID, () ->
             new BaseItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "pedometer"),
+                    ItemKeyManager.PEDOMETER_ID,
                     new Item.Properties()
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
@@ -126,24 +124,26 @@ public class ItemManager {
                             .component(ComponentManager.SAVE_DISTANCE.get(), true)
                             .component(ComponentManager.DISTANCE_MOVED.get(), 0.0F)
                             .component(ComponentManager.TICKS_MOVED.get(), 0)
+                            .setId(ItemKeyManager.PEDOMETER_KEY)
             )
     );
 
-    public static final RegistrySupplier<Item> FRAME_ITEM = BikesArePain.ITEMS.register("bicycle_frame", () ->
+    public static final RegistrySupplier<Item> FRAME_ITEM = BikesArePain.ITEMS.register(ItemKeyManager.BICYCLE_FRAME_ID, () ->
             new TintedItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_frame"),
+                    ItemKeyManager.BICYCLE_FRAME_ID,
                     Map.of("*", (item) -> getBicyclePartColor(item, 3)),
                     List.of(),
                     new Item.Properties()
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
+                            .setId(ItemKeyManager.BICYCLE_FRAME_KEY)
             )
     );
 
-    public static final RegistrySupplier<Item> GEARBOX_ITEM = BikesArePain.ITEMS.register("bicycle_gearbox", () ->
+    public static final RegistrySupplier<Item> GEARBOX_ITEM = BikesArePain.ITEMS.register(ItemKeyManager.BICYCLE_GEARBOX_ID, () ->
             new TintedItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_gearbox"),
+                    ItemKeyManager.BICYCLE_GEARBOX_ID,
                     Map.of("Cap1", (item) -> getBicyclePartColor(item, 2),
                             "Cap2", (item) -> getBicyclePartColor(item, 2)
                     ),
@@ -152,41 +152,47 @@ public class ItemManager {
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
+                            .setId(ItemKeyManager.BICYCLE_GEARBOX_KEY)
             )
     );
 
-    public static final RegistrySupplier<Item> HANDLEBAR_ITEM = BikesArePain.ITEMS.register("bicycle_handlebar", () ->
+    public static final RegistrySupplier<Item> HANDLEBAR_ITEM = BikesArePain.ITEMS.register(ItemKeyManager.BICYCLE_HANDLE_ID, () ->
             new BaseItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_handlebar"),
+                    ItemKeyManager.BICYCLE_HANDLE_ID,
                     new Item.Properties()
                             .stacksTo(1)
                             .rarity(Rarity.UNCOMMON)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
+                            .setId(ItemKeyManager.BICYCLE_HANDLE_KEY)
             )
     );
 
-    public static final RegistrySupplier<Item> WHEEL_ITEM = BikesArePain.ITEMS.register("bicycle_wheel", () ->
+    public static final RegistrySupplier<Item> WHEEL_ITEM = BikesArePain.ITEMS.register(ItemKeyManager.BICYCLE_WHEEL_ID, () ->
             new TintedItem(
-                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_wheel"),
+                    ItemKeyManager.BICYCLE_WHEEL_ID,
                     Map.of("hexadecagon", (item) -> getBicyclePartColor(item, 0)),
                     List.of(),
                     new Item.Properties()
                             .stacksTo(2)
                             .rarity(Rarity.UNCOMMON)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
+                            .setId(ItemKeyManager.BICYCLE_WHEEL_KEY)
             )
     );
 
-    public static final RegistrySupplier<Item> FLOAT_MODIFIER_ITEM = BikesArePain.ITEMS.register("float_on_water_modifier", () ->
+    public static final RegistrySupplier<Item> FLOAT_MODIFIER_ITEM = BikesArePain.ITEMS.register(ItemKeyManager.FLOAT_MODIFIER_ID, () ->
             new Item(
                     new Item.Properties()
                             .stacksTo(1)
                             .rarity(Rarity.EPIC)
                             .arch$tab(ItemManager.BIKES_MOD_TAB)
+                            .setId(ItemKeyManager.FLOAT_MODIFIER_KEY)
             )
     );
 
 
-
-
+    public static void init() {
+        BikesArePain.TABS.register();
+        BikesArePain.ITEMS.register();
+    }
 }

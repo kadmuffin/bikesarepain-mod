@@ -12,12 +12,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(AbstractClientPlayer.class)
 public class AbstractClientPlayerMixin {
 
-    @Inject(at = @At("TAIL"), method = "getFieldOfViewModifier()F", cancellable = true)
-    public void inGetFieldOfViewModifier(CallbackInfoReturnable<Float> cir, @Local float f) {
+    @Inject(at = @At("TAIL"), method = "getFieldOfViewModifier(ZF)F", cancellable = true)
+    public void inGetFieldOfViewModifier(CallbackInfoReturnable<Float> cir, @Local(name = "g") float g) {
         AbstractClientPlayer playerAbs = ((AbstractClientPlayer) (Object) this);
         Entity vehicle = playerAbs.getVehicle();
         if (vehicle instanceof Bicycle bicycle && bicycle.hasDisplay()) {
-            float fov = bicycle.modifyFOV(playerAbs, f);
+            float fov = bicycle.modifyFOV(playerAbs, g);
             cir.setReturnValue(fov);
         }
     }

@@ -6,8 +6,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -71,7 +71,7 @@ public class BikeItem extends TintedItem {
                     itemStack,
                     context.getPlayer(),
                     blockPos2,
-                    MobSpawnType.SPAWN_EGG,
+                    EntitySpawnReason.SPAWN_ITEM_USE,
                     true,
                     !Objects.equals(blockPos, blockPos2) && direction == Direction.UP
             );
@@ -101,10 +101,4 @@ public class BikeItem extends TintedItem {
             return InteractionResult.CONSUME;
         }
     }
-
-    @Override
-    public boolean isValidRepairItem(ItemStack stack, ItemStack repairCandidate) {
-        return repairCandidate.getItem() == net.minecraft.world.item.Items.IRON_NUGGET;
-    }
-
 }

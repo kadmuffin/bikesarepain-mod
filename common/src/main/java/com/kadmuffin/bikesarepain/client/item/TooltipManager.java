@@ -8,7 +8,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.CommonColors;
-import software.bernie.geckolib.util.Color;
+import software.bernie.geckolib.object.Color;
 
 import java.util.Objects;
 

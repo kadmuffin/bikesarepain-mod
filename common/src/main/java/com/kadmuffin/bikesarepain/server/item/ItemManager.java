@@ -13,7 +13,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.DyedItemColor;
-import software.bernie.geckolib.util.Color;
+import software.bernie.geckolib.object.Color;
 
 import java.util.List;
 import java.util.Map;
@@ -26,6 +26,7 @@ public class ItemManager {
             Color.ofRGB(240, 240, 240).getColor(),
             Color.ofRGB(59, 47, 40).getColor(),
             Color.ofRGB(59, 47, 40).getColor());
+
     public static final Map<String, Function<ItemStack, Integer>> bonesToColorBicycleItem = Utils.createBonesToColorMap(
             Map.of(
                     List.of("hexadecagon"), (item) -> getBicycleItemColor(item, 0),

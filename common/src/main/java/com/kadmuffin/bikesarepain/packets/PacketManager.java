@@ -10,6 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import static com.kadmuffin.bikesarepain.BikesArePain.MOD_ID;
 
 public class PacketManager {
-    public static void processArduinoData(ArduinoData packet, Player player, Level level) {
+    public static void processArduinoData(ArduinoData packet, Player player, MinecraftServer level) {
         PlayerAccessor playerAcc = ((PlayerAccessor) player);
 
         final float scaleFactorWheel = packet.scaleFactorWheel;
@@ -201,7 +202,9 @@ public class PacketManager {
                     // and calculating a ratio.
 
                     // Read the gamerule limit
-                    processArduinoData(packet, player, bike.level());
+                    if (bike.level().getServer() instanceof MinecraftServer server) {
+                        processArduinoData(packet, player, server);
+                    }
                 }
             }
         };

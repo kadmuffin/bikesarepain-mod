@@ -16,6 +16,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
@@ -72,17 +73,18 @@ public final class BikesArePain {
                                                                                                                                     if (source.getPlayer() == null) {
                                                                                                                                         return 0;
                                                                                                                                     }
-                                                                                                                                    PacketManager.processArduinoData(new PacketManager.ArduinoData(
-                                                                                                                                            true,
-                                                                                                                                            speed,
-                                                                                                                                            speed,
-                                                                                                                                            distance,
-                                                                                                                                            kcalories,
-                                                                                                                                            wheelRadius,
-                                                                                                                                            scaleWheel,
-                                                                                                                                            scaleSpeed
-                                                                                                                                    ), source.getPlayer(), source.getPlayer().level());
-
+                                                                                                                                    if (source.getPlayer().level().getServer() instanceof MinecraftServer server) {
+                                                                                                                                        PacketManager.processArduinoData(new PacketManager.ArduinoData(
+                                                                                                                                                true,
+                                                                                                                                                speed,
+                                                                                                                                                speed,
+                                                                                                                                                distance,
+                                                                                                                                                kcalories,
+                                                                                                                                                wheelRadius,
+                                                                                                                                                scaleWheel,
+                                                                                                                                                scaleSpeed
+                                                                                                                                        ), source.getPlayer(), server);
+                                                                                                                                    }
                                                                                                                                     return 1;
                                                                                                                                 } catch (
                                                                                                                                         Exception e) {

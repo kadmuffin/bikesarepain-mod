@@ -4,7 +4,7 @@
   "group": "bikesarepain.bicycle_gearbox",
   "pattern": [
     "www",
-    "pip",
+    "nip",
     "www"
   ],
   "key": {
@@ -12,10 +12,13 @@
       "item": "minecraft:iron_ingot"
     },
     "w": {
-      "item": "bikesarepain:nut"
+      "item": "minecraft:#planks"
     },
     "p": {
       "item": "minecraft:stone_pressure_plate"
+    },
+    "n": {
+      "item": "bikesarepain:nut"
     }
   },
   "result": {

@@ -52,7 +52,7 @@
   "config.bikesarepain.serial.link.name": "Link",
   "config.bikesarepain.serial.link.tooltip": "Parameters that are used for reading data from the serial port.",
   "config.bikesarepain.serial.link.autoconnect.name": "Connect on Join",
-  "config.bikesarepain.serial.link.autoconnect.tooltip": "Automatically tries to connect to the serial port when entering the world or a server.",
+  "config.bikesarepain.serial.link.autoconnect.tooltip": "[WIP] Automatically tries to connect to the serial port when entering the world or a server.",
   "config.bikesarepain.serial.link.autoconnect_failed.name": "Show Auto Connect Failed",
   "config.bikesarepain.serial.link.autoconnect_failed.tooltip": "Shows a message when the port chosen isn't available while using \"Connect on Join\".",
   "config.bikesarepain.serial.link.port.name": "Port",

@@ -31,7 +31,7 @@ public class ClientConfig {
     @SerialEntry(comment = "Display Imperial units instead of metric.")
     private boolean imperial = false;
     @SerialEntry(comment = "Amount of rays to cast per wheel for pitching the bike depending on terrain.")
-    private int amountOfRaysPerWheel = 0;
+    private int amountOfRaysPerWheel = 4;
     @SerialEntry(comment = "Use (probably not well done) interpolation for movement.")
     private boolean interpolation = true;
     @SerialEntry(comment = "Whether to automatically connect to the serial port on startup.")
@@ -138,7 +138,7 @@ public class ClientConfig {
                                 .option(Option.<Integer>createBuilder()
                                         .name(Component.translatable("config.bikesarepain.visuals.pitch.name"))
                                         .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pitch.tooltip")))
-                                        .binding(0, () -> amountOfRaysPerWheel, value -> amountOfRaysPerWheel = value)
+                                        .binding(4, () -> amountOfRaysPerWheel, value -> amountOfRaysPerWheel = value)
                                         .controller(opt -> IntegerSliderControllerBuilder.create(opt)
                                                 .range(0, 16)
                                                 .step(1)

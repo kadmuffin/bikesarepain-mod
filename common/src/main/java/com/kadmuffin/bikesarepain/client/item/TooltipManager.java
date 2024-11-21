@@ -23,7 +23,7 @@ public class TooltipManager {
                 // We will show a percentage of durability left
                 int durabilityPercentage = (int) (100 - (((float) durability / (float) maxDurability) * 100));
 
-                lines.add(2, Component.translatable("item.bikesarepain.bicycle.tooltip.health")
+                lines.add(1, Component.translatable("item.bikesarepain.bicycle.tooltip.health")
                         .withColor(CommonColors.GRAY)
                         .append(Component.literal(durabilityPercentage + "%")
                                 .withStyle(durabilityPercentage == 100 ? net.minecraft.ChatFormatting.GREEN
@@ -31,6 +31,16 @@ public class TooltipManager {
                                         : durabilityPercentage > 50 ? net.minecraft.ChatFormatting.YELLOW
                                         : durabilityPercentage > 25 ? net.minecraft.ChatFormatting.RED
                                         : net.minecraft.ChatFormatting.DARK_RED)));
+                // Check if contains a saddle
+                if (stack.has(ComponentManager.SADDLED.get()) && Boolean.TRUE.equals(stack.get(ComponentManager.SADDLED.get()))) {
+                    lines.add(Component.translatable("item.bikesarepain.bicycle.tooltip.saddled")
+                            .withColor(CommonColors.GRAY).append(Component.translatable("item.bikesarepain.bicycle.tooltip.yes")
+                                    .withColor(Color.ofRGB(255, 149, 0).argbInt())));
+                } else {
+                    lines.add(Component.translatable("item.bikesarepain.bicycle.tooltip.saddled")
+                            .withColor(CommonColors.GRAY).append(Component.translatable("item.bikesarepain.bicycle.tooltip.no")
+                                    .withColor(CommonColors.RED)));
+                }
             }
             
             if (stack.has(ComponentManager.SAVE_TIME.get()) && Boolean.TRUE.equals(stack.get(ComponentManager.SAVE_TIME.get()))) {
@@ -78,17 +88,6 @@ public class TooltipManager {
                         );
                     }
                 }
-            }
-
-            // Check if contains a saddle
-            if (stack.has(ComponentManager.SADDLED.get()) && Boolean.TRUE.equals(stack.get(ComponentManager.SADDLED.get()))) {
-                lines.add(Component.translatable("item.bikesarepain.bicycle.tooltip.saddled")
-                        .withColor(CommonColors.GRAY).append(Component.translatable("item.bikesarepain.bicycle.tooltip.yes")
-                                .withColor(Color.ofRGB(255, 149, 0).argbInt())));
-            } else {
-                lines.add(Component.translatable("item.bikesarepain.bicycle.tooltip.saddled")
-                        .withColor(CommonColors.GRAY).append(Component.translatable("item.bikesarepain.bicycle.tooltip.no")
-                                .withColor(CommonColors.RED)));
             }
         });
     }

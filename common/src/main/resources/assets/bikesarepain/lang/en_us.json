@@ -79,5 +79,6 @@
   "config.bikesarepain.advanced.debug.tooltip": "Settings that are used for debugging the mod.",
   "config.bikesarepain.advanced.debug.wheel_rays.name": "Show Pitch Rays",
   "config.bikesarepain.advanced.debug.wheel_rays.tooltip": "Shows the rays that are casted for the pitch visuals.",
-  "modmenu.summaryTranslation.bikesarepain": "Adds bikes to the game."
+  "modmenu.summaryTranslation.bikesarepain": "Adds bikes to the game.",
+  "modmenu.source": "Source"
 }

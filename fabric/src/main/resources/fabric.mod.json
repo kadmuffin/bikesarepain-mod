@@ -7,9 +7,6 @@
   "authors": [
     "KadMuffin"
   ],
-  "contact": {
-    "homepage": ""
-  },
   "license": "MIT",
   "icon": "assets/bikesarepain/icon.png",
   "environment": "*",
@@ -42,5 +39,12 @@
   },
   "suggest": {
     "dehydration": ">=1.3.7"
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.source": "github.com/kadmuffin/bikesarepain-mod"
+      }
+    }
   }
 }

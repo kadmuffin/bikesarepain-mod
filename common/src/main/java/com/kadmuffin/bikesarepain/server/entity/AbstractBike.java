@@ -338,7 +338,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                     // We start at the negative side of the wheel
                     float currentRaycastCoordinate = -(maxRaycasts / 2F) * raycastSteps;
 
-                    List<Float> calculatedPitches = new ArrayList<>();
+                    float[] calculatedPitches = new float[maxRaycasts];
 
                     for (int i = 0; i < maxRaycasts; i++) {
                         // First we need to calculate the Y coordinate
@@ -353,14 +353,18 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                         Vec3 frontWheel = this.modelToWorldPos(rotatedFront);
                         Vec3 backWheel = this.modelToWorldPos(backWheelPos.add(0, y, currentRaycastCoordinate));
 
-                        calculatedPitches.add(this.calculateBikePitchDown(frontWheel, backWheel, ClientConfig.CONFIG.instance().showDebugWheelRays()));
+                        calculatedPitches[i] = this.calculateBikePitchDown(frontWheel, backWheel, ClientConfig.CONFIG.instance().showDebugWheelRays());
 
                         currentRaycastCoordinate += raycastSteps; // Increment after processing
 
                     }
 
                     // Calculate the average pitch
-                    this.lastPitchAvg = calculatedPitches.stream().reduce(0F, Float::sum) / calculatedPitches.size();
+                    float sum = 0;
+                    for (float pitch : calculatedPitches) {
+                        sum += pitch;
+                    }
+                    this.lastPitchAvg = sum / maxRaycasts;
 
                     this.lastPitchAvg *= 1 - Math.min(this.getSpeed() / 0.5F, 1);
                 } else {

@@ -326,9 +326,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 this.lastWaitTimePitch = this.calculateMinWaitForPitchCalc();
 
                 if (runPitchCalc) {
-                    this.lastTickCount = 0;
-                    this.lastWaitTimePitch = this.calculateMinWaitForPitchCalc();
-
                     final int maxRaycasts = ClientConfig.CONFIG.instance().getAmountOfRaysPerWheel();
                     // Convert to diameter (well, a bit less than that), and split it into the amount of raycasts
                     final float raycastSteps = this.getWheelRadius() * 1.5F / maxRaycasts;

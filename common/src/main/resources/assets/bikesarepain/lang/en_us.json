@@ -73,12 +73,34 @@
   "config.bikesarepain.serial.scale.reference.wheel.tooltip": "The diameter of the wheel that the pedometer is calibrated to. This is used to scale the distance, calories and speed to what a real bike with this diameter would have.",
   "config.bikesarepain.serial.calories.mass.name": "Body Mass",
   "config.bikesarepain.serial.calories.mass.tooltip": "The mass of the player in kilograms. This is used to calculate the calories burned.",
+
   "config.bikesarepain.advanced.name": "Advanced",
   "config.bikesarepain.advanced.tooltip": "Advanced settings for Bikes Are Pain.",
+
   "config.bikesarepain.advanced.debug.name": "Debug",
   "config.bikesarepain.advanced.debug.tooltip": "Settings that are used for debugging the mod.",
+
   "config.bikesarepain.advanced.debug.wheel_rays.name": "Show Pitch Rays",
   "config.bikesarepain.advanced.debug.wheel_rays.tooltip": "Shows the rays that are casted for the pitch visuals.",
+
+  "config.bikesarepain.advanced.raycast_timing.name": "Raycast Calculation Timing",
+  "config.bikesarepain.advanced.raycast_timing.tooltip": "Advanced settings for dynamically adjusting raycast calculation timing based on player movement.",
+
+  "config.bikesarepain.advanced.raycast_timing.min_ray_wait": "Minimum Raycast Wait Time",
+  "config.bikesarepain.advanced.raycast_timing.min_ray_wait.tooltip": "The minimum number of game ticks to wait before doing a raycast calculation. Prevents excessive calculations during very slow or stationary movement.",
+
+  "config.bikesarepain.advanced.raycast_timing.max_ray_wait": "Maximum Raycast Wait Time",
+  "config.bikesarepain.advanced.raycast_timing.max_ray_wait.tooltip": "The maximum number of game ticks to wait before doing a raycast calculation.",
+
+  "config.bikesarepain.advanced.raycast_timing.vertical_threshold": "Vertical Movement Threshold",
+  "config.bikesarepain.advanced.raycast_timing.vertical_threshold.tooltip": "The speed at which vertical movement starts to significantly impact raycast calculation delay. Higher values make the system less sensitive to vertical movement.",
+
+  "config.bikesarepain.advanced.raycast_timing.vertical_sensitivity": "Vertical Movement Sensitivity",
+  "config.bikesarepain.advanced.raycast_timing.vertical_sensitivity.tooltip": "Controls how much vertical speed affects the raycast calculation delay. Higher values result in more delay reductions for vertical movement.",
+
+  "config.bikesarepain.advanced.raycast_timing.speed_sensitivity": "Horizontal Speed Sensitivity",
+  "config.bikesarepain.advanced.raycast_timing.speed_sensitivity.tooltip": "Determines how horizontal speed influences the raycast calculation delay. Higher values make the delay more responsive to horizontal movement speed.",
+
   "modmenu.summaryTranslation.bikesarepain": "Adds bikes to the game.",
   "modmenu.source": "Source"
 }

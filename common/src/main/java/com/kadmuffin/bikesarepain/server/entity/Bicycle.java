@@ -151,7 +151,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     @Override
     public boolean shouldCalculatePitch() {
         if (this.isBalloonInflated()) {
-            return this.getTicksOutOfWater() > 30;
+            return this.getTicksOutOfWater() > 60;
         }
         return super.shouldCalculatePitch();
     }
@@ -266,7 +266,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     protected void playJumpSound() {
-        this.playSound(SoundManager.BICYCLE_LAND.get(), 0.8F, 1.0F);
+        this.playSound(SoundManager.BICYCLE_LAND.get(), 2F, 1.3F);
     }
 
     @Override

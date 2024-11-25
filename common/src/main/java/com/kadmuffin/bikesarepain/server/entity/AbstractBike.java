@@ -6,6 +6,8 @@ import com.kadmuffin.bikesarepain.client.helper.Utils;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -295,9 +297,32 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return newRadiansPitch;
     }
 
-    private int calculateMinWaitForPitchCalc(float speed) {
-        int adjustedSpeed = (int) (20 - (20 / (1 + speed * 4)));
-        return Math.max(2, Math.min(adjustedSpeed, 20));
+    @Environment(EnvType.CLIENT)
+    private int calculateMinWaitForPitchCalc(float speed, float verticalSpeed) {
+        // Get current motion vectors
+        final float MAX_DELAY_TICKS = ClientConfig.CONFIG.instance().getMaximumRaycastWait();
+        final float MIN_DELAY_TICKS = ClientConfig.CONFIG.instance().getMinimumRaycastWait();
+        final float VERTICAL_THRESHOLD = ClientConfig.CONFIG.instance().getVerticalThreshold();
+        final float VERTICAL_SENSITIVITY = ClientConfig.CONFIG.instance().getVerticalSensitivity();
+        final float SPEED_SENSITIVITY = ClientConfig.CONFIG.instance().getSpeedSensitivity();
+
+        // Calculate base delay from horizontal speed
+        float baseDelay = MAX_DELAY_TICKS - (MAX_DELAY_TICKS * (speed * SPEED_SENSITIVITY) /
+                (1 + speed * SPEED_SENSITIVITY));
+
+        // Apply vertical movement modifier
+        float verticalFactor = 1.0F;
+        if (verticalSpeed > 0) {
+            verticalFactor = Math.max(0.2F,
+                    1.0F - (verticalSpeed / VERTICAL_THRESHOLD) * VERTICAL_SENSITIVITY);
+        }
+
+        // Calculate final delay
+        float adjustedDelay = baseDelay * verticalFactor;
+
+        // Ensure within bounds and convert to ticks
+        return Math.max((int)MIN_DELAY_TICKS,
+                Math.min((int)adjustedDelay, (int)MAX_DELAY_TICKS));
     }
 
     @Override
@@ -323,8 +348,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             final boolean runPitchCalc = !this.isInWater() && !this.isInLava() && waitSatisfied;
 
             if (waitSatisfied) {
+                float verticalSpeed = (float)Math.abs(upwardsMov);
                 this.lastTickCount = 0;
-                this.lastWaitTimePitch = this.calculateMinWaitForPitchCalc(speed);
+                this.lastWaitTimePitch = this.calculateMinWaitForPitchCalc(speed, verticalSpeed);
 
                 if (runPitchCalc) {
                     final int maxRaycasts = ClientConfig.CONFIG.instance().getAmountOfRaysPerWheel();

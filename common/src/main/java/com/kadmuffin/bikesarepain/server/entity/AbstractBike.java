@@ -74,9 +74,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private boolean saveDistance = false;
     private float rearWheelSpeed = 0.0F;
     private BlockPos lastPos = null;
-    private float lastPitchAvg = 0;
-    private int lastTickCount = 0;
-    private int lastWaitTimePitch = 0;
+    private float currentPitch = 0;
+    private int pitchTickingCount = 0;
+    private int pitchTargetTicking = 0;
     private double lastEyeY = 0;
     protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level);
@@ -342,16 +342,16 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             lastEyeY = eyeY;
 
             if (Math.abs(upwardsMov) > 0.45F) {
-                this.lastWaitTimePitch = 1;
+                this.pitchTargetTicking = 1;
             }
 
-            final boolean waitSatisfied = this.lastTickCount >= this.lastWaitTimePitch;
+            final boolean waitSatisfied = this.pitchTickingCount >= this.pitchTargetTicking;
             final boolean runPitchCalc = !this.isInWater() && !this.isInLava() && waitSatisfied;
 
             if (waitSatisfied) {
                 float verticalSpeed = (float)Math.abs(upwardsMov);
-                this.lastTickCount = 0;
-                this.lastWaitTimePitch = this.calculateMinWaitForPitchCalc(speed, verticalSpeed);
+                this.pitchTickingCount = 0;
+                this.pitchTargetTicking = this.calculateMinWaitForPitchCalc(speed, verticalSpeed);
 
                 if (runPitchCalc) {
                     final int maxRaycasts = ClientConfig.CONFIG.instance().getAmountOfRaysPerWheel();
@@ -392,17 +392,17 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                     for (float pitch : calculatedPitches) {
                         sum += pitch;
                     }
-                    this.lastPitchAvg = sum / maxRaycasts;
+                    this.currentPitch = sum / maxRaycasts;
 
-                    this.lastPitchAvg *= 1 - Math.min(speed / 0.5F, 1);
+                    this.currentPitch *= 1 - Math.min(speed / 0.5F, 1);
                 } else {
-                    this.lastPitchAvg = 0;
+                    this.currentPitch = 0;
                 }
             } else {
-                this.lastTickCount = Math.min(this.lastTickCount, this.lastWaitTimePitch) + 1;
+                this.pitchTickingCount = Math.min(this.pitchTickingCount, this.pitchTargetTicking) + 1;
             }
 
-            float newValue = this.getClientPitch() + (this.lastPitchAvg - this.getClientPitch()) * 0.25F;
+            float newValue = this.getClientPitch() + (this.currentPitch - this.getClientPitch()) * 0.25F;
             boolean updateServer = Math.abs(this.getClientPitch() - newValue)> 0.01F;
             this.setClientPitch(newValue);
 
@@ -410,7 +410,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 UUID clientPlayer = Minecraft.getInstance().player.getUUID();
                 if (this.getFirstPassenger() instanceof Player player && player.getUUID() == clientPlayer) {
                     if (ClientConfig.CONFIG.instance().syncPitchWithServer()) {
-                        this.setSyncedPitch(this.lastPitchAvg);
+                        this.setSyncedPitch(this.currentPitch);
                     } else {
                         this.setSyncedPitch(0);
                     }

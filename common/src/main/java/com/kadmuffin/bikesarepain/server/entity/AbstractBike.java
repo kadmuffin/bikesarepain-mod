@@ -243,6 +243,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return InteractionResult.sidedSuccess(this.level().isClientSide);
     }
 
+    @Environment(EnvType.CLIENT)
     public float calculateBikePitchDown(Vec3 frontWheel, Vec3 backWheel, boolean showRays) {
         // Do a raycast down to see if we are on the ground
         Vec3 raycastDir = new Vec3(0, -1F, 0);
@@ -977,10 +978,12 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.entityData.set(LAST_ROT_Y, lastRotY);
     }
 
+    @Environment(EnvType.CLIENT)
     public float getClientPitch() {
         return this.clientOnlyBikePitch;
     }
 
+    @Environment(EnvType.CLIENT)
     public void setClientPitch(float pitch) {
         this.clientOnlyBikePitch = pitch;
     }
@@ -995,6 +998,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.entityData.set(SYNCED_BIKE_PITCH, pitch);
     }
 
+    @Environment(EnvType.CLIENT)
     public static class RotationData {
         public float rotation;
         public long lastUpdated;

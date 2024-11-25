@@ -295,8 +295,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return newRadiansPitch;
     }
 
-    private int calculateMinWaitForPitchCalc() {
-        final float speed = getSpeed();
+    private int calculateMinWaitForPitchCalc(float speed) {
         int adjustedSpeed = (int) (20 - (20 / (1 + speed * 4)));
         return Math.max(2, Math.min(adjustedSpeed, 20));
     }
@@ -304,6 +303,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     @Override
     public void tick() {
         super.tick();
+
+        float speed = this.getSpeed();
 
         if (this.level().isClientSide() && ClientConfig.CONFIG.instance().pitchBasedOnBlocks()
         && this.shouldCalculatePitch()
@@ -323,7 +324,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
             if (waitSatisfied) {
                 this.lastTickCount = 0;
-                this.lastWaitTimePitch = this.calculateMinWaitForPitchCalc();
+                this.lastWaitTimePitch = this.calculateMinWaitForPitchCalc(speed);
 
                 if (runPitchCalc) {
                     final int maxRaycasts = ClientConfig.CONFIG.instance().getAmountOfRaysPerWheel();
@@ -366,7 +367,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                     }
                     this.lastPitchAvg = sum / maxRaycasts;
 
-                    this.lastPitchAvg *= 1 - Math.min(this.getSpeed() / 0.5F, 1);
+                    this.lastPitchAvg *= 1 - Math.min(speed / 0.5F, 1);
                 } else {
                     this.lastPitchAvg = 0;
                 }
@@ -393,7 +394,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
         if (this.getFirstPassenger() instanceof Player playerEntity) {
             if (!this.isSaddled()) {
-                if (this.getSpeed() > 0.05F) {
+                if (speed > 0.05F) {
                     // HUrt value that goes in 0.5 steps
                     float hurtAmount = Math.round(this.getSpeed() * 5F / 0.5F) * 0.5F;
 
@@ -406,8 +407,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
             if (!this.level().isClientSide()) {
                 BlockPos currentPos = new BlockPos((int) this.getX(), (int) this.getY(), (int) this.getZ());
 
-                if (this.getSpeed() > 0.05F && this.isSavingDistance() && (this.lastPos == null || !this.lastPos.equals(currentPos))) {
-                    this.setBlocksTravelled(this.getBlocksTravelled() + this.getSpeed() / this.getWheelRadius());
+                if (speed > 0.05F && this.isSavingDistance() && (this.lastPos == null || !this.lastPos.equals(currentPos))) {
+                    this.setBlocksTravelled(this.getBlocksTravelled() + speed / this.getWheelRadius());
                     this.lastPos = currentPos;
                 }
             }
@@ -415,7 +416,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         }
 
         if (!this.level().isClientSide()) {
-            if (this.getPassengers().isEmpty() && (Math.abs(this.getSpeed()) >= 0.05F || Math.abs(this.getSyncedPitch()) > 0)) {
+            if (this.getPassengers().isEmpty() && (Math.abs(speed) >= 0.05F || Math.abs(this.getSyncedPitch()) > 0)) {
                 // Update manually the speed of the bike
                 Vec2 newRots = this.updateRotations(new Vec2(this.getXRot(), this.getLastRotY()));
 
@@ -426,7 +427,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 // Update movement
                 this.updateMovement(0, 0);
 
-                if (Math.abs(this.getSpeed()) <= 0.06F) {
+                if (Math.abs(speed) <= 0.06F) {
                     this.setLastSpeed(0);
                     this.setInternalSpeed(0);
                 }
@@ -436,7 +437,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 this.travel(new Vec3(0, 0, 1));
             }
 
-            if (this.getSpeed() > 0F) {
+            if (speed > 0F) {
                 AABB aABB = this.getBoundingBox();
 
                 this.level().getEntities(this, aABB).stream().filter((entity) -> entity instanceof Mob).forEach((entity) -> {
@@ -449,7 +450,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                     DamageSource damageSource = new DamageSources(this.registryAccess()).sting(source);
 
                     // Round the speed to the nearest 0.5F increment
-                    final float originalDamage = Math.round(this.getSpeed() / 0.5F) * 0.5F;
+                    final float originalDamage = Math.round(speed / 0.5F) * 0.5F;
 
                     // As the entity gets smaller more damage we do
                     // as the entity gets bigger less damage we do

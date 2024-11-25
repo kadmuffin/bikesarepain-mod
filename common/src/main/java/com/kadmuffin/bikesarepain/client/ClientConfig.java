@@ -43,17 +43,17 @@ public class ClientConfig {
     @SerialEntry(comment = "The baud rate to connect with.")
     private int baudRate = 31250;
     @SerialEntry(comment = "How much to scale the speed by. Calculated with 1 / x meters needed to do a full block. ")
-    private float speedScaleRatio = 1F;
+    private float speedScaleRatio = 1f;
     @SerialEntry(comment = "How much to scale the wheel size read by JSerialComm. You can calculate it in the same way as the speedRatio.")
-    private float wheelScaleRatio = 1F;
+    private float wheelScaleRatio = 1f;
     @SerialEntry(comment = "When true, the values showed at the pedometer will be calculated with a reference value in mind (maps the small fitness bike to the real bike).")
     private boolean scaleCalcByRef = true;
     @SerialEntry(comment = "Map the original wheel size to the reference for wheel/speed calculations.")
     private boolean useForCalculations = true;
     @SerialEntry(comment = "The real size of a bicycle wheel in meters.")
-    private float targetWheelSize = 0.62F;
+    private float targetWheelSize = 0.62f;
     @SerialEntry(comment = "The mass of the player in kilograms (or if \"imperial=true\", in pounds).")
-    private float bodyMass = 70F;
+    private float bodyMass = 70f;
     @SerialEntry(comment = "Show debug rays for the wheel.")
     private boolean debugShowWheelRays = false;
 
@@ -415,7 +415,7 @@ public class ClientConfig {
     }
 
     public float getTargetWheelSize() {
-        return this.targetWheelSize / 2F;
+        return this.targetWheelSize / 2f;
     }
 
     public boolean useMappedForCalculations() {

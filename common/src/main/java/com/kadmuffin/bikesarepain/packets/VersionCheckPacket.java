@@ -1,12 +1,9 @@
 package com.kadmuffin.bikesarepain.packets;
 
-import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
-import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.platform.Platform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.network.Connection;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -14,18 +11,12 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.CommonColors;
-import net.minecraft.world.entity.player.Player;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-
 import static com.kadmuffin.bikesarepain.BikesArePain.MOD_ID;
+import static com.kadmuffin.bikesarepain.BikesArePain.LOGGER;
 
 public class VersionCheckPacket {
-    private static final Logger LOGGER = LogManager.getLogger();
-
     public record S2CVersionRequest() implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<S2CVersionRequest> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "s2c_version_request"));
         public static final StreamCodec<RegistryFriendlyByteBuf, S2CVersionRequest> CODEC = StreamCodec.of((buf, obj) -> {},
@@ -52,7 +43,7 @@ public class VersionCheckPacket {
                     );
                 }
 
-                LOGGER.error(MOD_ID, e);
+                LOGGER.error(e);
                 return;
             }
 

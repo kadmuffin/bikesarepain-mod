@@ -11,6 +11,7 @@ import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import com.kadmuffin.bikesarepain.server.recipe.RecipeManager;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
+import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.DeferredRegister;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -22,9 +23,14 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public final class BikesArePain {
     public static final String MOD_ID = "bikesarepain";
+    public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(MOD_ID, Registries.ENTITY_TYPE);
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(MOD_ID, Registries.ITEM);
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(MOD_ID, Registries.CREATIVE_MODE_TAB);
@@ -34,6 +40,12 @@ public final class BikesArePain {
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZER = DeferredRegister.create(MOD_ID, Registries.RECIPE_SERIALIZER);
 
     public static void init() {
+        if (Platform.isDevelopmentEnvironment()) {
+            LOGGER.atLevel(Level.DEBUG);
+        } else {
+            LOGGER.atLevel(Level.INFO);
+        }
+
         EntityManager.init();
         ComponentManager.init();
         ItemManager.init();

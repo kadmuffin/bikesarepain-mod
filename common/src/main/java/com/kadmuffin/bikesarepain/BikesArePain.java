@@ -2,6 +2,7 @@ package com.kadmuffin.bikesarepain;
 
 import com.kadmuffin.bikesarepain.client.KeybindManager;
 import com.kadmuffin.bikesarepain.common.SoundManager;
+import com.kadmuffin.bikesarepain.packets.ArduinoPacket;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
 import com.kadmuffin.bikesarepain.server.entity.EntityManager;
@@ -72,7 +73,7 @@ public final class BikesArePain {
                                                                                                                                     if (source.getPlayer() == null) {
                                                                                                                                         return 0;
                                                                                                                                     }
-                                                                                                                                    PacketManager.processArduinoData(new PacketManager.ArduinoData(
+                                                                                                                                    ArduinoPacket.processArduinoData(new ArduinoPacket.Packet(
                                                                                                                                             true,
                                                                                                                                             speed,
                                                                                                                                             speed,

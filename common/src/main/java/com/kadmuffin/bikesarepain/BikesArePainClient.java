@@ -4,6 +4,8 @@ import com.kadmuffin.bikesarepain.client.ClientConfig;
 import com.kadmuffin.bikesarepain.client.SerialReader;
 import com.kadmuffin.bikesarepain.client.item.TooltipManager;
 import com.kadmuffin.bikesarepain.client.serial.DataProcessor;
+import com.kadmuffin.bikesarepain.packets.ArduinoPacket;
+import com.kadmuffin.bikesarepain.packets.EmptyArduinoPacket;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
 import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.networking.NetworkManager;
@@ -40,7 +42,7 @@ public class BikesArePainClient {
             float caloriesBurned = (float) processor.getTotalCalories() * scaleAllRatio;
 
             NetworkManager.sendToServer(
-                    new PacketManager.ArduinoData(
+                    new ArduinoPacket.Packet(
                             true,
                             inGameSpeed,
                             visibleSpeed,
@@ -55,7 +57,7 @@ public class BikesArePainClient {
 
         processor.addNothingChangedListener(dataPoint -> {
             NetworkManager.sendToServer(
-                    new PacketManager.EmptyArduinoData(
+                    new EmptyArduinoPacket.Packet(
                             true, false
                     )
             );
@@ -66,7 +68,7 @@ public class BikesArePainClient {
                 case SUDDEN_DISCONNECT:
                     processor.reset();
                     NetworkManager.sendToServer(
-                            new PacketManager.EmptyArduinoData(
+                            new EmptyArduinoPacket.Packet(
                                     false, true
                             )
                     );
@@ -74,7 +76,7 @@ public class BikesArePainClient {
                 case START:
                     processor.reset();
                     NetworkManager.sendToServer(
-                            new PacketManager.EmptyArduinoData(
+                            new EmptyArduinoPacket.Packet(
                                     true, false
                             )
                     );
@@ -82,7 +84,7 @@ public class BikesArePainClient {
                 case STOP:
                     processor.reset();
                     NetworkManager.sendToServer(
-                            new PacketManager.EmptyArduinoData(
+                            new EmptyArduinoPacket.Packet(
                                     false, false
                             )
                     );

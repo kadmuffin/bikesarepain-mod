@@ -56,6 +56,16 @@ public class ClientConfig {
     private float bodyMass = 70f;
     @SerialEntry(comment = "Show debug rays for the wheel.")
     private boolean debugShowWheelRays = false;
+    @SerialEntry(comment = "Minimum wait for raycasting to happen (in ticks).")
+    private int minimumRaycastWait = 1;
+    @SerialEntry(comment = "Maximum wait for raycasting to happen (in ticks).")
+    private int maximumRaycastWait = 24;
+    @SerialEntry(comment = "Threshold for considering height changes significant (in blocks).")
+    private float verticalThreshold = 0.6f;
+    @SerialEntry(comment = "Factor that determines how much is the wait for raycast reduced by height changes.")
+    private float verticalSensitivity = 0.8f;
+    @SerialEntry(comment = "Controls how quickly delay decreases as speed increases.")
+    private float speedSensitivity = 4.0f;
 
     public static String roundUpToTwo(float value) {
         return format.format(Math.round(value * 100) / 100f);
@@ -429,6 +439,13 @@ public class ClientConfig {
     public boolean showDebugWheelRays() {
         return this.debugShowWheelRays;
     }
+
+    public int getMinimumRaycastWait() { return this.minimumRaycastWait; }
+    public int getMaximumRaycastWait() { return this.maximumRaycastWait; }
+    public float getVerticalThreshold() { return this.verticalThreshold; }
+    public float getVerticalSensitivity() { return this.verticalSensitivity; }
+    public float getSpeedSensitivity() { return this.speedSensitivity; }
+
 
     public float calculateCalories(double speedKPH, double timeHours) {
         return (float) (getMET((float) speedKPH) * this.getBodyMassKg() * timeHours);

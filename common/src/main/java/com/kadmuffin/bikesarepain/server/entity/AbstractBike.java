@@ -91,7 +91,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.22499999403953552)
                 .add(Attributes.FALL_DAMAGE_MULTIPLIER, 0.7D)
-                .add(Attributes.JUMP_STRENGTH, 0.5D);
+                .add(Attributes.JUMP_STRENGTH, 0.6D);
     }
 
     public static EntityDataAccessor<Boolean> getHasChest() {

@@ -41,7 +41,7 @@ public class PacketManager {
     }
 
     public static void init() {
-        NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeypressPacket.TYPE, KeypressPacket.CODEC, KeypressPacket.RECEIVER);
+        NetworkManager.registerReceiver(NetworkManager.Side.C2S, KeypressPacket.Packet.TYPE, KeypressPacket.Packet.CODEC, KeypressPacket.Packet.RECEIVER);
         NetworkManager.registerReceiver(
                 NetworkManager.c2s(),
                 PacketManager.ArduinoData.TYPE,
@@ -54,86 +54,6 @@ public class PacketManager {
                 PacketManager.EmptyArduinoData.RECEIVER);
     }
 
-    public enum KeyPress {
-        RING_BELL(0),
-        BRAKE(1),
-        SWITCHD(2);
-
-        private final int type;
-
-        KeyPress(int type) {
-            this.type = type;
-        }
-
-        public static KeyPress fromType(int type) {
-            for (KeyPress key : values()) {
-                if (key.getType() == type) {
-                    return key;
-                }
-            }
-            return null;
-        }
-
-        // Get the type of the keypress
-        public int getType() {
-            return type;
-        }
-
-        public void ringBell(boolean isPressed, NetworkManager.PacketContext context) {
-            Player player = context.getPlayer();
-            if (player != null) {
-                Bicycle bike = player.getVehicle() instanceof Bicycle ? (Bicycle) player.getVehicle() : null;
-                if (bike != null) {
-                    if (isPressed != bike.isRingAlreadyPressed()) {
-                        boolean newRingState = !bike.isRingAlreadyPressed();
-                        bike.setRingAlreadyPressed(newRingState);
-                        if (newRingState) {
-                            bike.ringBell();
-                        }
-                    }
-                }
-            }
-        }
-
-        public void switchDisplay(boolean isPressed, NetworkManager.PacketContext context) {
-            Player player = context.getPlayer();
-            if (player != null) {
-                Bicycle bike = player.getVehicle() instanceof Bicycle ? (Bicycle) player.getVehicle() : null;
-                if (bike != null) {
-                    if (isPressed) {
-                        bike.chooseNextDisplayStat();
-                    }
-                }
-            }
-        }
-
-        public void brake(boolean isPressed, NetworkManager.PacketContext context) {
-            Player player = context.getPlayer();
-            if (player != null) {
-                Bicycle bike = player.getVehicle() instanceof Bicycle ? (Bicycle) player.getVehicle() : null;
-                if (bike != null) {
-                    if (isPressed != bike.isBraking()) {
-                        boolean newBrakeState = !bike.isBraking();
-                        bike.setBraking(newBrakeState);
-                    }
-                }
-            }
-        }
-
-        public void run(boolean isPressed, NetworkManager.PacketContext context) {
-            switch (this) {
-                case RING_BELL:
-                    ringBell(isPressed, context);
-                    break;
-                case BRAKE:
-                    brake(isPressed, context);
-                    break;
-                case SWITCHD:
-                    switchDisplay(isPressed, context);
-                    break;
-            }
-        }
-    }
 
     public record EmptyArduinoData(boolean enabled, boolean disconnect) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<EmptyArduinoData> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "empty_arduino_data"));
@@ -212,18 +132,4 @@ public class PacketManager {
         }
     }
 
-    public record KeypressPacket(boolean isPressed, KeyPress keyEnum) implements CustomPacketPayload {
-        public static final CustomPacketPayload.Type<KeypressPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(MOD_ID, "ringbell_click"));
-        public static final StreamCodec<FriendlyByteBuf, KeypressPacket> CODEC = StreamCodec.of((buf, obj) -> {
-            buf.writeBoolean(obj.isPressed);
-            buf.writeEnum(obj.keyEnum);
-        }, buf -> new KeypressPacket(buf.readBoolean(), buf.readEnum(KeyPress.class)));
-
-        public static final NetworkManager.NetworkReceiver<KeypressPacket> RECEIVER = (packet, contextSupplier) -> packet.keyEnum.run(packet.isPressed, contextSupplier);
-
-        @Override
-        public @NotNull Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-    }
 }

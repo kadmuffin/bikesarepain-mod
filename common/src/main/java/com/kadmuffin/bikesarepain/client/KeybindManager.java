@@ -1,5 +1,6 @@
 package com.kadmuffin.bikesarepain.client;
 
+import com.kadmuffin.bikesarepain.packets.KeypressPacket;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -50,17 +51,17 @@ public class KeybindManager {
 
             if (RING_BELL.isDown() != alreadyRinging) {
                 alreadyRinging = !alreadyRinging;
-                NetworkManager.sendToServer(new PacketManager.KeypressPacket(alreadyRinging, PacketManager.KeyPress.RING_BELL));
+                NetworkManager.sendToServer(new KeypressPacket.Packet(alreadyRinging, KeypressPacket.KeyType.RING_BELL));
             }
 
             if (BRAKE.isDown() != alreadyBraking) {
                 alreadyBraking = !alreadyBraking;
-                NetworkManager.sendToServer(new PacketManager.KeypressPacket(alreadyBraking, PacketManager.KeyPress.BRAKE));
+                NetworkManager.sendToServer(new KeypressPacket.Packet(alreadyBraking, KeypressPacket.KeyType.BRAKE));
             }
 
             if (SWITCHD.isDown() != alreadySwitchedType) {
                 alreadySwitchedType = !alreadySwitchedType;
-                NetworkManager.sendToServer(new PacketManager.KeypressPacket(alreadySwitchedType, PacketManager.KeyPress.SWITCHD));
+                NetworkManager.sendToServer(new KeypressPacket.Packet(alreadySwitchedType, KeypressPacket.KeyType.SWITCHD));
             }
         });
     }

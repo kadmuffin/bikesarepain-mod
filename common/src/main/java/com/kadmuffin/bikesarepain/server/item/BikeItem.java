@@ -13,6 +13,8 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -83,8 +85,9 @@ public class BikeItem extends TintedItem {
                 entity.setHealthAffectsSpeed(itemStack.has(ComponentManager.HEALTH_AFFECTS_SPEED.get()) && Boolean.TRUE.equals(itemStack.get(ComponentManager.HEALTH_AFFECTS_SPEED.get())));
 
                 // Make the bike look the same direction as the player
-                if (context.getPlayer() != null && entity.isSaddled()) {
+                if (context.getPlayer() != null) {
                     entity.setYRot(context.getPlayer().getYRot());
+                    entity.travel(new Vec3(0, 0, 0.4f));
                 }
             }
 

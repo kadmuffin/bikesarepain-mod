@@ -3,6 +3,7 @@ package com.kadmuffin.bikesarepain.fabric.client;
 import com.kadmuffin.bikesarepain.BikesArePainClient;
 import com.kadmuffin.bikesarepain.client.ClientConfig;
 import com.kadmuffin.bikesarepain.client.SerialReader;
+import com.kadmuffin.bikesarepain.packets.VersionCheckPacket;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
@@ -10,7 +11,13 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
+
+import static com.kadmuffin.bikesarepain.BikesArePain.LOGGER;
+import static com.kadmuffin.bikesarepain.BikesArePain.MOD_NAME;
 
 public final class BikesArePainFabricClient implements ClientModInitializer {
     private RequiredArgumentBuilder<FabricClientCommandSource, ?> scaleSet(ClientConfig.ApplyScaleTo applyTo) {
@@ -54,6 +61,28 @@ public final class BikesArePainFabricClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         BikesArePainClient.init();
+
+        PayloadTypeRegistry.configurationS2C().register(
+                VersionCheckPacket.S2CVersionRequest.TYPE,
+                StreamCodec.of((buf, obj) -> {
+                }, buf -> new VersionCheckPacket.S2CVersionRequest())
+        );
+
+        ClientConfigurationNetworking.registerGlobalReceiver(VersionCheckPacket.S2CVersionRequest.TYPE, (payload, context) -> {
+            VersionCheckPacket.C2SVersionShare response;
+            try {
+                response = VersionCheckPacket.S2CVersionRequest.prepareResponse();
+            } catch (Exception e) {
+                LOGGER.error(String.format("[%s -> Client]", MOD_NAME), e);
+                context.responseSender().disconnect(Component.literal(String.format(
+                        "[%s] Something went wrong while parsing the version number in the client. Check the console logs.",
+                        MOD_NAME
+                )));
+                return;
+            }
+
+            context.responseSender().sendPacket(response);
+        });
 
         // This entrypoint is suitable for setting up client-specific logic, such as rendering.
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> dispatcher.register(ClientCommandManager.literal("bikes").then(

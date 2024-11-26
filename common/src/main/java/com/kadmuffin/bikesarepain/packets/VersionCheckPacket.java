@@ -1,20 +1,21 @@
 package com.kadmuffin.bikesarepain.packets;
 
-import dev.architectury.networking.NetworkManager;
 import dev.architectury.platform.Platform;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ConfigurationTask;
 import net.minecraft.util.CommonColors;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 import static com.kadmuffin.bikesarepain.BikesArePain.MOD_ID;
-import static com.kadmuffin.bikesarepain.BikesArePain.LOGGER;
+import static com.kadmuffin.bikesarepain.BikesArePain.MOD_NAME;
 
 public class VersionCheckPacket {
     public record S2CVersionRequest() implements CustomPacketPayload {
@@ -22,33 +23,19 @@ public class VersionCheckPacket {
         public static final StreamCodec<RegistryFriendlyByteBuf, S2CVersionRequest> CODEC = StreamCodec.of((buf, obj) -> {},
                 buf -> new S2CVersionRequest());
 
-        // This happens in the client
-        public static final NetworkManager.NetworkReceiver<S2CVersionRequest> RECEIVER = (packet, context) -> {
-            String[] versionParts = getVersion();
+        public static C2SVersionShare prepareResponse() throws ArrayIndexOutOfBoundsException, NumberFormatException {
+            String[] versionParts = getVersionSplit();
 
             int major;
             int minor;
             int patch;
 
-            try {
-                major = Integer.parseInt(versionParts[0]);
-                minor = Integer.parseInt(versionParts[1]);
-                patch = Integer.parseInt(versionParts[2]);
-            } catch (Exception e) {
-                if (Minecraft.getInstance().getConnection() instanceof ClientPacketListener listener) {
-                    listener.getConnection().disconnect(
-                            Component.literal(
-                                    String.format("[%s] Something went wrong while parsing the mod version. Check your console logs.", MOD_ID)
-                            )
-                    );
-                }
+            major = Integer.parseInt(versionParts[0]);
+            minor = Integer.parseInt(versionParts[1]);
+            patch = Integer.parseInt(versionParts[2]);
 
-                LOGGER.error(e);
-                return;
-            }
-
-            NetworkManager.sendToServer(new C2SVersionShare(major, minor, patch));
-        };
+            return new C2SVersionShare(major, minor, patch);
+        }
 
         @Override
         public @NotNull Type<? extends CustomPacketPayload> type() {
@@ -64,28 +51,34 @@ public class VersionCheckPacket {
             buf.writeInt(obj.patch);
         }, buf -> new C2SVersionShare(buf.readInt(), buf.readInt(), buf.readInt()));
 
-        // This happens in the server
-        public static final NetworkManager.NetworkReceiver<C2SVersionShare> RECEIVER = (packet, context) -> {
-            String[] versionParts = getVersion();
+        public static boolean isVersionSupported(C2SVersionShare packet) throws ArrayIndexOutOfBoundsException, NumberFormatException  {
+            String[] versionParts = getVersionSplit();
 
             // Assume the server's version is fine, and if not
             // the game will crash most likely.
             int major = Integer.parseInt(versionParts[0]);
             int minor = Integer.parseInt(versionParts[1]);
 
-            boolean versionMatches = major == packet.major() && minor == packet.minor();
+            return major == packet.major() && minor == packet.minor();
+        }
 
-            if (!versionMatches && context.getPlayer() instanceof ServerPlayer player) {
-                player.connection.disconnect(Component.literal(String.format("[%s] Expected version ", MOD_ID)).append(
-                        Component.literal(String.format("%d.%d.X ", major, minor)).withColor(CommonColors.SOFT_YELLOW).append(
-                                Component.literal("but found version ").append(
-                                        Component.literal(String.format("%d.%d.X", packet.major, packet.minor)).withColor(CommonColors.SOFT_RED)
-                                                .append(Component.literal("."))
-                                )
-                        )
-                ));
-            }
-        };
+        public static Component getDisconnectMessage(C2SVersionShare payload) {
+            return Component.literal("Expected version ")
+                    .append(Component.literal(String.format("v%s", VersionCheckPacket.getVersion()))
+                            .withColor(CommonColors.SOFT_YELLOW).append(
+                                    Component.literal(String.format(" of mod '%s' but found ", MOD_NAME)).withColor(CommonColors.WHITE).append(
+                                            Component.literal(String.format("v%d.%d.%d",
+                                                            payload.major(),
+                                                            payload.minor(),
+                                                            payload.patch()
+                                                    )).withColor(CommonColors.SOFT_RED)
+                                                    .append(
+                                                            Component.literal("!").withColor(CommonColors.WHITE)
+                                                    )
+                                    )
+                            )
+                    );
+        }
 
         @Override
         public @NotNull Type<? extends CustomPacketPayload> type() {
@@ -93,10 +86,26 @@ public class VersionCheckPacket {
         }
     }
 
-    private static String[] getVersion() {
-        String versionString = Platform.getMod(MOD_ID).getVersion();
-        return versionString.split("\\.");
+    public record VersionCheckTask() implements ConfigurationTask {
+        public static final ConfigurationTask.Type TYPE = new ConfigurationTask.Type(ResourceLocation.fromNamespaceAndPath(MOD_ID, "s2c_version_request").toString());
+
+        @Override
+        public void start(Consumer<Packet<?>> task) {
+            task.accept(new ClientboundCustomPayloadPacket(new S2CVersionRequest()));
+        }
+
+        @Override
+        public @NotNull Type type() {
+            return TYPE;
+        }
     }
 
+    public static String[] getVersionSplit() {
+        return getVersion().split("\\.");
+    }
+
+    public static String getVersion() {
+        return Platform.getMod(MOD_ID).getVersion();
+    }
 
 }

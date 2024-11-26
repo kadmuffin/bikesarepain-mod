@@ -29,6 +29,7 @@ import org.apache.logging.log4j.Logger;
 
 public final class BikesArePain {
     public static final String MOD_ID = "bikesarepain";
+    public static final String MOD_NAME = "Bikes are Pain";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(MOD_ID, Registries.ENTITY_TYPE);

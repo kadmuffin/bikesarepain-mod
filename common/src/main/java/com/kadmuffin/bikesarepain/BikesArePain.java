@@ -51,7 +51,6 @@ public final class BikesArePain {
         ComponentManager.init();
         ItemManager.init();
         PacketManager.init();
-        KeybindManager.init();
         SoundManager.init();
         GameRuleManager.init();
         RecipeManager.init();

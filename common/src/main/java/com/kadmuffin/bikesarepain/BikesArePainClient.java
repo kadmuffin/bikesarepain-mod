@@ -1,12 +1,14 @@
 package com.kadmuffin.bikesarepain;
 
 import com.kadmuffin.bikesarepain.client.ClientConfig;
+import com.kadmuffin.bikesarepain.client.KeybindManager;
 import com.kadmuffin.bikesarepain.client.SerialReader;
 import com.kadmuffin.bikesarepain.client.item.TooltipManager;
 import com.kadmuffin.bikesarepain.client.serial.DataProcessor;
 import com.kadmuffin.bikesarepain.packets.ArduinoPacket;
 import com.kadmuffin.bikesarepain.packets.EmptyArduinoPacket;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
+import com.kadmuffin.bikesarepain.server.entity.EntityManager;
 import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.networking.NetworkManager;
 import net.fabricmc.api.EnvType;
@@ -21,6 +23,8 @@ public class BikesArePainClient {
     public static void init() {
         ClientConfig.init();
         TooltipManager.init();
+        EntityManager.initClient();
+        KeybindManager.init();
 
         reader.addListener((speed, triggerTimeHours, wheelRadius) -> {
             if (wheelRadius > 0F) {

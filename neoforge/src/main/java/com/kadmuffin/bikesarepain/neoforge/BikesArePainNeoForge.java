@@ -9,13 +9,13 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import dev.architectury.event.events.client.ClientCommandRegistrationEvent;
-import net.minecraft.client.Minecraft;
+import dev.architectury.platform.Platform;
 import net.minecraft.network.chat.Component;
 import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
-import static com.kadmuffin.bikesarepain.BikesArePain.MOD_ID;
+import static com.kadmuffin.bikesarepain.BikesArePain.*;
 
 @Mod(MOD_ID)
 public final class BikesArePainNeoForge {
@@ -26,7 +26,7 @@ public final class BikesArePainNeoForge {
         BikesArePain.init();
 
         // Make sure we are running in the client side
-        if (Minecraft.getInstance().level == null) {
+        if (Platform.getEnvironment().toPlatform().isClient()) {
             BikesArePainClient.init();
 
             ModLoadingContext.get().registerExtensionPoint(

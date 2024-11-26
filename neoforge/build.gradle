@@ -47,7 +47,8 @@ dependencies {
     forgeRuntimeLibrary "com.fazecast:jSerialComm:[2.0.0,3.0.0)"
     include "com.fazecast:jSerialComm:${rootProject.jserialcomm_version}"
 
-    modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}-neoforge"
+    // Manually add the yacl jar file to the mods folder
+    modCompileOnly "dev.isxander:yet-another-config-lib:${project.yacl_version}-neoforge"
 }
 
 processResources {

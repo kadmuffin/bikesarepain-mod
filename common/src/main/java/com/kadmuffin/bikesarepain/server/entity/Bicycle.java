@@ -372,7 +372,10 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
                 this.triggerAnim("finalAnim", "screen");
                 this.setHasDisplay(true);
-                this.playSound(SoundEvents.ITEM_FRAME_ADD_ITEM, 1.0F, 1.0F);
+                for (int i = 0; i < 7; i++) {
+                    this.playSound(SoundManager.PEDOMETER_CLICK.get(), 0.8F, 1.6F+(0.3F*i));
+                }
+
 
                 // Load the data from the item
                 ItemStack itemStack = player.getItemInHand(hand);

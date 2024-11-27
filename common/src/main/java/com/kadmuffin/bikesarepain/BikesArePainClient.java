@@ -3,7 +3,6 @@ package com.kadmuffin.bikesarepain;
 import com.kadmuffin.bikesarepain.client.ClientConfig;
 import com.kadmuffin.bikesarepain.client.KeybindManager;
 import com.kadmuffin.bikesarepain.client.SerialReader;
-import com.kadmuffin.bikesarepain.client.item.TooltipManager;
 import com.kadmuffin.bikesarepain.client.serial.DataProcessor;
 import com.kadmuffin.bikesarepain.packets.ArduinoPacket;
 import com.kadmuffin.bikesarepain.packets.EmptyArduinoPacket;
@@ -22,7 +21,6 @@ public class BikesArePainClient {
 
     public static void init() {
         ClientConfig.init();
-        TooltipManager.init();
         EntityManager.initClient();
         KeybindManager.init();
 

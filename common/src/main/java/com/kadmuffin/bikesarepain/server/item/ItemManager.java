@@ -115,7 +115,7 @@ public class ItemManager {
     );
 
     public static final RegistrySupplier<Item> PEDOMETER_ITEM = BikesArePain.ITEMS.register("pedometer", () ->
-            new BaseItem(
+            new PedometerItem(
                     ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "pedometer"),
                     new Item.Properties()
                             .stacksTo(1)

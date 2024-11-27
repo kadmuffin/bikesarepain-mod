@@ -186,6 +186,25 @@ public class ItemManager {
     );
 
 
+    public static final RegistrySupplier<Item> PEDOMETER_PIECE_ITEM = BikesArePain.ITEMS.register("pedometer_piece", () ->
+            new SharedTextureItem(
+                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "pedometer_piece"),
+                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "pedometer"),
+                    new Item.Properties()
+                            .stacksTo(1)
+                            .rarity(Rarity.UNCOMMON)
+                            .arch$tab(ItemManager.BIKES_MOD_TAB)
+            )
+    );
 
+    public static final RegistrySupplier<Item> PEDOMETER_SECTION_ITEM = BikesArePain.ITEMS.register("pedometer_section", () ->
+            new BaseItem(
+                    ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "pedometer_section"),
+                    new Item.Properties()
+                            .stacksTo(1)
+                            .rarity(Rarity.UNCOMMON)
+                            .arch$tab(ItemManager.BIKES_MOD_TAB)
+            )
+    );
 
 }

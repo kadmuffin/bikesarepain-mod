@@ -211,7 +211,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     @Override
     public boolean canJump() {
-        return !this.isInWater();
+        return !this.isInWater() && this.isSaddled();
     }
 
     @Override

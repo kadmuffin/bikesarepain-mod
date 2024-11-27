@@ -90,7 +90,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
                 .add(Attributes.MOVEMENT_SPEED, 0.22499999403953552)
-                .add(Attributes.FALL_DAMAGE_MULTIPLIER, 0.7D)
+                .add(Attributes.FALL_DAMAGE_MULTIPLIER, 0.5D)
                 .add(Attributes.JUMP_STRENGTH, 0.6D);
     }
 
@@ -201,7 +201,13 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     @Override
     protected void executeRidersJump(float strength, Vec3 movementInput) {
-        super.executeRidersJump(strength, movementInput);
+        float multiplier = 1f;
+
+        if (this.isHealthAffectingSpeed()) {
+            multiplier = (float) Math.clamp(this.getHealth() / this.getMaxHealth(), 0.4, 1);
+        }
+
+        super.executeRidersJump(strength*multiplier, movementInput);
         // Calculate the pitch of the bike
         // taking into account the strength of the jump
         if (this.level().isClientSide()) {

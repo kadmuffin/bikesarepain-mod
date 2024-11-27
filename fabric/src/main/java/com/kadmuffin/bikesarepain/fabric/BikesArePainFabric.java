@@ -18,6 +18,7 @@ import static com.kadmuffin.bikesarepain.BikesArePain.*;
 
 public final class BikesArePainFabric implements ModInitializer {
     private float thirstTick = 0;
+    private float movingTicks = 0;
 
     @Override
     public void onInitialize() {
@@ -76,19 +77,49 @@ public final class BikesArePainFabric implements ModInitializer {
 
         if (FabricLoader.getInstance().isModLoaded("dehydration")) {
             AbstractBike.addOnMoveListener((bike, speed, moving) -> {
-                if (moving && bike.getFirstPassenger() instanceof Player player) {
+                if (bike.getFirstPassenger() instanceof Player player) {
                     ThirstManagerAccess playerAcc = (ThirstManagerAccess) player;
-                    float reducedSpeed = speed * bike.getSpeedFactor(bike.getHealth() / bike.getMaxHealth());
-                    float effortToSpeedRatio = Math.clamp(reducedSpeed / speed, 0, 1);
 
-                    thirstTick++;
+                    if (moving) {
+                        // Calculate bike health ratio
+                        float healthRatio = bike.getHealth() / bike.getMaxHealth();
 
-                    if (thirstTick > 20) {
+                        // Calculate reduced speed based on bike health
+                        float reducedSpeed = speed * bike.getSpeedFactor(healthRatio);
+                        float effortToSpeedRatio = Math.clamp(reducedSpeed / speed, 0, 1);
+                        float effortPenalty = (float)Math.pow(1 - effortToSpeedRatio, 3);
+
+                        // Increment ticks
+                        thirstTick++;
+
+                        float movementPenalty = 1.0F - (float)Math.exp(-movingTicks / 400.0);
+                        movingTicks++;
+
+                        if (thirstTick >= 20) {
+                            thirstTick = 0;
+
+                            float dehydrationAmount = getDehydrationAmount(effortPenalty, movementPenalty, healthRatio);
+
+                            playerAcc.getThirstManager().addDehydration(dehydrationAmount);
+                        }
+                    } else {
+                        movingTicks = Math.max(0, (int)(movingTicks * 0.5F));
                         thirstTick = 0;
-                        playerAcc.getThirstManager().addDehydration(0.1F + (1F - effortToSpeedRatio) * 0.9F);
                     }
                 }
             });
         }
+    }
+
+    private static float getDehydrationAmount(float effortPenalty, float movementPenalty, float healthRatio) {
+        float baseDehydration = 0.1F;
+        float dehydrationAmount = baseDehydration +
+                (effortPenalty * 1.5F) + // Increased penalty for reduced speed
+                (movementPenalty * 0.5F); // Dehydration based on continuous movement
+
+        // More dehydration when bike is close to broken
+        float healthMultiplier = (float)Math.pow(1 - healthRatio, 2) * 2 + 1;
+        dehydrationAmount *= healthMultiplier;
+        return dehydrationAmount;
     }
 }

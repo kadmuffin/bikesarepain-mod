@@ -66,6 +66,10 @@ public class ClientConfig {
     private float verticalSensitivity = 0.8f;
     @SerialEntry(comment = "Controls how quickly delay decreases as speed increases.")
     private float speedSensitivity = 4.0f;
+    @SerialEntry(comment = "How many speed data points to use for smoothing changes (Only used if a fitness bike is linked).")
+    private int speedDataPoints = 3;
+    @SerialEntry(comment = "Max amount of fitness datapoints to keep in memory (Only used if a fitness bike is linked).")
+    private int maxMemoryDatapoints = 1000;
 
     public static String roundUpToTwo(float value) {
         return format.format(Math.round(value * 100) / 100f);
@@ -286,6 +290,26 @@ public class ClientConfig {
                                                         String.format("%s kg", roundUpToTwo(value)))
                                                 )
                                                 .min(1F)
+                                        )
+                                        .build()
+                                )
+                                .build()
+                        )
+
+                        .group(OptionGroup.createBuilder()
+                                .name(Component.translatable("config.bikesarepain.serial.smoothing.name"))
+                                .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.smoothing.tooltip")))
+                                .option(Option.<Integer>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.serial.smoothing.speed"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.serial.smoothing.speed.tooltip")))
+                                        .binding(3, () -> speedDataPoints, value -> speedDataPoints = value)
+                                        .controller(opt -> IntegerSliderControllerBuilder.create(opt)
+                                                .step(1)
+                                                .range(1, 16)
+                                                .formatValue(value -> Component.literal(String.format("%d point%s",
+                                                        value,
+                                                        value == 1 ? "" : "s"
+                                                        )))
                                         )
                                         .build()
                                 )
@@ -537,6 +561,14 @@ public class ClientConfig {
                 getUnitString(this.speedScaleRatio, this.imperial),
                 getUnitString(this.wheelScaleRatio, this.imperial)
         );
+    }
+
+    public int getSpeedDataPoints() {
+        return speedDataPoints >= 1 ? speedDataPoints : 1;
+    }
+
+    public int getMaxMemoryDatapoints() {
+        return maxMemoryDatapoints;
     }
 
     public enum ApplyScaleTo {

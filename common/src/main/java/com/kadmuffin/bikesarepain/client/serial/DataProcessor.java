@@ -67,6 +67,7 @@ public class DataProcessor {
     // It will combine existing points into one point if the distance between them is less than the threshold
     // For the speed, it will take the average of the speeds
     public void compressStreamingPoints(float threshold, int maxPointsPerCompression) {
+        // We need at least two points to compress
         if (dataPoints.size() < 2) {
             return;
         }
@@ -100,6 +101,7 @@ public class DataProcessor {
         try {
             database.setQueryTimeout(30);
 
+            // Probably not good as it risks sql injection
             ResultSet rs = database.executeQuery("SELECT * FROM " + id);
 
             while (rs.next()) {
@@ -226,7 +228,7 @@ public class DataProcessor {
     }
 
     private long calculateOptimalInterval(long duration, int pointCount) {
-        long targetPointCount = 1000; // Aim for about 1000 points after aggregation
+        long targetPointCount = ClientConfig.CONFIG.instance().getMaxMemoryDatapoints(); // Aim for about 1000 points after aggregation
         long optimalInterval = Math.max(duration / targetPointCount, 1000); // Ensure minimum 1-second interval
 
         for (int i = 0; i < niceIntervals.length - 1; i++) {
@@ -240,17 +242,23 @@ public class DataProcessor {
 
     public void update(float speed, double triggerTimeHours) {
         // Now calculate average speed
-        this.speedAvgQueue.add(speed);
-        this.sumSpeed += speed;
-        if (speedAvgQueue.size() > 2) {
-            sumSpeed -= speedAvgQueue.poll();
+        int maxSpeedPoints = ClientConfig.CONFIG.instance().getSpeedDataPoints();
+        float avgSpeed = 0;
+
+        if (maxSpeedPoints >= 1) {
+            this.speedAvgQueue.add(speed);
+            this.sumSpeed += speed;
+
+            if (speedAvgQueue.size() >= maxSpeedPoints) {
+                sumSpeed -= speedAvgQueue.poll();
+            }
+
+            if (!speedAvgQueue.isEmpty()) {
+                avgSpeed = sumSpeed / speedAvgQueue.size();
+                avgSpeed = avgSpeed > 0 ? avgSpeed : 0;
+            }
         }
 
-        float avgSpeed = 0;
-        if (!speedAvgQueue.isEmpty()) {
-            avgSpeed = sumSpeed / speedAvgQueue.size();
-            avgSpeed = avgSpeed > 0 ? avgSpeed : 0;
-        }
 
         // Round to last two decimal places
         avgSpeed = (float) (Math.round(avgSpeed * 100.0) / 100.0);
@@ -265,7 +273,7 @@ public class DataProcessor {
 
         DataPoint point = new DataPoint(timestamp, avgSpeed, distance, calories);
         boolean somethingChanged = (dataPoints.isEmpty() || point.speed != avgSpeed);
-        dataPoints.add(point);
+        // dataPoints.add(point);
 
         // Notify listeners
         if (!somethingChanged) {
@@ -278,7 +286,8 @@ public class DataProcessor {
             }
         }
 
-        autoAggregateData();
+        // Currently not being used as saving is not implemented yet
+        // autoAggregateData();
     }
 
     public float getWheelRadius() {
@@ -347,7 +356,7 @@ public class DataProcessor {
             return speed == 0 && distance == 0 && calories == 0;
         }
 
-        public boolean isEquals(DataPoint other) {
+        public boolean equals(DataPoint other) {
             return timestamp == other.timestamp && speed == other.speed && distance == other.distance && calories == other.calories;
         }
 

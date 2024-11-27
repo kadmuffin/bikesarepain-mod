@@ -7,7 +7,8 @@
     "AbstractClientPlayerMixin"
   ],
   "mixins": [
-    "PlayerMixin"
+    "PlayerMixin",
+    "ServerPlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

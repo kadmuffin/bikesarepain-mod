@@ -2,6 +2,8 @@ package com.kadmuffin.bikesarepain.server;
 
 import com.kadmuffin.bikesarepain.BikesArePain;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.stats.StatFormatter;
+import net.minecraft.stats.Stats;
 
 public class StatsManager {
     public static final ResourceLocation DISTANCE_TRAVELED = ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "distance_traveled");
@@ -15,5 +17,7 @@ public class StatsManager {
         BikesArePain.STATS.register(CALORIES_BURNED_JSC.getPath(), () -> CALORIES_BURNED_JSC);
 
         BikesArePain.STATS.register();
+
+        Stats.CUSTOM.get(DISTANCE_TRAVELED, StatFormatter.DISTANCE);
     }
 }

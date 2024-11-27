@@ -26,12 +26,12 @@
     "bikesarepain.fabric.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.16.0",
-    "minecraft": ["1.21", "1.21.1"],
+    "fabricloader": ">=0.16.7",
+    "minecraft": ["1.21.1"],
     "java": ">=21",
-    "architectury": ">=13.0.6",
+    "architectury": ">=13.0.8",
     "fabric-api": "*",
-    "geckolib": ">=4.5.0",
+    "geckolib": ">=4.7.0",
     "yet_another_config_lib_v3": "*"
   },
   "recommends": {

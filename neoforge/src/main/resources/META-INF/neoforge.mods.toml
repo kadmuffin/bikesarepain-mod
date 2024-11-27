@@ -22,28 +22,28 @@ side = "BOTH"
 [[dependencies.bikesarepain]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21,1.21.1]"
+versionRange = "[1.21.1]"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.bikesarepain]]
 modId = "architectury"
 type = "required"
-versionRange = "[13.0.6,)"
+versionRange = "[13.0.8,)"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.bikesarepain]]
 modId = "geckolib"
 type = "required"
-versionRange = "[4.5.0,5.0.0)"
+versionRange = "[4.7.0,5.0.0)"
 ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies.bikesarepain]]
 modId = "yet_another_config_lib_v3"
 type = "required"
-versionRange = "[3.5.0,4.0.0)"
+versionRange = "[3.6.0,4.0.0)"
 ordering = "AFTER"
 side = "CLIENT"
 

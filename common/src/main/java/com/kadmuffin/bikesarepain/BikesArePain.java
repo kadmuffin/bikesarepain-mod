@@ -5,6 +5,7 @@ import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.packets.ArduinoPacket;
 import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.kadmuffin.bikesarepain.server.GameRuleManager;
+import com.kadmuffin.bikesarepain.server.LootManager;
 import com.kadmuffin.bikesarepain.server.entity.EntityManager;
 import com.kadmuffin.bikesarepain.server.item.ComponentManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
@@ -54,6 +55,7 @@ public final class BikesArePain {
         SoundManager.init();
         GameRuleManager.init();
         RecipeManager.init();
+        LootManager.init();
 
         CommandRegistrationEvent.EVENT.register((dispatcher, dedicated, commands) -> {
             dispatcher.register(Commands.literal("bikes_ops")

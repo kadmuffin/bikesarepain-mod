@@ -19,7 +19,10 @@
       "bikesarepain:wrench",
       "bikesarepain:nut",
       "bikesarepain:bicycle",
-      "bikesarepain:bicycle_saddled"
+      "bikesarepain:bicycle_saddled",
+      "bikesarepain:pedometer",
+      "bikesarepain:pedometer_section",
+      "bikesarepain:pedometer_piece"
     ]
   }
 }

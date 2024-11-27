@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "bikesarepain.pedometer.piece",
+  "pattern": [
+    "did",
+    "ici",
+    "did"
+  ],
+  "key": {
+    "i": {
+      "item": "minecraft:iron_nugget"
+    },
+    "c": {
+      "item": "minecraft:gray_concrete"
+    },
+    "d":  {
+      "item": "minecraft:white_dye"
+    }
+  },
+  "result": {
+    "id": "bikesarepain:pedometer_piece",
+    "count": 1
+  },
+  "show_notification": true
+}

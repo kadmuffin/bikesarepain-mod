@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "bikesarepain.pedometer",
+  "pattern": [
+    "ici",
+    "sis",
+    "wrw"
+  ],
+  "key": {
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "s": {
+      "item": "bikesarepain:pedometer_section"
+    },
+    "c":  {
+      "item": "minecraft:gray_concrete"
+    },
+    "w": {
+      "tag": "minecraft:planks"
+    },
+    "r": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "id": "bikesarepain:pedometer_section",
+    "count": 1
+  },
+  "show_notification": true
+}

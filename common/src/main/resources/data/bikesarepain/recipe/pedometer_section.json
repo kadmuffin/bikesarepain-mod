@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "bikesarepain.pedometer.section",
+  "pattern": [
+    "sis",
+    "ppp",
+    "sis"
+  ],
+  "key": {
+    "i": {
+      "item": "minecraft:iron_ingot"
+    },
+    "p": {
+      "item": "bikesarepain:pedometer_piece"
+    },
+    "s":  {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "id": "bikesarepain:pedometer_section",
+    "count": 1
+  },
+  "show_notification": true
+}

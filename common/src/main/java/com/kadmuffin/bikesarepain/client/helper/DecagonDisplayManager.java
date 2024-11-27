@@ -4,6 +4,9 @@ import com.kadmuffin.bikesarepain.BikesArePain;
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import com.kadmuffin.bikesarepain.common.SoundManager;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.player.Player;
 import software.bernie.geckolib.cache.object.GeoBone;
 
 import java.util.Arrays;
@@ -134,10 +137,17 @@ public class DecagonDisplayManager {
         int digitCount = integerDigits + (maxDecimalPlaces > 0 ? maxDecimalPlaces + 1 : 0);
         bicycle.setDigitCount(digitCount);
 
+        Player player = bicycle.getRider();
+        final boolean playClick = player instanceof Player && bicycle.lookingAtPedometer();
+
         // Handle integer part
         for (int i = integerDigits - 1; i >= 0; i--) {
             digits[i] = integerPart % 10;
             integerPart /= 10;
+            if (playClick) {
+                bicycle.level().playSound(player, player.getOnPos(), SoundManager.PEDOMETER_CLICK.get(), SoundSource.AMBIENT, 0.02F, 1.5F+((float)Math.random()));
+            }
+
         }
 
         // Add decimal point if we have space
@@ -149,6 +159,9 @@ public class DecagonDisplayManager {
                 int digit = (int) fractionalPart;
                 digits[integerDigits + 1 + j] = (float) digit;
                 fractionalPart -= digit;
+                if (playClick) {
+                    bicycle.level().playSound(player, player.getOnPos(), SoundManager.PEDOMETER_CLICK.get(), SoundSource.AMBIENT, 0.005F, 1.5F+((float)Math.random()));
+                }
             }
         }
 

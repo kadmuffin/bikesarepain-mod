@@ -50,3 +50,7 @@ Combined the following sounds to create the bicycle landing sound:
 
 - SFXJumpLandingGrass.wav by WakuWakuWakuWaku -- https://freesound.org/s/422969/ -- License: Creative Commons 0
 - land.mp3 by nathanchurchyard -- https://freesound.org/s/520750/ -- License: Creative Commons 0
+
+## Pedometer Click:
+
+- Mechanical keyboard typing (slow, individual keys) by mccreery -- https://freesound.org/s/509171/ -- License: Creative Commons 0

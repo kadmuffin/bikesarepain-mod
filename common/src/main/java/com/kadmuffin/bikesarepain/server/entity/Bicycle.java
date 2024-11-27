@@ -1005,7 +1005,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         Pair<DecagonDisplayManager.DisplayType, Float> result = this.getTargetDisplayScore(useImperial);
 
         this.setCurrentDisplayStat(result.getA().getType());
-        this.displayManager.preprocessTarget(result.getB(), this);
+        this.displayManager.preprocessTarget(result.getB() < 0 ? 0f : result.getB(), this);
     }
 
     public float getCachedFloatDisplay(int displayIndex) {

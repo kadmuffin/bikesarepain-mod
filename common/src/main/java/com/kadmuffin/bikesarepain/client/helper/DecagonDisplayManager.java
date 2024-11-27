@@ -1,5 +1,6 @@
 package com.kadmuffin.bikesarepain.client.helper;
 
+import com.kadmuffin.bikesarepain.BikesArePain;
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -50,7 +51,7 @@ public class DecagonDisplayManager {
 
     public void preprocessTarget(float target, Bicycle bicycle) {
         if (target < 0 || target > 999999F) {
-            System.out.println("Invalid target number: " + target);
+            BikesArePain.LOGGER.debug("Invalid target number: {}", target);
             return;
         }
 
@@ -86,7 +87,7 @@ public class DecagonDisplayManager {
         int displayIndex = getDisplayIndex(boneName);
 
         if (displayIndex == -1) {
-            System.out.println("Invalid bone name: " + boneName);
+            BikesArePain.LOGGER.debug("Invalid bone name: {}", boneName);
             return;
         }
 
@@ -223,7 +224,7 @@ public class DecagonDisplayManager {
         int unitIndex = getUnitIndex(boneName);
 
         if (unitIndex == -1) {
-            System.out.println("Invalid bone name: " + boneName);
+            BikesArePain.LOGGER.debug("Invalid bone name: {}", boneName);
             return;
         }
 

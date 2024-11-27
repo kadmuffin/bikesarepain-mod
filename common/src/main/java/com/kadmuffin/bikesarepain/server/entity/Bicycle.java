@@ -7,6 +7,8 @@ import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ComponentManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
@@ -1118,6 +1120,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     // Used for zooming into the display
     // When the player is looking at the display, we want to zoom in
+    @Environment(EnvType.CLIENT)
     public float modifyFOV(AbstractClientPlayer player, float fov) {
         Vec3 seat = this.modelToWorldPos(this.getSeatPos());
         Vec3 camera = new Vec3(seat.x, seat.y + player.getEyeHeight() * 0.96F, seat.z);
@@ -1140,8 +1143,8 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         // 7.5 degrees -> 0.1309 radians
         if (angle < 0.1309) {
             ticksLookingAtDisplay++;
-            if (ticksLookingAtDisplay > 7) {
-                ticksLookingAtDisplay = 7;
+            if (ticksLookingAtDisplay > 15) {
+                ticksLookingAtDisplay = 15;
                 return fov * Math.clamp(0.35F * this.getModelScalingFactor(), 0, 1F);
             }
         } else {
@@ -1149,5 +1152,10 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         }
 
         return fov;
+    }
+
+    @Environment(EnvType.CLIENT)
+    public boolean lookingAtPedometer() {
+        return ticksLookingAtDisplay >= 15;
     }
 }

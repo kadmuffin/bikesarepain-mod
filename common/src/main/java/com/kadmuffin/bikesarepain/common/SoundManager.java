@@ -31,6 +31,12 @@ public class SoundManager {
                     () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "bicycle_movement"))
             );
 
+    public static final RegistrySupplier<SoundEvent> PEDOMETER_CLICK =
+            BikesArePain.SOUNDS.register(
+                    "pedometer_click",
+                    () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "pedometer_click"))
+            );
+
     public static void init() {
         BikesArePain.SOUNDS.register();
     }

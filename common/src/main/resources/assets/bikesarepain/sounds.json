@@ -31,7 +31,6 @@
   "bicycle_movement": {
     "subtitle": "sound.bikesarepain.bicycle_movement",
     "sounds": [
-      "bikesarepain:bicycle/bicycle_movement",
       "bikesarepain:bicycle/bicycle_movement_1",
       "bikesarepain:bicycle/bicycle_movement_2",
       "bikesarepain:bicycle/bicycle_movement_3",
@@ -46,6 +45,25 @@
       "bikesarepain:bicycle/bicycle_movement_12",
       "bikesarepain:bicycle/bicycle_movement_13",
       "bikesarepain:bicycle/bicycle_movement_14"
+    ]
+  },
+  "pedometer_click": {
+    "subtitle": "sound.bikesarepain.pedometer_click",
+    "sounds": [
+      "bikesarepain:pedometer/509171_mccreery_click_0",
+      "bikesarepain:pedometer/509171_mccreery_click_1",
+      "bikesarepain:pedometer/509171_mccreery_click_2",
+      "bikesarepain:pedometer/509171_mccreery_click_3",
+      "bikesarepain:pedometer/509171_mccreery_click_4",
+      "bikesarepain:pedometer/509171_mccreery_click_5",
+      "bikesarepain:pedometer/509171_mccreery_click_6",
+      "bikesarepain:pedometer/509171_mccreery_click_7",
+      "bikesarepain:pedometer/509171_mccreery_click_8",
+      "bikesarepain:pedometer/509171_mccreery_click_9",
+      "bikesarepain:pedometer/509171_mccreery_click_10",
+      "bikesarepain:pedometer/509171_mccreery_click_11",
+      "bikesarepain:pedometer/509171_mccreery_click_12",
+      "bikesarepain:pedometer/509171_mccreery_click_13"
     ]
   }
 }

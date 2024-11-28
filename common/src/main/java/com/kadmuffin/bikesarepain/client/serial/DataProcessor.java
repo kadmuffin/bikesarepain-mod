@@ -26,14 +26,14 @@ public class DataProcessor {
     private final Queue<Float> speedAvgQueue;
     private final List<Consumer<DataPoint>> onChangeListeners;
     private final List<Consumer<DataPoint>> onNothingChangedListeners;
-    private List<DataPoint> dataPoints;
+    // private List<DataPoint> dataPoints;
     private float sumSpeed;
     private double totalCalories;
     private double totalDistance;
     private float wheelRadius;
     public DataProcessor() {
         speedAvgQueue = new LinkedList<>();
-        dataPoints = new ArrayList<>();
+        // dataPoints = new ArrayList<>();
         onChangeListeners = new ArrayList<>();
         onNothingChangedListeners = new ArrayList<>();
         this.reset();
@@ -61,9 +61,10 @@ public class DataProcessor {
         totalDistance = 0;
         wheelRadius = 0;
         speedAvgQueue.clear();
-        dataPoints.clear();
+        // dataPoints.clear();
     }
 
+    /*
     // It will combine existing points into one point if the distance between them is less than the threshold
     // For the speed, it will take the average of the speeds
     public void compressStreamingPoints(float threshold, int maxPointsPerCompression) {
@@ -238,7 +239,7 @@ public class DataProcessor {
         }
 
         return niceIntervals[niceIntervals.length - 1]; // Return 1 hour if no smaller interval found
-    }
+    } */
 
     public void update(float speed, double triggerTimeHours) {
         // Now calculate average speed
@@ -306,6 +307,7 @@ public class DataProcessor {
         return totalCalories;
     }
 
+    /*
     public DataPoint getLatestDataPoint() {
         return dataPoints.isEmpty() ? null : dataPoints.getLast();
     }
@@ -334,6 +336,7 @@ public class DataProcessor {
             return value;
         }
     }
+    */
 
     public static class DataPoint {
         // Timestamp in milliseconds (since data collection started)

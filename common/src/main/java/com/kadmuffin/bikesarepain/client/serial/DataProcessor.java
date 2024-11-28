@@ -26,6 +26,8 @@ public class DataProcessor {
     private double totalCalories;
     private double totalDistance;
     private float wheelRadius;
+    private float trackedSpeed;
+
     public DataProcessor() {
         speedAvgQueue = new LinkedList<>();
         // dataPoints = new ArrayList<>();
@@ -55,6 +57,7 @@ public class DataProcessor {
         totalCalories = 0;
         totalDistance = 0;
         wheelRadius = 0;
+        trackedSpeed = 0;
         speedAvgQueue.clear();
         // dataPoints.clear();
     }
@@ -268,7 +271,8 @@ public class DataProcessor {
         long timestamp = System.currentTimeMillis();
 
         DataPoint point = new DataPoint(timestamp, avgSpeed, distance, calories);
-        boolean somethingChanged = (dataPoints.isEmpty() || point.speed != avgSpeed);
+        boolean somethingChanged = Math.abs(this.trackedSpeed - avgSpeed) > ClientConfig.CONFIG.instance().getSpeedDataChange();
+        this.trackedSpeed = avgSpeed;
         // dataPoints.add(point);
 
         // Notify listeners

@@ -244,9 +244,9 @@ public class DataProcessor {
     public void update(float speed, double triggerTimeHours) {
         // Now calculate average speed
         int maxSpeedPoints = ClientConfig.CONFIG.instance().getSpeedDataPoints();
-        float avgSpeed = 0;
+        float avgSpeed = speed;
 
-        if (maxSpeedPoints >= 1) {
+        if (maxSpeedPoints > 1) {
             this.speedAvgQueue.add(speed);
             this.sumSpeed += speed;
 

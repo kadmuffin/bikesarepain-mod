@@ -9,6 +9,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.CommonColors;
 import net.minecraft.world.entity.EntityType;
@@ -98,29 +99,24 @@ public class BicycleItem extends BikeItem {
         int durabilityGroup = getDurabilityRangeGroup(durabilityPercentage);
 
         // Determine the color based on durability percentage
-        ChatFormatting durabilityColor = switch (durabilityGroup) {
-            case 100 -> ChatFormatting.GREEN;
-            case 90 -> ChatFormatting.DARK_GREEN;
-            case 75 -> ChatFormatting.YELLOW;
-            case 50 -> ChatFormatting.RED;
-            default -> ChatFormatting.DARK_RED;
+        int durabilityColor = switch (durabilityGroup) {
+            case 100 -> ChatFormatting.GREEN.getColor();
+            case 90 -> ChatFormatting.DARK_GREEN.getColor();
+            case 50, 75 -> ChatFormatting.YELLOW.getColor();
+            case 25 -> ChatFormatting.RED.getColor();
+            default -> ChatFormatting.DARK_RED.getColor();
         };
 
         // Determine condition text based on durability percentage
-        Component conditionText = switch (durabilityGroup) {
-            case 100 -> Component.translatable("item.bikesarepain.bicycle.tooltip.brand_new");
-            case 90 -> Component.translatable("item.bikesarepain.bicycle.tooltip.almost_perfect");
-            case 75 -> Component.translatable("item.bikesarepain.bicycle.tooltip.slightly_worn");
-            case 50 -> Component.translatable("item.bikesarepain.bicycle.tooltip.needs_repair");
-            case 25 -> Component.translatable("item.bikesarepain.bicycle.tooltip.critically_damaged");
-            default -> Component.translatable("item.bikesarepain.bicycle.tooltip.barely_held_together");
+        MutableComponent conditionText = switch (durabilityGroup) {
+            case 100 -> Component.translatable("item.bikesarepain.bicycle.tooltip.brand_new", durabilityPercentage);
+            case 90 -> Component.translatable("item.bikesarepain.bicycle.tooltip.almost_perfect", durabilityPercentage);
+            case 75 -> Component.translatable("item.bikesarepain.bicycle.tooltip.slightly_worn", durabilityPercentage);
+            case 50 -> Component.translatable("item.bikesarepain.bicycle.tooltip.needs_repair", durabilityPercentage);
+            case 25 -> Component.translatable("item.bikesarepain.bicycle.tooltip.critically_damaged", durabilityPercentage);
+            default -> Component.translatable("item.bikesarepain.bicycle.tooltip.barely_held_together", durabilityPercentage);
         };
-        tooltipComponents.add(conditionText);
-
-        // Add durability tooltip
-        tooltipComponents.add(Component.translatable("item.bikesarepain.bicycle.tooltip.health")
-                .withColor(CommonColors.GRAY)
-                .append(Component.literal(durabilityPercentage + "%").withStyle(durabilityColor)));
+        tooltipComponents.add(conditionText.withColor(durabilityColor));
 
         // Check if the item is saddled and add the respective tooltip
         boolean isSaddled = stack.has(ComponentManager.SADDLED.get()) && Boolean.TRUE.equals(stack.get(ComponentManager.SADDLED.get()));

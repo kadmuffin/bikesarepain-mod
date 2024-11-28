@@ -111,5 +111,7 @@
   "config.bikesarepain.serial.smoothing.speed.tooltip": "Makes speed value changes more consistent. Lower values are more responsive and higher values are more consistent.",
 
   "modmenu.summaryTranslation.bikesarepain": "Adds bikes to the game.",
-  "modmenu.source": "Source"
+  "modmenu.source": "Source",
+
+  "stat.bikesarepain.distance_traveled": "Distance by Bicycle"
 }

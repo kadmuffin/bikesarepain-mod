@@ -39,7 +39,6 @@ public final class BikesArePain {
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(MOD_ID, Registries.CREATIVE_MODE_TAB);
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(MOD_ID, Registries.SOUND_EVENT);
     public static final DeferredRegister<DataComponentType<?>> DATA_COMPONENTS = DeferredRegister.create(MOD_ID, Registries.DATA_COMPONENT_TYPE);
-    public static final DeferredRegister<ResourceLocation> STATS = DeferredRegister.create(MOD_ID, Registries.CUSTOM_STAT);
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZER = DeferredRegister.create(MOD_ID, Registries.RECIPE_SERIALIZER);
 
     public static void init() {
@@ -57,7 +56,6 @@ public final class BikesArePain {
         GameRuleManager.init();
         RecipeManager.init();
         LootManager.init();
-        StatsManager.init();
 
         CommandRegistrationEvent.EVENT.register((dispatcher, dedicated, commands) -> {
             dispatcher.register(Commands.literal("bikes_ops")

@@ -9,9 +9,9 @@ public class StatsManager {
     public static final ResourceLocation DISTANCE_TRAVELED = ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "distance_traveled");
 
     public static void init() {
-        BikesArePain.STATS.register(DISTANCE_TRAVELED.getPath(), () -> DISTANCE_TRAVELED);
-        BikesArePain.STATS.register();
+        // BikesArePain.STATS.register(DISTANCE_TRAVELED.getPath(), () -> DISTANCE_TRAVELED);
+        // BikesArePain.STATS.register();
 
-        Stats.CUSTOM.get(DISTANCE_TRAVELED, StatFormatter.DISTANCE);
+        // Stats.CUSTOM.get(DISTANCE_TRAVELED, StatFormatter.DISTANCE);
     }
 }

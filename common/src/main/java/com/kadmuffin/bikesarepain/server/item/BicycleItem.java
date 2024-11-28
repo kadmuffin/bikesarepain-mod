@@ -135,5 +135,11 @@ public class BicycleItem extends BikeItem {
         if (stack.has(ComponentManager.SAVE_DISTANCE.get()) && Boolean.TRUE.equals(stack.get(ComponentManager.SAVE_DISTANCE.get()))) {
             PedometerItem.addDistanceHover(stack, tooltipComponents);
         }
+
+        if (durabilityPercentage <= 90) {
+            tooltipComponents.add(Component.empty());
+            tooltipComponents.add(Component.translatable("item.bikesarepain.bicycle.tooltip.repair_1").withColor(CommonColors.LIGHT_GRAY));
+            tooltipComponents.add(Component.translatable("item.bikesarepain.bicycle.tooltip.repair_2").withColor(CommonColors.LIGHT_GRAY));
+        }
     }
 }

@@ -70,6 +70,23 @@ public class BicycleItem extends BikeItem {
         });
     }
 
+    // Helper function to map durability percentage to range group
+    private static int getDurabilityRangeGroup(int durabilityPercentage) {
+        if (durabilityPercentage == 100) {
+            return 100; // brand new
+        } else if (durabilityPercentage >= 90) {
+            return 90; // almost perfect
+        } else if (durabilityPercentage >= 75) {
+            return 75; // slightly worn
+        } else if (durabilityPercentage >= 50) {
+            return 50; // needs repair
+        } else if (durabilityPercentage >= 25) {
+            return 25; // critically damaged
+        } else {
+            return 0; // barely held together
+        }
+    }
+
     @Override
     @Environment(EnvType.CLIENT)
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
@@ -78,13 +95,14 @@ public class BicycleItem extends BikeItem {
 
         // Calculate durability percentage
         int durabilityPercentage = (int) (100 - ((float) durability / maxDurability) * 100);
+        int durabilityGroup = getDurabilityRangeGroup(durabilityPercentage);
 
         // Determine the color based on durability percentage
-        ChatFormatting durabilityColor = switch (durabilityPercentage) {
+        ChatFormatting durabilityColor = switch (durabilityGroup) {
             case 100 -> ChatFormatting.GREEN;
-            case 76, 99 -> ChatFormatting.DARK_GREEN;
-            case 51, 75 -> ChatFormatting.YELLOW;
-            case 26, 50 -> ChatFormatting.RED;
+            case 90 -> ChatFormatting.DARK_GREEN;
+            case 75 -> ChatFormatting.YELLOW;
+            case 50 -> ChatFormatting.RED;
             default -> ChatFormatting.DARK_RED;
         };
 

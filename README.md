@@ -18,9 +18,7 @@ serial data from the arduino, I am using jSerialComm.
 ### Some of the Known Issues
 
 - Pitch is synced from clients to the server (should be the other way around)
-- HUD display item and "Modifier: Floating on Water" is only available from the creative menu
 - Code for commands is kinda of a mess
-- No version validation in the client or server
 - The mod doesn't auto disable when entering a world without the mod installed
 - Serial is activated when entering a world, but in a buggy way, requiring running `/bikes close` and `/bikes open` to
   fix it
@@ -38,7 +36,6 @@ serial data from the arduino, I am using jSerialComm.
 - Saving workout session data to disk
 - Configurable workout session goals
 - Advancements for completing workout session goals
-- Crafting recipes for items that don't have one yet
 - Adding more modifiers for the bike
 - Adding more bikes (mountain bike, road bike, motorbike, etc.)
 - Server-side configuration for features

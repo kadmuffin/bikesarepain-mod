@@ -110,6 +110,11 @@
   "config.bikesarepain.serial.smoothing.speed": "Speed",
   "config.bikesarepain.serial.smoothing.speed.tooltip": "Makes speed value changes more consistent. Lower values are more responsive and higher values are more consistent.",
 
+  "config.bikesarepain.advanced.serial.name": "Serial",
+  "config.bikesarepain.advanced.serial.tooltip": "Advanced configurations for serial processing",
+  "config.bikesarepain.advanced.serial.speed_change_threshold.name": "Speed Data Change Threshold",
+  "config.bikesarepain.advanced.serial.speed_change_threshold.tooltip": "Specify the minimum difference required between consecutive speed data points from the Arduino for the new data point to be processed. This helps to prevent spamming the server with network updates.",
+
   "modmenu.summaryTranslation.bikesarepain": "Adds bikes to the game.",
   "modmenu.source": "Source",
 

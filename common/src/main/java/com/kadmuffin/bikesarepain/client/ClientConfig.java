@@ -68,8 +68,8 @@ public class ClientConfig {
     private float speedSensitivity = 4.0f;
     @SerialEntry(comment = "How many speed data points to use for smoothing changes (Only used if a fitness bike is linked).")
     private int speedDataPoints = 3;
-    @SerialEntry(comment = "Max amount of fitness datapoints to keep in memory (Currently not used).")
-    private int maxMemoryDatapoints = 1000;
+    @SerialEntry(comment = "Defines the minimum difference required between the new speed data point and the last one from the Arduino for it to be processed.")
+    private float speedDataChangeThreshold = 3.5f;
 
     public static String roundUpToTwo(float value) {
         return format.format(Math.round(value * 100) / 100f);
@@ -378,6 +378,21 @@ public class ClientConfig {
                                 .build()
                         )
                         .group(OptionGroup.createBuilder()
+                                .name(Component.translatable("config.bikesarepain.advanced.serial.name"))
+                                .description(OptionDescription.of(Component.translatable("config.bikesarepain.advanced.serial.tooltip")))
+                                .option(Option.<Float>createBuilder()
+                                        .name(Component.translatable("config.bikesarepain.advanced.serial.speed_change_threshold.name"))
+                                        .description(OptionDescription.of(Component.translatable("config.bikesarepain.advanced.serial.speed_change_threshold.tooltip")))
+                                        .binding(3.5f, () -> speedDataChangeThreshold, value -> speedDataChangeThreshold = value)
+                                        .controller(opt -> FloatFieldControllerBuilder.create(opt)
+                                                .min(0f)
+                                                .formatValue(value -> Component.literal(String.format("%s km/h diff", roundUpToOne(value))))
+                                        )
+                                        .build()
+                                )
+                                .build()
+                        )
+                        .group(OptionGroup.createBuilder()
                                 .name(Component.translatable("config.bikesarepain.advanced.debug.name"))
                                 .description(OptionDescription.of(Component.translatable("config.bikesarepain.advanced.debug.tooltip")))
                                 .option(Option.<Boolean>createBuilder()
@@ -564,9 +579,8 @@ public class ClientConfig {
     public int getSpeedDataPoints() {
         return speedDataPoints >= 1 ? speedDataPoints : 1;
     }
-
-    public int getMaxMemoryDatapoints() {
-        return maxMemoryDatapoints;
+    public float getSpeedDataChange() {
+        return speedDataPoints > 0 ? speedDataPoints : 0;
     }
 
     public enum ApplyScaleTo {

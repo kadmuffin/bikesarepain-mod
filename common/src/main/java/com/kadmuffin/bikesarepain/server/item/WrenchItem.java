@@ -2,6 +2,7 @@ package com.kadmuffin.bikesarepain.server.item;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.CommonColors;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 
@@ -14,6 +15,6 @@ public class WrenchItem extends BaseItem {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.translatable("item.bikesarepain.wrench.tooltip"));
+        tooltipComponents.add(Component.translatable("item.bikesarepain.wrench.tooltip").withColor(CommonColors.LIGHT_GRAY));
     }
 }

@@ -31,7 +31,7 @@ public class ClientConfig {
     @SerialEntry(comment = "Display Imperial units instead of metric.")
     private boolean imperial = false;
     @SerialEntry(comment = "Amount of rays to cast per wheel for pitching the bike depending on terrain.")
-    private int amountOfRaysPerWheel = 4;
+    private int amountOfRaysPerWheel = 6;
     @SerialEntry(comment = "Use (probably not well done) interpolation for movement.")
     private boolean interpolation = true;
     @SerialEntry(comment = "Whether to automatically connect to the serial port on startup.")
@@ -59,16 +59,16 @@ public class ClientConfig {
     @SerialEntry(comment = "Minimum wait for raycasting to happen (in ticks).")
     private int minimumRaycastWait = 1;
     @SerialEntry(comment = "Maximum wait for raycasting to happen (in ticks).")
-    private int maximumRaycastWait = 24;
+    private int maximumRaycastWait = 12;
     @SerialEntry(comment = "Threshold for considering height changes significant (in blocks).")
-    private float verticalThreshold = 0.6f;
+    private float verticalThreshold = 0.4f;
     @SerialEntry(comment = "Factor that determines how much is the wait for raycast reduced by height changes.")
-    private float verticalSensitivity = 0.8f;
+    private float verticalSensitivity = 0.9f;
     @SerialEntry(comment = "Controls how quickly delay decreases as speed increases.")
     private float speedSensitivity = 4.0f;
     @SerialEntry(comment = "How many speed data points to use for smoothing changes (Only used if a fitness bike is linked).")
     private int speedDataPoints = 3;
-    @SerialEntry(comment = "Max amount of fitness datapoints to keep in memory (Only used if a fitness bike is linked).")
+    @SerialEntry(comment = "Max amount of fitness datapoints to keep in memory (Currently not used).")
     private int maxMemoryDatapoints = 1000;
 
     public static String roundUpToTwo(float value) {
@@ -157,7 +157,7 @@ public class ClientConfig {
                                 .option(Option.<Integer>createBuilder()
                                         .name(Component.translatable("config.bikesarepain.visuals.pitch.name"))
                                         .description(OptionDescription.of(Component.translatable("config.bikesarepain.visuals.pitch.tooltip")))
-                                        .binding(4, () -> amountOfRaysPerWheel, value -> amountOfRaysPerWheel = value)
+                                        .binding(6, () -> amountOfRaysPerWheel, value -> amountOfRaysPerWheel = value)
                                         .controller(opt -> IntegerSliderControllerBuilder.create(opt)
                                                 .range(0, 16)
                                                 .step(1)
@@ -349,7 +349,7 @@ public class ClientConfig {
                                 .option(Option.<Float>createBuilder()
                                         .name(Component.translatable("config.bikesarepain.advanced.raycast_timing.vertical_threshold"))
                                         .description(OptionDescription.of(Component.translatable("config.bikesarepain.advanced.raycast_timing.vertical_threshold.tooltip")))
-                                        .binding(0.6f, () -> verticalThreshold, (value) -> verticalThreshold = value)
+                                        .binding(0.4f, () -> verticalThreshold, (value) -> verticalThreshold = value)
                                         .controller(opt -> FloatSliderControllerBuilder.create(opt)
                                                 .formatValue(value -> Component.literal(value == 1 ? "1 block" : String.format("%s blocks", roundUpToOne(value))))
                                                 .range(0.1f, 1f)

@@ -89,6 +89,7 @@ public class PedometerItem extends BaseItem {
     @Override
     @Environment(EnvType.CLIENT)
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.add(Component.translatable("item.bikesarepain.pedometer.tooltip"));
         addTimeHover(stack, tooltipComponents);
         addDistanceHover(stack, tooltipComponents);
     }

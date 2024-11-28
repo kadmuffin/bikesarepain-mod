@@ -104,7 +104,7 @@ public class ItemManager {
     );
 
     public static final RegistrySupplier<Item> WRENCH_ITEM = BikesArePain.ITEMS.register("wrench", () ->
-            new BaseItem(
+            new WrenchItem(
                     ResourceLocation.fromNamespaceAndPath(BikesArePain.MOD_ID, "wrench"),
                     new Item.Properties()
                             .stacksTo(1)

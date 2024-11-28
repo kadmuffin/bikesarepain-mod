@@ -106,8 +106,19 @@ public class BicycleItem extends BikeItem {
             default -> ChatFormatting.DARK_RED;
         };
 
+        // Determine condition text based on durability percentage
+        Component conditionText = switch (durabilityGroup) {
+            case 100 -> Component.translatable("item.bikesarepain.bicycle.tooltip.brand_new");
+            case 90 -> Component.translatable("item.bikesarepain.bicycle.tooltip.almost_perfect");
+            case 75 -> Component.translatable("item.bikesarepain.bicycle.tooltip.slightly_worn");
+            case 50 -> Component.translatable("item.bikesarepain.bicycle.tooltip.needs_repair");
+            case 25 -> Component.translatable("item.bikesarepain.bicycle.tooltip.critically_damaged");
+            default -> Component.translatable("item.bikesarepain.bicycle.tooltip.barely_held_together");
+        };
+        tooltipComponents.add(conditionText);
+
         // Add durability tooltip
-        tooltipComponents.add(1, Component.translatable("item.bikesarepain.bicycle.tooltip.health")
+        tooltipComponents.add(Component.translatable("item.bikesarepain.bicycle.tooltip.health")
                 .withColor(CommonColors.GRAY)
                 .append(Component.literal(durabilityPercentage + "%").withStyle(durabilityColor)));
 

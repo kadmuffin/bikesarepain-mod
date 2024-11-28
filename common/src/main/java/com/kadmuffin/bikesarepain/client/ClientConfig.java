@@ -306,10 +306,8 @@ public class ClientConfig {
                                         .controller(opt -> IntegerSliderControllerBuilder.create(opt)
                                                 .step(1)
                                                 .range(1, 16)
-                                                .formatValue(value -> Component.literal(String.format("%d point%s",
-                                                        value,
-                                                        value == 1 ? "" : "s"
-                                                        )))
+                                                .formatValue(value -> value == 1 ? Component.literal("Disabled") :
+                                                        Component.literal(String.format("%d points", value)))
                                         )
                                         .build()
                                 )

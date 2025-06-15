@@ -1,7 +1,6 @@
 package com.kadmuffin.bikesarepain.client;
 
 import com.kadmuffin.bikesarepain.packets.KeypressPacket;
-import com.kadmuffin.bikesarepain.packets.PacketManager;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.architectury.event.events.client.ClientTickEvent;
@@ -10,59 +9,74 @@ import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.player.Player;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
 
 @Environment(EnvType.CLIENT)
 public class KeybindManager {
-    public static final KeyMapping RING_BELL = new KeyMapping(
-            "key.bikesarepain.ring_bell",
-            InputConstants.Type.KEYSYM,
-            InputConstants.KEY_B,
-            "key.categories.bikesarepain"
-    );
-    public static final KeyMapping BRAKE = new KeyMapping(
-            "key.bikesarepain.brake",
-            InputConstants.Type.KEYSYM,
-            InputConstants.KEY_V,
-            "key.categories.bikesarepain"
-    );
-    public static final KeyMapping SWITCHD = new KeyMapping(
-            "key.bikesarepain.switchd",
-            InputConstants.Type.KEYSYM,
-            InputConstants.KEY_N,
-            "key.categories.bikesarepain"
-    );
-    public static boolean alreadyRinging = false;
-    public static boolean alreadyBraking = false;
-    public static boolean alreadySwitchedType = false;
+    private static final List<KeyHandler> MANAGED_KEY_MAPPINGS = new ArrayList<>();
 
     public static void init() {
-        KeyMappingRegistry.register(RING_BELL);
-        KeyMappingRegistry.register(BRAKE);
-        KeyMappingRegistry.register(SWITCHD);
+        Predicate<Player> onBikeCondition = p -> p.getVehicle() instanceof AbstractBike;
 
-        ClientTickEvent.CLIENT_POST.register(minecraft -> {
-            if (minecraft.player == null) {
+        registerKey("ring_bell", InputConstants.KEY_B, KeypressPacket.KeyType.RING_BELL, onBikeCondition);
+        registerKey("brake", InputConstants.KEY_V, KeypressPacket.KeyType.BRAKE, onBikeCondition);
+        registerKey("switchd", InputConstants.KEY_N, KeypressPacket.KeyType.SWITCHD, onBikeCondition);
+
+        ClientTickEvent.CLIENT_POST.register(KeybindManager::onClientTick);
+    }
+
+    private static void registerKey(String name, int keyCode, KeypressPacket.KeyType keyType, Predicate<Player> activationCondition) {
+        KeyMapping keyMapping = new KeyMapping(
+                "key.bikesarepain." + name,
+                InputConstants.Type.KEYSYM,
+                keyCode,
+                "key.categories.bikesarepain"
+        );
+        KeyMappingRegistry.register(keyMapping);
+        MANAGED_KEY_MAPPINGS.add(new KeyHandler(keyMapping, keyType, activationCondition));
+    }
+
+    private static void onClientTick(Minecraft minecraft) {
+        if (minecraft.player != null) {
+            for (KeyHandler managedKey : MANAGED_KEY_MAPPINGS) {
+                managedKey.tick(minecraft.player);
+            }
+        }
+    }
+
+    private static class KeyHandler {
+        private final KeyMapping keyMapping;
+        private final KeypressPacket.KeyType keyType;
+        private boolean wasPressed;
+        private final Predicate<Player> condition;
+
+        public KeyHandler(KeyMapping keyMapping, KeypressPacket.KeyType keyType, Predicate<Player> activationCondition) {
+            this.keyMapping = keyMapping;
+            this.keyType = keyType;
+            this.wasPressed = false;
+            this.condition = activationCondition;
+        }
+
+        public void tick(Player player) {
+            if (!this.condition.test(player)) {
+                // Reset the key when the player isn't on the bike
+                if (wasPressed) {
+                    wasPressed = false;
+                    NetworkManager.sendToServer(new KeypressPacket.Packet(false, keyType));
+                }
                 return;
             }
 
-            if (minecraft.player.getVehicle() == null || !(minecraft.player.getVehicle() instanceof AbstractBike)) {
-                return;
+            boolean isPressed = keyMapping.isDown();
+            if (isPressed != wasPressed) {
+                wasPressed = isPressed;
+                NetworkManager.sendToServer(new KeypressPacket.Packet(isPressed, keyType));
             }
-
-            if (RING_BELL.isDown() != alreadyRinging) {
-                alreadyRinging = !alreadyRinging;
-                NetworkManager.sendToServer(new KeypressPacket.Packet(alreadyRinging, KeypressPacket.KeyType.RING_BELL));
-            }
-
-            if (BRAKE.isDown() != alreadyBraking) {
-                alreadyBraking = !alreadyBraking;
-                NetworkManager.sendToServer(new KeypressPacket.Packet(alreadyBraking, KeypressPacket.KeyType.BRAKE));
-            }
-
-            if (SWITCHD.isDown() != alreadySwitchedType) {
-                alreadySwitchedType = !alreadySwitchedType;
-                NetworkManager.sendToServer(new KeypressPacket.Packet(alreadySwitchedType, KeypressPacket.KeyType.SWITCHD));
-            }
-        });
+        }
     }
 }

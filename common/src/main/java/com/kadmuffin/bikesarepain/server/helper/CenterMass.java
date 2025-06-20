@@ -105,19 +105,16 @@ public class CenterMass {
     }
 
     public double calculateRollAngle() {
-        Vector3d combinedCenterOfMass = getCombinedCenterOfMassLocal();
-        Vector3d directionToCOM = new Vector3d(combinedCenterOfMass);
-        directionToCOM.sub(modelCenterOfMass);
+        Vector3d dir = new Vector3d(getCombinedCenterOfMassLocal())
+                .sub(modelCenterOfMass);
 
-        Vector3d projectedDirection = new Vector3d(directionToCOM.x, 0, directionToCOM.z);
+        double lateral  = dir.x;  // how far CoM is to the right (+) or left (–)
+        double vertical = dir.y;  // how far CoM is above the pivot
 
-        double angle = Math.atan2(projectedDirection.z, projectedDirection.x);
-
-        if (directionToCOM.y < 0) {
-            angle = -angle;
-        }
-
-        return angle;
+        // True roll: tilt about the forward (Z) axis
+        //    When upright: lateral=0 → atan2(0,vertical)=0
+        //    As you lean right: lateral>0 → positive roll
+        return Math.atan2(lateral, vertical);
     }
 
     public double calculatePitchAngle() {

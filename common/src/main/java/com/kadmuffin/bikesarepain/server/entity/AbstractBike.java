@@ -692,8 +692,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.setBackWheelRotation(Utils.wrapRotation(backWheelRotation));
 
         // Calculate the tilt of the bike
-        float newTilt = (float) (Math.PI / 2 + this.getCenterMass().calculateRollAngle());
-        newTilt = Math.clamp(newTilt, -this.getMaxTiltAngle(), this.getMaxTiltAngle());
+        float newTilt = Math.clamp((float) this.getCenterMass().calculateRollAngle(), -this.getMaxTiltAngle(), this.getMaxTiltAngle());
 
         float tilt = this.getTilt();
         this.setTilt(tilt + (newTilt - tilt) * 0.25F);

@@ -7,6 +7,10 @@ import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ComponentManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
+import com.kadmuffin.bikesarepain.server.pipelines.physics.AirDragForceComponent;
+import com.kadmuffin.bikesarepain.server.pipelines.physics.BrakingForceComponent;
+import com.kadmuffin.bikesarepain.server.pipelines.physics.FloorFrictionComponent;
+import com.kadmuffin.bikesarepain.server.pipelines.physics.DriveForceComponent;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -76,12 +80,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private static final EntityDataAccessor<Float> DISPLAY_6 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
     private final DecagonDisplayManager displayManager = new DecagonDisplayManager();
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
-    private final CenterMass centerMass = new CenterMass(
-            new Vector3d(0.0F, 1.35F, 0.0F),
-            new Vector3d(0.0F, 1.85F, -0.66F),
-            7,
-            60
-    );
+
     public boolean showGears = false;
     private boolean ringAlreadyPressed = false;
     private int ticksSinceLastRing = 0;
@@ -92,7 +91,22 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private int countOfWrenchInteractions = 0;
 
     protected Bicycle(EntityType<? extends AbstractHorse> entityType, Level level) {
-        super(entityType, level);
+        super(entityType, level,
+                List.of(
+                        new BrakingForceComponent(),
+                        new DriveForceComponent()
+                ),
+                List.of(
+                        new FloorFrictionComponent(),
+                        new AirDragForceComponent(1.5F, 1.2F)
+                ),
+                new CenterMass(
+                        new Vector3d(0.0F, 1.35F, 0.0F),
+                        new Vector3d(0.0F, 1.85F, -0.66F),
+                        18,
+                        60
+                )
+        );
     }
 
     @Override
@@ -762,11 +776,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     }
 
     @Override
-    public CenterMass getCenterMass() {
-        return this.centerMass;
-    }
-
-    @Override
     public float getModelWheelRadius() {
         return 0.3515625F;
     }
@@ -787,7 +796,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     }
 
     @Override
-    public float getPedalMultiplier() {
+    public float getForwardInputMult() {
         if (this.getFirstPassenger() instanceof Player player) {
             PlayerAccessor mixPlayer = (PlayerAccessor) player;
             if (mixPlayer.bikesarepain$isJSCActive()) {
@@ -795,7 +804,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             }
         }
 
-        return 3F;
+        return 1F;
     }
 
     @Override
@@ -834,7 +843,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
     @Override
     public float getBrakeMultiplier() {
-        return 0.7F;
+        return 9F;
     }
 
     @Override
@@ -844,7 +853,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             return;
         }
         float speed = Math.abs(this.getSpeed());
-        float volume = 0.8F * this.soundType.getVolume() * (0.7F - speed);
+        float volume = 1.4F * this.soundType.getVolume() * (0.7F - speed);
         float pitch = 0.85F + Math.min(speed, 2.0F) + (float) Math.random() * 0.1F * this.soundType.getPitch();
 
         this.playSound(SoundManager.BICYCLE_LAND.get(), volume, pitch);

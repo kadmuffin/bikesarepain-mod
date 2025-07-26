@@ -24,6 +24,18 @@ public class CenterMass {
         this.trackedPlayerOffset = new Vector3d(0, 0, 0);
     }
 
+    public double getModelMass() {
+        return this.modelMass;
+    }
+
+    public double getPlayerMass() {
+        return this.playerMass;
+    }
+
+    public double getTotalMass() {
+        return this.getModelMass() + this.getPlayerMass();
+    }
+
     public Vector3d getTrackedMassOffset() {
         return new Vector3d(trackedMassOffset);
     }

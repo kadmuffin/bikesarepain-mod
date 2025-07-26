@@ -1,23 +1,62 @@
 package com.kadmuffin.bikesarepain.server.pipelines;
 
-import com.kadmuffin.bikesarepain.server.helper.BikeState;
+import com.kadmuffin.bikesarepain.records.physics.BikeState;
+import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import com.kadmuffin.bikesarepain.server.interfaces.IForceComponent;
+import com.kadmuffin.bikesarepain.server.interfaces.IFrictionComponent;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PhysicsPipeline {
-    private final List<IForceComponent> forceComponents = new ArrayList<>();
+    private final List<IForceComponent> forceComponents;
+    private final List<IFrictionComponent> frictionComponents;
+    public static final float ticksPerSecond = 20f;
+    public static final float deltaSeconds = 1/ticksPerSecond;
 
-    public void addComponent(IForceComponent component) {
+    public PhysicsPipeline(List<IForceComponent> forceComponents, List<IFrictionComponent> frictionComponents) {
+        this.forceComponents = new ArrayList<>(forceComponents);
+        this.frictionComponents = new ArrayList<>(frictionComponents);
+    }
+
+    public void addForceComponent(IForceComponent component) {
         this.forceComponents.add(component);
     }
 
-    public float calculateNetForce(BikeState currentState) {
+    public void removeForceComponent(Class<? extends IForceComponent> componentType) {
+        this.forceComponents.removeIf(componentType::isInstance);
+    }
+
+    public void addFrictionComponent(IForceComponent component) {
+        this.forceComponents.add(component);
+    }
+
+    public void removeFrictionComponent(Class<? extends IForceComponent> componentType) {
+        this.forceComponents.removeIf(componentType::isInstance);
+    }
+
+    public float calculateNonFrictionForce(BikeState currentState, AbstractBike bike) {
         float netForce = 0.0f;
         for (IForceComponent component : this.forceComponents) {
-            netForce += component.calculateForce(currentState);
+            float thisForce = component.calculateForce(currentState, bike);
+            netForce += thisForce;
+            System.out.println(component.getID() + ": " + thisForce);
         }
         return netForce;
+    }
+
+    public float calculateNetFriction(BikeState currentState, AbstractBike bike, float nonFrictionNetForce) {
+        float netForce = 0.0f;
+        for (IFrictionComponent component : this.frictionComponents) {
+            float thisForce = component.calculateForce(currentState, bike, nonFrictionNetForce);
+            netForce += thisForce;
+            System.out.println(component.getID() + ": " + thisForce);
+        }
+        return netForce;
+    }
+
+    public float calculateNetForce(BikeState currentState, AbstractBike bike) {
+        float nonFrNetForce = this.calculateNonFrictionForce(currentState, bike);
+        return nonFrNetForce + this.calculateNetFriction(currentState, bike, nonFrNetForce);
     }
 }

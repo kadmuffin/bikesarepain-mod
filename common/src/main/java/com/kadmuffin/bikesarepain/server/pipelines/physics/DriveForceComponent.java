@@ -3,6 +3,7 @@ package com.kadmuffin.bikesarepain.server.pipelines.physics;
 import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import com.kadmuffin.bikesarepain.server.interfaces.IForceComponent;
+import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 
 public class DriveForceComponent implements IForceComponent {
     private static final float MAX_PEDAL_TORQUE     = 40f;  // N·m
@@ -19,7 +20,7 @@ public class DriveForceComponent implements IForceComponent {
     @Override public String getID() { return "DriveForce"; }
 
     @Override
-    public float calculateForce(BikeState state, AbstractBike bike) {
+    public float calculateForce(BikeState state, AbstractBike bike, EventHandler event) {
         float input = state.playerInput().forward();
         if (input <= 0f) input = Math.abs(input);
 

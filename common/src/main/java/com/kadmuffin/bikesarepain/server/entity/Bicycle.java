@@ -7,6 +7,7 @@ import com.kadmuffin.bikesarepain.common.SoundManager;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ComponentManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
+import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.AirDragForceComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.BrakingForceComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.FloorFrictionComponent;
@@ -106,6 +107,8 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                         18,
                         60
                 )
+                ),
+                new EventHandler()
         );
     }
 

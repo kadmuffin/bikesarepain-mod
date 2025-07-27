@@ -8,6 +8,7 @@ import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.interfaces.IForceComponent;
 import com.kadmuffin.bikesarepain.server.interfaces.IFrictionComponent;
+import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import com.kadmuffin.bikesarepain.server.pipelines.PhysicsPipeline;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -78,8 +79,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     protected PhysicsPipeline physicsPipeline;
     private final CenterMass centerMass;
+    protected final EventHandler eventHandler;
 
-    protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level, List<IForceComponent> nonFrictionForces, List<IFrictionComponent> frictionForces, CenterMass centerMass) {
+    protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level, List<IForceComponent> nonFrictionForces, List<IFrictionComponent> frictionForces, CenterMass centerMass, EventHandler eventHandler) {
         super(entityType, level);
         this.rotations.put("backWheelRotation", new RotationData());
         this.rotations.put("steeringYaw", new RotationData());
@@ -87,6 +89,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.rotations.put("pitch", new RotationData());
         this.physicsPipeline = new PhysicsPipeline(nonFrictionForces, frictionForces);
         this.centerMass = centerMass;
+        this.eventHandler = eventHandler;
     }
 
     public static AttributeSupplier.@NotNull Builder createBaseHorseAttributes() {
@@ -574,7 +577,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     }
 
     public float calculateNetForce(BikeState state) {
-        return this.physicsPipeline.calculateNetForce(state, this);
+        return this.physicsPipeline.calculateNetForce(state, this, this.eventHandler);
     }
 
     public float calculateNewSpeed(BikeState state, float netForce) {

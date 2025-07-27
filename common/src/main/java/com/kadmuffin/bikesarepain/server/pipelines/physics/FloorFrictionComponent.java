@@ -3,6 +3,7 @@ package com.kadmuffin.bikesarepain.server.pipelines.physics;
 import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import com.kadmuffin.bikesarepain.server.interfaces.IFrictionComponent;
+import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import net.minecraft.core.BlockPos;
 
 public class FloorFrictionComponent implements IFrictionComponent {
@@ -16,7 +17,7 @@ public class FloorFrictionComponent implements IFrictionComponent {
     }
 
     @Override
-    public float calculateForce(BikeState currentState, AbstractBike bike, float nonFrictionNetForce) {
+    public float calculateForce(BikeState currentState, AbstractBike bike, EventHandler event, float nonFrictionNetForce) {
         // No friction if not on ground
         if (!bike.onGround()) {
             return 0.0f;

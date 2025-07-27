@@ -1,5 +1,5 @@
 package com.kadmuffin.bikesarepain.server.interfaces;
 
-public interface IGameEvent {
+public interface IDataComponent {
     // Interface Marker, nothing here.
 }

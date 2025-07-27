@@ -6,7 +6,6 @@ public record BikeState(
         float currentSpeed,
         boolean isBraking,
         float gravity,
-        float bikePitch,
-        float cadenceRPM
+        float bikePitch
         ) {
 }

@@ -1169,4 +1169,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     public boolean lookingAtPedometer() {
         return ticksLookingAtDisplay >= 15;
     }
+
+    public float getCadence() {
+        return 80f;
+    }
+
+    public float getOptimalCadence() {
+        return 90f;
+    }
 }

@@ -607,7 +607,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
         BikeState state = new BikeState(input, (float) this.centerMass.getTotalMass(),
                 // Cast block/tick to meter/second
-                speedMps, this.isBraking(), 10F, this.getSyncedPitch(), 80F);
+                speedMps, this.isBraking(), 10F, this.getSyncedPitch());
 
         float netForces = calculateNetForce(state);
         float newSpeed = calculateNewSpeed(state, netForces);

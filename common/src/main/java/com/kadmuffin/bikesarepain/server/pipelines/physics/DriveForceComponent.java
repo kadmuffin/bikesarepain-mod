@@ -2,6 +2,7 @@ package com.kadmuffin.bikesarepain.server.pipelines.physics;
 
 import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
+import com.kadmuffin.bikesarepain.server.entity.Bicycle;
 import com.kadmuffin.bikesarepain.server.interfaces.IForceComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import com.kadmuffin.bikesarepain.server.pipelines.events.physics.PedalTorqueEvent;
@@ -43,7 +44,9 @@ public class DriveForceComponent implements IForceComponent {
         float input = state.playerInput().forward();
         if (input <= 0f) return 0f;
 
-        float cad = state.cadenceRPM();
+        float cad = OPTIMAL_CADENCE_RPM;
+        if (bike instanceof Bicycle b) cad = b.getCadence();
+
         ForceResult result = getForce(bike, cad, input);
 
         float speed = state.currentSpeed();
@@ -51,7 +54,7 @@ public class DriveForceComponent implements IForceComponent {
         float maxForce = (RIDER_POWER_WATTS * input) / effSpeed;
 
         float wheelAngularMomentum = state.currentSpeed() / bike.getWheelRadius();
-        event.publish(new PedalTorqueEvent(wheelAngularMomentum, result.wheelTorque, state.cadenceRPM()), state, bike);
+        event.publish(new PedalTorqueEvent(wheelAngularMomentum, result.wheelTorque, cad), state, bike);
 
         return Math.min(result.force, maxForce);
     }

@@ -38,7 +38,7 @@ public class DriveForceComponent implements IForceComponent {
     @Override
     public float calculateForce(BikeState state, AbstractBike bike, EventHandler event) {
         float input = state.playerInput().forward();
-        if (input <= 0f) input = Math.abs(input);
+        if (input <= 0f) return 0f;
 
         float cad = state.cadenceRPM();
         float force = getForce(bike, cad, input);
@@ -46,9 +46,7 @@ public class DriveForceComponent implements IForceComponent {
         float speed = state.currentSpeed();
         float effSpeed = Math.max(speed, MIN_SPEED_MPS);
         float maxForce = (RIDER_POWER_WATTS * input) / effSpeed;
-
-        if (state.playerInput().forward() <= 0f) return -Math.min(force, maxForce);
-
-        return Math.min(force, maxForce);
+        
+        return Math.min(result.force, maxForce);
     }
 }

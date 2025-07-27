@@ -28,12 +28,12 @@ public class PhysicsPipeline {
         this.forceComponents.removeIf(componentType::isInstance);
     }
 
-    public void addFrictionComponent(IForceComponent component) {
-        this.forceComponents.add(component);
+    public void addFrictionComponent(IFrictionComponent component) {
+        this.frictionComponents.add(component);
     }
 
-    public void removeFrictionComponent(Class<? extends IForceComponent> componentType) {
-        this.forceComponents.removeIf(componentType::isInstance);
+    public void removeFrictionComponent(Class<? extends IFrictionComponent> componentType) {
+        this.frictionComponents.removeIf(componentType::isInstance);
     }
 
     public float calculateNonFrictionForce(BikeState currentState, AbstractBike bike, EventHandler event) {

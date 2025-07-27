@@ -9,6 +9,7 @@ import com.kadmuffin.bikesarepain.server.item.ComponentManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import com.kadmuffin.bikesarepain.server.pipelines.events.physics.BrakeAppliedEvent;
+import com.kadmuffin.bikesarepain.server.pipelines.particles.BrakeParticleListener;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.AirDragForceComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.BrakingForceComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.FloorFrictionComponent;
@@ -20,6 +21,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -90,7 +92,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private int ticksSinceLastClick = 0;
     private int ticksSinceLastBrake = 0;
     private int ticksLookingAtDisplay = 0;
-    private SoundType soundType = SoundType.WOOD;
     private int countOfWrenchInteractions = 0;
     private SoundType soundType = SoundType.WOOD;
 
@@ -109,12 +110,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                         new Vector3d(0.0F, 1.85F, -0.66F),
                         18,
                         60
-                )
                 ),
                 new EventHandler()
         );
 
         this.eventHandler.subscribe(BrakeAppliedEvent.class, new BrakeSoundListener(SoundManager.BICYCLE_LAND.get(), SoundType.WOOD));
+        this.eventHandler.subscribe(BrakeAppliedEvent.class, new BrakeParticleListener());
     }
 
     @Override

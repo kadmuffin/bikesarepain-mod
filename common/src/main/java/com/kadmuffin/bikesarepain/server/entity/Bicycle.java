@@ -831,19 +831,9 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         return 40.0F;
     }
 
-    public float inertiaFactor() {
-        if (this.getFirstPassenger() instanceof Player player) {
-            PlayerAccessor mixPlayer = (PlayerAccessor) player;
-            if (mixPlayer.bikesarepain$isJSCActive()) {
-                return 0.98F;
-            }
-        }
-        return 0.95F;
-    }
-
     @Override
     public float getBrakeMultiplier() {
-        return 9F;
+        return 16F;
     }
 
     @Override

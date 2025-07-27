@@ -725,8 +725,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     public abstract float getTurnScalingFactor();
 
-    public abstract float inertiaFactor();
-
     public abstract float getForwardInputMult();
 
     public abstract float getBrakeMultiplier();

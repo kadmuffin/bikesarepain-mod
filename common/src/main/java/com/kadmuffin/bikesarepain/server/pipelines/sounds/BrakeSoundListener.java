@@ -16,7 +16,7 @@ public class BrakeSoundListener extends SoundEventListener<BrakeAppliedEvent> {
     @Override
     public void handleSpecificEvent(BrakeAppliedEvent event, BikeState state, AbstractBike bike) {
         float speed = Math.abs(bike.getSpeed());
-        int interval = Math.max(1, (int) (5 - Math.min(state.currentSpeed(), 4)));
+        int interval = Math.max(1, (int) (5 - Math.min(state.currentSpeedMps(), 4)));
 
         this.ticksSinceLastBrake++;
         if (this.ticksSinceLastBrake < interval) {

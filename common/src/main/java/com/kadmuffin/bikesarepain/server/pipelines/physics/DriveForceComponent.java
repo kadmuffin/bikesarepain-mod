@@ -49,11 +49,11 @@ public class DriveForceComponent implements IForceComponent {
 
         ForceResult result = getForce(bike, cad, input);
 
-        float speed = state.currentSpeed();
+        float speed = state.currentSpeedMps();
         float effSpeed = Math.max(speed, MIN_SPEED_MPS);
         float maxForce = (RIDER_POWER_WATTS * input) / effSpeed;
 
-        float wheelAngularMomentum = state.currentSpeed() / bike.getWheelRadius();
+        float wheelAngularMomentum = state.currentSpeedMps() / bike.getWheelRadius();
         event.publish(new PedalTorqueEvent(wheelAngularMomentum, result.wheelTorque, cad), state, bike);
 
         return Math.min(result.force, maxForce);

@@ -21,7 +21,7 @@ public class AirDragForceComponent implements IFrictionComponent {
 
     @Override
     public float calculateForce(BikeState currentState, AbstractBike bike, EventHandler event, float nonFrictionForce) {
-        float v = currentState.currentSpeed();
+        float v = currentState.currentSpeedMps();
         float airDensity = 1.225f;
         float drag = 0.5f * airDensity * dragCoefficient * frontalArea * v * v;
         return -Math.signum(v) * drag;

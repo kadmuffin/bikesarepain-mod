@@ -29,10 +29,10 @@ public class FloorFrictionComponent implements IFrictionComponent {
 
         System.out.println("Block friction: " + blockFrictionCoeff);
 
-        float mass = currentState.totalMass();
-        float gravity = currentState.gravity();
+        float mass = currentState.totalMassKg();
+        float gravity = currentState.gravityMps2();
         float normalForce = mass * gravity;  // N = m * g
-        float speed = currentState.currentSpeed();
+        float speed = currentState.currentSpeedMps();
 
         // Scale coefficients by block friction
         float rollingCoeff = BASE_ROLLING_COEFF * (blockFrictionCoeff);

@@ -593,8 +593,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     public float calculateNewSpeed(BikeState state, float netForce) {
         // F = m * a -> a = F / m
-        float accel = netForce / state.totalMass();
-        float newSpeedMps = state.currentSpeed() + accel * PhysicsPipeline.deltaSeconds;
+        float accel = netForce / state.totalMassKg();
+        float newSpeedMps = state.currentSpeedMps() + accel * PhysicsPipeline.deltaSeconds;
         if (Math.abs(newSpeedMps) < 0.05f) newSpeedMps = 0f;
 
         float computedSpeed = newSpeedMps / PhysicsPipeline.ticksPerSecond;
@@ -602,8 +602,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         System.out.printf(
                 "Accel: %.2f m/s^2  Speed: %.2f m/s (%.4f blocks/tick) -> New Speed: %.2f m/s (%.4f blocks/tick)%n",
                 accel,
-                state.currentSpeed(),
-                state.currentSpeed()/PhysicsPipeline.ticksPerSecond,
+                state.currentSpeedMps(),
+                state.currentSpeedMps()/PhysicsPipeline.ticksPerSecond,
                 newSpeedMps,
                 computedSpeed
         );

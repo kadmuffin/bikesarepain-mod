@@ -8,10 +8,12 @@ import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.item.ComponentManager;
 import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
+import com.kadmuffin.bikesarepain.server.pipelines.events.physics.BrakeAppliedEvent;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.AirDragForceComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.BrakingForceComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.FloorFrictionComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.DriveForceComponent;
+import com.kadmuffin.bikesarepain.server.pipelines.sounds.BrakeSoundListener;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -90,6 +92,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     private int ticksLookingAtDisplay = 0;
     private SoundType soundType = SoundType.WOOD;
     private int countOfWrenchInteractions = 0;
+    private SoundType soundType = SoundType.WOOD;
 
     protected Bicycle(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level,
@@ -110,6 +113,8 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 ),
                 new EventHandler()
         );
+
+        this.eventHandler.subscribe(BrakeAppliedEvent.class, new BrakeSoundListener(SoundManager.BICYCLE_LAND.get(), SoundType.WOOD));
     }
 
     @Override

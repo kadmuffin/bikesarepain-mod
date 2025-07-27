@@ -2,7 +2,6 @@ package com.kadmuffin.bikesarepain.server.pipelines.sounds;
 
 import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
-import com.kadmuffin.bikesarepain.server.interfaces.IGameEvent;
 import com.kadmuffin.bikesarepain.server.pipelines.events.physics.BrakeAppliedEvent;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.block.SoundType;
@@ -17,7 +16,7 @@ public class BrakeSoundListener extends SoundEventListener<BrakeAppliedEvent> {
     @Override
     public void handleSpecificEvent(BrakeAppliedEvent event, BikeState state, AbstractBike bike) {
         float speed = Math.abs(bike.getSpeed());
-        int interval = Math.max(1, (int)(5 - Math.min(state.currentSpeed(), 4)));
+        int interval = Math.max(1, (int) (5 - Math.min(state.currentSpeed(), 4)));
 
         this.ticksSinceLastBrake++;
         if (this.ticksSinceLastBrake < interval) {

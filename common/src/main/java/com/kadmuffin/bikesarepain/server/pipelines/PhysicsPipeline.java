@@ -10,10 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PhysicsPipeline {
+    public static final float ticksPerSecond = 20f;
+    public static final float deltaSeconds = 1 / ticksPerSecond;
     private final List<IForceComponent> forceComponents;
     private final List<IFrictionComponent> frictionComponents;
-    public static final float ticksPerSecond = 20f;
-    public static final float deltaSeconds = 1/ticksPerSecond;
 
     public PhysicsPipeline(List<IForceComponent> forceComponents, List<IFrictionComponent> frictionComponents) {
         this.forceComponents = new ArrayList<>(forceComponents);

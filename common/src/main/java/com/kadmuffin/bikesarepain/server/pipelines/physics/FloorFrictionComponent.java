@@ -9,7 +9,7 @@ import net.minecraft.core.BlockPos;
 public class FloorFrictionComponent implements IFrictionComponent {
 
     private static final float BASE_ROLLING_COEFF = 0.008f;
-    private static final float BASE_STATIC_COEFF  = 0.1f;
+    private static final float BASE_STATIC_COEFF = 0.1f;
 
     @Override
     public String getID() {
@@ -29,14 +29,14 @@ public class FloorFrictionComponent implements IFrictionComponent {
 
         System.out.println("Block friction: " + blockFrictionCoeff);
 
-        float mass        = currentState.totalMass();
-        float gravity     = currentState.gravity();
+        float mass = currentState.totalMass();
+        float gravity = currentState.gravity();
         float normalForce = mass * gravity;  // N = m * g
-        float speed       = currentState.currentSpeed();
+        float speed = currentState.currentSpeed();
 
         // Scale coefficients by block friction
-        float rollingCoeff = BASE_ROLLING_COEFF  * (blockFrictionCoeff);
-        float staticCoeff  = BASE_STATIC_COEFF   * blockFrictionCoeff;
+        float rollingCoeff = BASE_ROLLING_COEFF * (blockFrictionCoeff);
+        float staticCoeff = BASE_STATIC_COEFF * blockFrictionCoeff;
         if (speed < 2f) {
             rollingCoeff *= 7f;
         }

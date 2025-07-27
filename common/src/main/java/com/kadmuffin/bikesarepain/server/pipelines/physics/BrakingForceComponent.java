@@ -15,7 +15,9 @@ public class BrakingForceComponent implements IForceComponent {
     @Override
     public float calculateForce(BikeState currentState, AbstractBike bike, EventHandler event) {
         if (currentState.isBraking() && bike.onGround()) {
-            return (float) (currentState.totalMass() * currentState.currentSpeed() * (Math.exp(-bike.getBrakeMultiplier() * 0.25F) - 1));
+            float force = (float) (currentState.totalMass() * currentState.currentSpeed() * (Math.exp(-bike.getBrakeMultiplier() * 0.25F) - 1));
+            event.publish(new BrakeAppliedEvent(force), currentState, bike);
+            return force;
         }
         return 0F;
     }

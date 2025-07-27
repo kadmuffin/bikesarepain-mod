@@ -6,7 +6,7 @@ import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.records.physics.ScaledInput;
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
-import com.kadmuffin.bikesarepain.server.interfaces.IDataComponent;
+import com.kadmuffin.bikesarepain.server.interfaces.IStateComponent;
 import com.kadmuffin.bikesarepain.server.interfaces.IForceComponent;
 import com.kadmuffin.bikesarepain.server.interfaces.IFrictionComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
@@ -81,7 +81,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     protected PhysicsPipeline physicsPipeline;
     private final CenterMass centerMass;
     protected final EventHandler eventHandler;
-    private final Map<Class<? extends IDataComponent>, IDataComponent> dataComponents = new HashMap<>();
+    private final Map<Class<? extends IStateComponent>, IStateComponent> stateComponents = new HashMap<>();
 
     protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level, List<IForceComponent> nonFrictionForces, List<IFrictionComponent> frictionForces, CenterMass centerMass, EventHandler eventHandler) {
         super(entityType, level);
@@ -94,12 +94,12 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.eventHandler = eventHandler;
     }
 
-    public void addDataComponent(IDataComponent component) {
-        this.dataComponents.put(component.getClass(), component);
+    public void addStateComponent(IStateComponent component) {
+        this.stateComponents.put(component.getClass(), component);
     }
 
-    public <T extends IDataComponent> Optional<T> getDataComponent(Class<T> componentType) {
-        return Optional.ofNullable(dataComponents.get(componentType))
+    public <T extends IStateComponent> Optional<T> getStateComponent(Class<T> componentType) {
+        return Optional.ofNullable(stateComponents.get(componentType))
                 .map(componentType::cast);
     }
 

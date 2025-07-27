@@ -13,7 +13,8 @@ import com.kadmuffin.bikesarepain.server.pipelines.particles.BrakeParticleListen
 import com.kadmuffin.bikesarepain.server.pipelines.physics.AirDragForceComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.BrakingForceComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.FloorFrictionComponent;
-import com.kadmuffin.bikesarepain.server.pipelines.physics.DriveForceComponent;
+import com.kadmuffin.bikesarepain.server.pipelines.physics.drivetrain.DriveForceComponent;
+import com.kadmuffin.bikesarepain.server.pipelines.physics.drivetrain.DrivetrainState;
 import com.kadmuffin.bikesarepain.server.pipelines.sounds.BrakeSoundListener;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -21,7 +22,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -116,6 +116,8 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
         this.eventHandler.subscribe(BrakeAppliedEvent.class, new BrakeSoundListener(SoundManager.BICYCLE_LAND.get(), SoundType.WOOD));
         this.eventHandler.subscribe(BrakeAppliedEvent.class, new BrakeParticleListener());
+
+        this.addStateComponent(DrivetrainState.defaultState());
     }
 
     @Override
@@ -1168,13 +1170,5 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     @Environment(EnvType.CLIENT)
     public boolean lookingAtPedometer() {
         return ticksLookingAtDisplay >= 15;
-    }
-
-    public float getCadence() {
-        return 80f;
-    }
-
-    public float getOptimalCadence() {
-        return 90f;
     }
 }

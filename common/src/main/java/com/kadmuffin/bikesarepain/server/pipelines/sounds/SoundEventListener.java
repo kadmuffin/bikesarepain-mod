@@ -1,11 +1,11 @@
 package com.kadmuffin.bikesarepain.server.pipelines.sounds;
 
-import com.kadmuffin.bikesarepain.server.interfaces.IGameEvent;
-import com.kadmuffin.bikesarepain.server.pipelines.event.EventListener;
+import com.kadmuffin.bikesarepain.server.interfaces.PipelineEvent;
+import com.kadmuffin.bikesarepain.server.pipelines.event.TypedEventListener;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.level.block.SoundType;
 
-public abstract class SoundEventListener<T extends IGameEvent> extends EventListener<T> {
+public abstract class SoundEventListener<T extends PipelineEvent> extends TypedEventListener<T> {
     protected SoundEvent soundToPlay;
     protected SoundType soundType;
 

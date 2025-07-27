@@ -1,6 +1,6 @@
 package com.kadmuffin.bikesarepain.server.pipelines.physics.drivetrain;
 
-import com.kadmuffin.bikesarepain.server.interfaces.IStateComponent;
+import com.kadmuffin.bikesarepain.server.interfaces.StateComponent;
 
 public record DrivetrainState(
         float maxPedalTorque,
@@ -12,7 +12,7 @@ public record DrivetrainState(
         float maxCadenceDrop,
         float riderPowerWatts,
         float minSpeedMps
-) implements IStateComponent {
+) implements StateComponent {
 
     public static DrivetrainState defaultState() {
         return new DrivetrainState(40f, 0.97f, 44, 16, 80f, 90f, 0.3f, 300f, 0.1f);

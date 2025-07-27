@@ -1,5 +1,5 @@
 package com.kadmuffin.bikesarepain.server.interfaces;
 
-public interface IStateComponent {
+public interface PipelineEvent {
     // Interface Marker, nothing here.
 }

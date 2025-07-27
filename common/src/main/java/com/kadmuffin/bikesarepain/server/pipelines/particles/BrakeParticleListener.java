@@ -2,7 +2,7 @@ package com.kadmuffin.bikesarepain.server.pipelines.particles;
 
 import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
-import com.kadmuffin.bikesarepain.server.pipelines.event.EventListener;
+import com.kadmuffin.bikesarepain.server.pipelines.event.TypedEventListener;
 import com.kadmuffin.bikesarepain.server.pipelines.events.physics.BrakeAppliedEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -11,7 +11,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-public class BrakeParticleListener extends EventListener<BrakeAppliedEvent> {
+public class BrakeParticleListener extends TypedEventListener<BrakeAppliedEvent> {
     public BrakeParticleListener() {
         super(BrakeAppliedEvent.class);
     }

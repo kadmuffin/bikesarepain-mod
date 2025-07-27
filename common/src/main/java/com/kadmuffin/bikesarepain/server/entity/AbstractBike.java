@@ -6,7 +6,7 @@ import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.records.physics.ScaledInput;
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
-import com.kadmuffin.bikesarepain.server.interfaces.IStateComponent;
+import com.kadmuffin.bikesarepain.server.interfaces.StateComponent;
 import com.kadmuffin.bikesarepain.server.interfaces.IForceComponent;
 import com.kadmuffin.bikesarepain.server.interfaces.IFrictionComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
@@ -81,7 +81,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     protected PhysicsPipeline physicsPipeline;
     private final CenterMass centerMass;
     protected final EventHandler eventHandler;
-    private final Map<Class<? extends IStateComponent>, IStateComponent> stateComponents = new HashMap<>();
+    private final Map<Class<? extends StateComponent>, StateComponent> stateComponents = new HashMap<>();
 
     protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level, List<IForceComponent> nonFrictionForces, List<IFrictionComponent> frictionForces, CenterMass centerMass, EventHandler eventHandler) {
         super(entityType, level);
@@ -94,11 +94,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.eventHandler = eventHandler;
     }
 
-    public void addStateComponent(IStateComponent component) {
+    public void addStateComponent(StateComponent component) {
         this.stateComponents.put(component.getClass(), component);
     }
 
-    public <T extends IStateComponent> Optional<T> getStateComponent(Class<T> componentType) {
+    public <T extends StateComponent> Optional<T> getStateComponent(Class<T> componentType) {
         return Optional.ofNullable(stateComponents.get(componentType))
                 .map(componentType::cast);
     }

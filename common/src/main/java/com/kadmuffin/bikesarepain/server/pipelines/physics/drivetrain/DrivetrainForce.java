@@ -2,14 +2,11 @@ package com.kadmuffin.bikesarepain.server.pipelines.physics.drivetrain;
 
 import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
-import com.kadmuffin.bikesarepain.server.entity.Bicycle;
-import com.kadmuffin.bikesarepain.server.interfaces.IForceComponent;
+import com.kadmuffin.bikesarepain.server.interfaces.GenericForce;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import com.kadmuffin.bikesarepain.server.pipelines.events.physics.PedalTorqueEvent;
 
-import java.util.Optional;
-
-public class DriveForceComponent implements IForceComponent {
+public class DrivetrainForce implements GenericForce {
     private record ForceResult(float force, float wheelTorque) {}
 
     private static ForceResult getForce(AbstractBike bike, DrivetrainState drivetrain, float input) {

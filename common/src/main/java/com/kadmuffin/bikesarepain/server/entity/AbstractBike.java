@@ -7,7 +7,7 @@ import com.kadmuffin.bikesarepain.records.physics.ScaledInput;
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.interfaces.StateComponent;
-import com.kadmuffin.bikesarepain.server.interfaces.IForceComponent;
+import com.kadmuffin.bikesarepain.server.interfaces.GenericForce;
 import com.kadmuffin.bikesarepain.server.interfaces.IFrictionComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import com.kadmuffin.bikesarepain.server.pipelines.PhysicsPipeline;
@@ -83,7 +83,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     protected final EventHandler eventHandler;
     private final Map<Class<? extends StateComponent>, StateComponent> stateComponents = new HashMap<>();
 
-    protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level, List<IForceComponent> nonFrictionForces, List<IFrictionComponent> frictionForces, CenterMass centerMass, EventHandler eventHandler) {
+    protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level, List<GenericForce> nonFrictionForces, List<IFrictionComponent> frictionForces, CenterMass centerMass, EventHandler eventHandler) {
         super(entityType, level);
         this.rotations.put("backWheelRotation", new RotationData());
         this.rotations.put("steeringYaw", new RotationData());

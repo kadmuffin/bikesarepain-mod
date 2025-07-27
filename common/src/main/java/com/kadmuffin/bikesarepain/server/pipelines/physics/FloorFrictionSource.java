@@ -6,7 +6,7 @@ import com.kadmuffin.bikesarepain.server.interfaces.IFrictionComponent;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import net.minecraft.core.BlockPos;
 
-public class FloorFrictionComponent implements IFrictionComponent {
+public class FloorFrictionSource implements IFrictionComponent {
 
     private static final float BASE_ROLLING_COEFF = 0.008f;
     private static final float BASE_STATIC_COEFF = 0.1f;

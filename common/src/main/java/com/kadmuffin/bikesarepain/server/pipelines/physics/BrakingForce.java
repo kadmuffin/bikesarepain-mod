@@ -2,11 +2,11 @@ package com.kadmuffin.bikesarepain.server.pipelines.physics;
 
 import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
-import com.kadmuffin.bikesarepain.server.interfaces.IForceComponent;
+import com.kadmuffin.bikesarepain.server.interfaces.GenericForce;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import com.kadmuffin.bikesarepain.server.pipelines.events.physics.BrakeAppliedEvent;
 
-public class BrakingForceComponent implements IForceComponent {
+public class BrakingForce implements GenericForce {
     @Override
     public String getID() {
         return "BrakingForce";

@@ -10,10 +10,10 @@ import com.kadmuffin.bikesarepain.server.item.ItemManager;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import com.kadmuffin.bikesarepain.server.pipelines.events.physics.BrakeAppliedEvent;
 import com.kadmuffin.bikesarepain.server.pipelines.particles.BrakeParticleListener;
-import com.kadmuffin.bikesarepain.server.pipelines.physics.AirDragForceComponent;
-import com.kadmuffin.bikesarepain.server.pipelines.physics.BrakingForceComponent;
-import com.kadmuffin.bikesarepain.server.pipelines.physics.FloorFrictionComponent;
-import com.kadmuffin.bikesarepain.server.pipelines.physics.drivetrain.DriveForceComponent;
+import com.kadmuffin.bikesarepain.server.pipelines.physics.AirDragForce;
+import com.kadmuffin.bikesarepain.server.pipelines.physics.BrakingForce;
+import com.kadmuffin.bikesarepain.server.pipelines.physics.FloorFrictionSource;
+import com.kadmuffin.bikesarepain.server.pipelines.physics.drivetrain.DrivetrainForce;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.drivetrain.DrivetrainState;
 import com.kadmuffin.bikesarepain.server.pipelines.sounds.BrakeSoundListener;
 import net.fabricmc.api.EnvType;
@@ -98,12 +98,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     protected Bicycle(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level,
                 List.of(
-                        new BrakingForceComponent(),
-                        new DriveForceComponent()
+                        new BrakingForce(),
+                        new DrivetrainForce(),
+                        new AirDragForce(1.5F, 1.2F)
                 ),
                 List.of(
-                        new FloorFrictionComponent(),
-                        new AirDragForceComponent(1.5F, 1.2F)
+                        new FloorFrictionSource()
                 ),
                 new CenterMass(
                         new Vector3d(0.0F, 1.35F, 0.0F),

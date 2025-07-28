@@ -594,9 +594,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     public ScaledInput scalePlayerInputs(float sideways, float forward) {
         float f = sideways * 0.5F;
         float g = forward;
-        if (g <= 0.0F) {
-            g *= 0.75F;
-        }
         g *= this.getForwardInputMult();
         if (this.isBraking()) {
             g = 0F;
@@ -615,15 +612,15 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         // F = m * a -> a = F / m
         float accel = result.netForce() / state.totalMassKg();
         float newSpeedMps = state.currentSpeedMps() + accel * PhysicsPipeline.deltaSeconds;
-        if (Math.abs(newSpeedMps) < 0.05f) newSpeedMps = 0f;
+        if (Math.abs(newSpeedMps) < PhysicsPipeline.TRANSITION_TO_STATIC_MPS) newSpeedMps = 0f;
 
-        return newSpeedMps / PhysicsPipeline.ticksPerSecond;
+        return PhysicsPipeline.speedToBpt(newSpeedMps);
     }
 
     public void updateMovement(float sideways, float forward) {
         ScaledInput input = scalePlayerInputs(sideways, forward);
 
-        float speedMps = this.getSpeed() * PhysicsPipeline.ticksPerSecond;
+        float speedMps = PhysicsPipeline.speedToMps(this.getSpeed());
 
         BikeState state = this.buildState(sideways, forward);
 

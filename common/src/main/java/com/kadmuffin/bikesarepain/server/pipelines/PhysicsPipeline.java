@@ -45,46 +45,38 @@ public class PhysicsPipeline {
     }
 
     public record PhysicsResult(float netForce, boolean zeroVelocity) {}
-
     public PhysicsResult calculateNetForceVel(BikeState currentState, AbstractBike bike, EventHandler event) {
         float netActiveForces = 0f;
         for (GenericForce force : this.genericForces) {
-            float result = force.calculateForce(currentState, bike, event);
-            System.out.println(force.getID()+": "+result+" Newtons");
-            netActiveForces += result;
+            netActiveForces += force.calculateForce(currentState, bike, event);
         }
 
         SurfaceData data = SurfaceData.buildFrom(currentState, bike);
-        boolean zeroVelocity = false;
-        float netFrictionForces = 0f;
-        if (currentState.currentSpeedMps() > TRANSITION_TO_STATIC_MPS) {
-            for (SlidingFriction friction : this.frictionForces) {
-                float result = friction.calculateKineticForce(currentState, bike, data, event);
-                System.out.println(friction.getID()+": "+result+" Newtons");
-                netFrictionForces += result;
-            }
-        } else {
+
+        if (currentState.currentSpeedMps() < 1e-5f) {
             float maxStaticFriction = 0f;
             for (SlidingFriction friction : this.frictionForces) {
-                float result = friction.calculateMaxStaticForce(currentState, bike, data, event);
-                System.out.println(friction.getID()+": "+result+" Newtons");
-                maxStaticFriction += result;
+                maxStaticFriction += friction.calculateMaxStaticForce(currentState, bike, data, event);
             }
 
             if (Math.abs(netActiveForces) <= maxStaticFriction) {
                 return new PhysicsResult(0.0f, true);
-            } else {
-                float kineticFriction = 0f;
-                for (SlidingFriction friction : this.frictionForces) {
-                    float result = friction.calculateKineticForce(currentState, bike, data, event);
-                    System.out.println(friction.getID()+": "+result+" Newtons");
-                    kineticFriction += result;
-                }
-                return new PhysicsResult(netActiveForces + kineticFriction, false);
             }
         }
 
+        float netKineticFriction = 0f;
+        for (SlidingFriction friction : this.frictionForces) {
+            netKineticFriction += friction.calculateKineticForce(currentState, bike, data, event);
+        }
 
-        return new PhysicsResult(netActiveForces + netFrictionForces, zeroVelocity);
+        return new PhysicsResult(netActiveForces + netKineticFriction, false);
+    }
+
+    public static float speedToMps(float blocksPerTick) {
+        return blocksPerTick * PhysicsPipeline.ticksPerSecond;
+    }
+
+    public static float speedToBpt(float metersPerSec) {
+        return metersPerSec / PhysicsPipeline.ticksPerSecond;
     }
 }

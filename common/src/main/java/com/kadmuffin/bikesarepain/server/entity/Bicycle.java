@@ -16,13 +16,14 @@ import com.kadmuffin.bikesarepain.server.pipelines.physics.FloorContactFriction;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.drivetrain.DrivetrainForce;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.drivetrain.DrivetrainState;
 import com.kadmuffin.bikesarepain.server.pipelines.sounds.BrakeSoundListener;
+import com.kadmuffin.bikesarepain.server.sounds.spokes.SpokeSoundLogic;
+import com.kadmuffin.bikesarepain.server.sounds.spokes.SpokeSoundState;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -89,11 +90,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     public boolean showGears = false;
     private boolean ringAlreadyPressed = false;
     private int ticksSinceLastRing = 0;
-    private int ticksSinceLastClick = 0;
     private int ticksSinceLastBrake = 0;
     private int ticksLookingAtDisplay = 0;
     private int countOfWrenchInteractions = 0;
     private SoundType soundType = SoundType.WOOD;
+
+    SpokeSoundLogic spokeLogic;
 
     protected Bicycle(EntityType<? extends AbstractHorse> entityType, Level level) {
         super(entityType, level,
@@ -114,8 +116,9 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
         this.eventHandler.subscribe(BrakeAppliedEvent.class, new BrakeSoundListener(SoundManager.BICYCLE_LAND.get(), SoundType.WOOD));
         this.eventHandler.subscribe(BrakeAppliedEvent.class, new BrakeParticleListener());
-
         this.addStateComponent(DrivetrainState.defaultState());
+
+        this.spokeLogic = new SpokeSoundLogic();
     }
 
     @Override
@@ -235,58 +238,12 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         Vec3 vec3d = super.getRiddenInput(controllingPlayer, movementInput);
 
         if (!this.level().isClientSide()) {
-            float g = controllingPlayer.zza;
-            if (g <= 0.0F) {
-                g *= 0.25F;
-            }
-            float speed = Math.abs(this.getSpeed());
-            boolean isReverse = g < 0.0F;
+            BikeState state = this.buildState(controllingPlayer.xxa, controllingPlayer.zza);
 
-            if (speed > 0.05) {
-                // If we are going fast
-                // we will create some flame particles at the rear of the bike
-                if (speed > 0.25F) {
-                    this.level().addParticle(ParticleTypes.FLAME, this.getX() - (0.5F * Mth.sin(this.getYRot() * 0.017453292F)), this.getY() + 0.5F, this.getZ() - (0.5F * Mth.cos(this.getYRot() * 0.017453292F)), 0.0D, 0.0D, 0.0D);
-                }
-
-                // Depending on the speed, we'll scale the volume and pitch
-                // with a sprinkle of randomness
-                final float pitch = 0.85F + Math.min(speed, 2.0F) + (float) Math.random() * 0.1F * this.soundType.getPitch();
-                float volume = this.soundType.getVolume() * 0.07F * (0.7F - speed);
-                float wheelRotationSpeed = speed;
-                if (speed < 0.08F && g == 0 || isReverse) {
-                    wheelRotationSpeed *= 10;
-                }
-                float ticksPerClick = 1 / wheelRotationSpeed * 3F;
-                if ((speed > 0.25F && g == 0) || isReverse) {
-                    volume *= 1.5F;
-                    ticksPerClick /= 2F;
-                }
-
-                if (this.getSpeed() > 0.1F) {
-                    float minPitch = 0.8F;
-                    float maxPitch = 1.3F;
-
-                    // Make the range a bit higher depending on our health, if it is 100%, then we have the default range
-                    if (this.getHealth() < this.getMaxHealth()) {
-                        float healthPercentage = this.getHealth() / this.getMaxHealth();
-                        minPitch = 0.8F + healthPercentage * 0.5F;
-                        maxPitch = 1.3F - healthPercentage * 0.3F;
-                    }
-
-                    this.playSound(SoundManager.BICYCLE_MOVEMENT.get(), this.getSpeed() * this.soundType.getVolume(), Mth.nextFloat(this.random, minPitch, maxPitch) * this.soundType.getPitch());
-                }
-
-                if (this.ticksSinceLastClick > ticksPerClick && speed > 0.05F) {
-                    this.playSound(SoundManager.BICYCLE_SPOKES.get(), volume, pitch);
-                    this.ticksSinceLastClick = 0;
-                } else {
-                    this.ticksSinceLastClick++;
-                }
-            }
+            this.spokeLogic.process(SpokeSoundState.defaultState(), state, this);
         }
 
-        return vec3d;
+        return super.getRiddenInput(controllingPlayer, movementInput);
     }
 
     @Override

@@ -489,6 +489,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 this.setXRot(newRots.x);
                 this.setYRot(newRots.y);
 
+                this.centerMass.setIgnorePlayerMass(true);
+
                 // Update movement
                 this.updateMovement(0, 0);
 
@@ -617,6 +619,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     @Override
     protected @NotNull Vec3 getRiddenInput(Player controllingPlayer, Vec3 movementInput) {
+        this.centerMass.setIgnorePlayerMass(false);
         this.updateMovement(controllingPlayer.xxa, controllingPlayer.zza);
 
         return new Vec3(0.0, 0.0, 1.0F);

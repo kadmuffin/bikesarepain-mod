@@ -12,7 +12,7 @@ import com.kadmuffin.bikesarepain.server.pipelines.events.physics.BrakeAppliedEv
 import com.kadmuffin.bikesarepain.server.pipelines.particles.BrakeParticleListener;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.AirDragForce;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.BrakingForce;
-import com.kadmuffin.bikesarepain.server.pipelines.physics.FloorFrictionSource;
+import com.kadmuffin.bikesarepain.server.pipelines.physics.FloorContactFriction;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.drivetrain.DrivetrainForce;
 import com.kadmuffin.bikesarepain.server.pipelines.physics.drivetrain.DrivetrainState;
 import com.kadmuffin.bikesarepain.server.pipelines.sounds.BrakeSoundListener;
@@ -100,10 +100,8 @@ public class Bicycle extends AbstractBike implements GeoEntity {
                 List.of(
                         new BrakingForce(),
                         new DrivetrainForce(),
-                        new AirDragForce(1.5F, 1.2F)
-                ),
-                List.of(
-                        new FloorFrictionSource()
+                        new AirDragForce(1.5F, 1.2F),
+                        new FloorContactFriction()
                 ),
                 new CenterMass(
                         new Vector3d(0.0F, 1.35F, 0.0F),

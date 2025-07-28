@@ -8,7 +8,7 @@ import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.interfaces.StateComponent;
 import com.kadmuffin.bikesarepain.server.interfaces.GenericForce;
-import com.kadmuffin.bikesarepain.server.interfaces.IFrictionComponent;
+import com.kadmuffin.bikesarepain.server.interfaces.ForceSource;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import com.kadmuffin.bikesarepain.server.pipelines.PhysicsPipeline;
 import net.fabricmc.api.EnvType;
@@ -83,13 +83,13 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     protected final EventHandler eventHandler;
     private final Map<Class<? extends StateComponent>, StateComponent> stateComponents = new HashMap<>();
 
-    protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level, List<GenericForce> nonFrictionForces, List<IFrictionComponent> frictionForces, CenterMass centerMass, EventHandler eventHandler) {
+    protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level, List<ForceSource> forceSources, CenterMass centerMass, EventHandler eventHandler) {
         super(entityType, level);
         this.rotations.put("backWheelRotation", new RotationData());
         this.rotations.put("steeringYaw", new RotationData());
         this.rotations.put("tilt", new RotationData());
         this.rotations.put("pitch", new RotationData());
-        this.physicsPipeline = new PhysicsPipeline(nonFrictionForces, frictionForces);
+        this.physicsPipeline = new PhysicsPipeline(forceSources);
         this.centerMass = centerMass;
         this.eventHandler = eventHandler;
     }
@@ -587,28 +587,17 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return new ScaledInput(f, g);
     }
 
-    public float calculateNetForce(BikeState state) {
-        return this.physicsPipeline.calculateNetForce(state, this, this.eventHandler);
-    }
+    public float calculateNewSpeed(BikeState state) {
+        PhysicsPipeline.PhysicsResult result =
+                this.physicsPipeline.calculateNetForceVel(state, this, this.eventHandler);
+        if (result.zeroVelocity()) return 0f;
 
-    public float calculateNewSpeed(BikeState state, float netForce) {
         // F = m * a -> a = F / m
-        float accel = netForce / state.totalMassKg();
+        float accel = result.netForce() / state.totalMassKg();
         float newSpeedMps = state.currentSpeedMps() + accel * PhysicsPipeline.deltaSeconds;
         if (Math.abs(newSpeedMps) < 0.05f) newSpeedMps = 0f;
 
-        float computedSpeed = newSpeedMps / PhysicsPipeline.ticksPerSecond;
-
-        System.out.printf(
-                "Accel: %.2f m/s^2  Speed: %.2f m/s (%.4f blocks/tick) -> New Speed: %.2f m/s (%.4f blocks/tick)%n",
-                accel,
-                state.currentSpeedMps(),
-                state.currentSpeedMps()/PhysicsPipeline.ticksPerSecond,
-                newSpeedMps,
-                computedSpeed
-        );
-
-        return computedSpeed;
+        return newSpeedMps / PhysicsPipeline.ticksPerSecond;
     }
 
     public void updateMovement(float sideways, float forward) {
@@ -617,11 +606,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         float speedMps = this.getSpeed() * PhysicsPipeline.ticksPerSecond;
 
         BikeState state = new BikeState(input, (float) this.centerMass.getTotalMass(),
-                // Cast block/tick to meter/second
                 speedMps, this.isBraking(), 10F, this.getSyncedPitch());
 
-        float netForces = calculateNetForce(state);
-        float newSpeed = calculateNewSpeed(state, netForces);
+        float newSpeed = calculateNewSpeed(state);
 
         System.out.println("Speed multiplier set now to: " + newSpeed + " block/tick");
 

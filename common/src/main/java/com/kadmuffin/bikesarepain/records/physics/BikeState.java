@@ -5,6 +5,8 @@ import com.kadmuffin.bikesarepain.server.interfaces.StateComponent;
 public record BikeState(
         ScaledInput playerInput, // from -1 to 1
         float totalMassKg,
+        float playerMassKg,
+        float modelMassKg,
         float currentSpeedMps,
         boolean isBraking,
         float gravityMps2,

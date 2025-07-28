@@ -111,6 +111,10 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 .add(Attributes.JUMP_STRENGTH, 0.6D);
     }
 
+    public CenterMass getCenterMass() {
+        return this.centerMass;
+    }
+
     public static EntityDataAccessor<Boolean> getHasChest() {
         return HAS_CHEST;
     }
@@ -573,6 +577,20 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return false;
     }
 
+    protected float gravityConstant() {
+        return 10F;
+    }
+
+    protected BikeState buildState(float sideways, float forward) {
+        ScaledInput input = scalePlayerInputs(sideways, forward);
+        float totalMassKg = (float) this.getCenterMass().getTotalMass();
+        float playerMassKg = (float) this.getCenterMass().getPlayerMass();
+        float modelMassKg = (float) this.getCenterMass().getModelMass();
+        float speedMps = PhysicsPipeline.speedToMps(this.getSpeed());
+
+        return new BikeState(input, totalMassKg, playerMassKg, modelMassKg, speedMps, this.isBraking(), this.gravityConstant(), this.getSyncedPitch());
+    }
+
     public ScaledInput scalePlayerInputs(float sideways, float forward) {
         float f = sideways * 0.5F;
         float g = forward;
@@ -607,8 +625,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
         float speedMps = this.getSpeed() * PhysicsPipeline.ticksPerSecond;
 
-        BikeState state = new BikeState(input, (float) this.centerMass.getTotalMass(),
-                speedMps, this.isBraking(), 10F, this.getSyncedPitch());
+        BikeState state = this.buildState(sideways, forward);
 
         float newSpeed = calculateNewSpeed(state);
 

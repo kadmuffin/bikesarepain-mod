@@ -1,20 +1,19 @@
 package com.kadmuffin.bikesarepain.client.helper;
 
 import com.kadmuffin.bikesarepain.BikesArePain;
+import com.kadmuffin.bikesarepain.client.ClientConfig;
 import com.kadmuffin.bikesarepain.server.entity.Bicycle;
+import kotlin.Pair;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import com.kadmuffin.bikesarepain.common.SoundManager;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.player.Player;
 import software.bernie.geckolib.cache.object.GeoBone;
 
 import java.util.Arrays;
 
 @Environment(EnvType.CLIENT)
 public class DecagonDisplayManager {
-    private int lastDisplayData = -1;
-    private int lastIntDigits = -1;
+    private int lastMetadata = -1;
+    private int lastData = -1;
     private DisplayType cachedDisplayType = DisplayType.DISTANCE_METERS;
 
     public static final int MAX_DISPLAYS = 6;
@@ -62,6 +61,7 @@ public class DecagonDisplayManager {
         DisplayType type = this.cachedDisplayType;
 
         String boneName = bone.getName();
+
         // Lerped rotation for the type screen
         if (boneName.equals("TypeScreen")) {
             float newRotation = getTypeScreenRotation(type);
@@ -73,7 +73,6 @@ public class DecagonDisplayManager {
         if (boneName.startsWith("Unit")) {
             return;
         }
-
 
         int displayIndex = getDisplayIndex(boneName);
 
@@ -315,56 +314,140 @@ public class DecagonDisplayManager {
         int packedData = bicycle.getDisplayData();
         int packedMetadata = bicycle.getDisplayMetadata();
 
-        if (packedData == lastDisplayData && packedMetadata == lastIntDigits) {
+        if (packedData == this.lastData && packedMetadata == this.lastMetadata) {
             return;
         }
-        lastDisplayData = packedData;
-        lastIntDigits = packedMetadata;
+        this.lastData = packedData;
+        this.lastMetadata = packedMetadata;
 
-        Player player = bicycle.getRider();
-        final boolean playClick = player instanceof Player && bicycle.lookingAtPedometer();
-        int stat = packedMetadata / 100;
-        int integerDigits = (packedMetadata / 10) % 10;
-        int decimalDigits = packedMetadata % 10;
+        // Extract the values from the server
+        float rawValue = packedData / 1000F;
+        int subTypeStat = packedMetadata / 100;
+        float finalValue = this.convertAndCache(rawValue, subTypeStat);
 
-        this.cachedDisplayType = DisplayType.fromType(stat);
+        int integerPart = (int) finalValue;
+        float fractionalPart = Math.abs(finalValue - integerPart);
+
+        // Calculate how many digits we have and how many we can show.
+        int integerDigits = (integerPart == 0) ? 1 : (int) Math.log10(Math.abs(integerPart)) + 1;
+        int maxDisplayableDecimals = MAX_DISPLAYS - integerDigits - 1;
+        int decimalsToShow = Math.max(0, maxDisplayableDecimals);
+
+        int digitCount = integerDigits + (decimalsToShow > 0 ? 1 + decimalsToShow : 0);
+        bicycle.setDigitCount(digitCount);
 
         float[] digits = new float[MAX_DISPLAYS];
         Arrays.fill(digits, -1);
 
-        int maxDisplayableDecimals = MAX_DISPLAYS - integerDigits - 1; // -1 for the decimal point itself.
-
-        int decimalsToShow = Math.max(0, Math.min(decimalDigits, maxDisplayableDecimals));
-
-        int tempPackedData = packedData;
-        int d3 = tempPackedData % 10; tempPackedData /= 10;
-        int d2 = tempPackedData % 10; tempPackedData /= 10;
-        int d1 = tempPackedData % 10; tempPackedData /= 10;
+        int tempIntegerPart = Math.abs(integerPart);
+        for (int i = integerDigits - 1; i >= 0; i--) {
+            if (i < MAX_DISPLAYS) {
+                digits[i] = tempIntegerPart % 10;
+                tempIntegerPart /= 10;
+            }
+        }
 
         if (decimalsToShow > 0) {
             digits[integerDigits] = -0.5f; // Decimal point
-            digits[integerDigits + 1] = d1;
-            if (decimalsToShow >= 2) digits[integerDigits + 2] = d2;
-            if (decimalsToShow >= 3) digits[integerDigits + 3] = d3;
-        }
-
-        for (int i = integerDigits - 1; i >= 0; i--) {
-            if (i < MAX_DISPLAYS) {
-                digits[i] = tempPackedData % 10;
+            for (int i = 0; i < decimalsToShow; i++) {
+                fractionalPart *= 10;
+                int digit = (int) fractionalPart;
+                digits[integerDigits + 1 + i] = digit;
+                fractionalPart -= digit;
             }
-            if (playClick) {
-                bicycle.level().playSound(player, player.getOnPos(), SoundManager.PEDOMETER_CLICK.get(), SoundSource.AMBIENT, 0.02F, 1.5F+((float)Math.random()));
-            }
-            tempPackedData /= 10;
         }
-
-        int digitCount = integerDigits + (decimalDigits > 0 ? 1 + decimalDigits : 0);
-        bicycle.setDigitCount(digitCount);
 
         for (int i = 0; i < MAX_DISPLAYS; i++) {
             bicycle.setCachedFloatDisplay(i, digits[i]);
         }
-
     }
 
+    private float convertAndCache(float rawValue, int subTypeStat) {
+        boolean useImperial = ClientConfig.CONFIG.instance().isImperial();
+        float finalValue = rawValue;
+        DisplayType finalDisplayType;
+
+        switch (DisplaySubType.fromType(subTypeStat)) {
+            case DISTANCE:
+                Pair<DisplayType, Float> distResult = this.autoCastUnitDistance(rawValue, useImperial);
+                finalDisplayType = distResult.component1();
+                finalValue = distResult.component2();
+                break;
+            case TIME:
+                Pair<DisplayType, Float> timeResult = this.autoCastUnitTime(rawValue);
+                finalDisplayType = timeResult.component1();
+                finalValue = timeResult.component2();
+                break;
+            case SPEED:
+                Pair<DisplayType, Float> speedResult = this.autoCastUnitSpeed(rawValue, useImperial, false);
+                finalDisplayType = speedResult.component1();
+                finalValue = speedResult.component2();
+                break;
+            default:
+                finalDisplayType = DisplayType.fromSubType(DisplaySubType.fromType(subTypeStat));
+                break;
+        }
+
+        // Cache the display type for rendering the unit text ("km/h", "mph", etc.)
+        this.cachedDisplayType = finalDisplayType;
+
+        return finalValue;
+    }
+
+    public Pair<DisplayType, Float> autoCastUnitDistance(float distance, boolean useImperial) {
+        DecagonDisplayManager.DisplayType displayType = DecagonDisplayManager.DisplayType.DISTANCE_METERS;
+        if (distance > 1000) {
+            displayType = DecagonDisplayManager.DisplayType.DISTANCE_KM;
+            distance /= 1000;
+        }
+
+        if (useImperial) {
+            if (displayType == DecagonDisplayManager.DisplayType.DISTANCE_KM) {
+                displayType = DecagonDisplayManager.DisplayType.DISTANCE_MI;
+                distance *= 0.621371F;
+            } else {
+                displayType = DecagonDisplayManager.DisplayType.DISTANCE_FT;
+                distance *= 3.28084F;
+            }
+        }
+
+        return new Pair<>(displayType, distance);
+    }
+
+    public Pair<DisplayType, Float> autoCastUnitSpeed(float speed, boolean useImperial, boolean forceInitialKMH) {
+        DecagonDisplayManager.DisplayType displayType = DecagonDisplayManager.DisplayType.SPEED_MS;
+
+        if (forceInitialKMH) {
+            displayType = DecagonDisplayManager.DisplayType.SPEED_KMH;
+        } else if (speed > 3.6F) {
+            displayType = DecagonDisplayManager.DisplayType.SPEED_KMH;
+            speed *= 3.6F;
+
+            if (useImperial) {
+                displayType = DecagonDisplayManager.DisplayType.SPEED_MPH;
+                speed *= 0.621371F;
+            }
+        }
+
+        return new Pair<>(displayType, speed);
+    }
+
+    public Pair<DisplayType, Float> autoCastUnitTime(float timeInTicks) {
+        DecagonDisplayManager.DisplayType displayType = DecagonDisplayManager.DisplayType.TIME_SEC;
+        float time = (float) Math.floor(timeInTicks / 20F);
+        if (time > 60) {
+            displayType = DecagonDisplayManager.DisplayType.TIME_MIN;
+            time /= 60;
+            if (time > 60) {
+                displayType = DecagonDisplayManager.DisplayType.TIME_HR;
+                time /= 60;
+                if (time > 24) {
+                    displayType = DecagonDisplayManager.DisplayType.TIME_DAY;
+                    time /= 24;
+                }
+            }
+        }
+
+        return new Pair<>(displayType, time);
+    }
 }

@@ -93,8 +93,7 @@ public class BicycleRenderer extends AbstractBikeRenderer<Bicycle> {
                 // Check via regex if it matches s[1-9]{1,2}
                 if (geoBone.getName().matches("(Display[1-6]|TypeScreen)")) {
                     bikeEntity.getDisplayManager().updateDisplayLerped(geoBone,
-                            DecagonDisplayManager.DisplayType.fromType(bikeEntity.getCurrentDisplayStat())
-                            , 0.25f, bikeEntity);
+                            0.25f, bikeEntity);
                 }
 
                 if (geoBone.getName().matches("(UnitDistance|UnitTime|UnitSpeed)")) {

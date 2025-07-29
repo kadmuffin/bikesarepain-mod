@@ -52,28 +52,34 @@ import java.util.List;
 import java.util.Set;
 
 public class Bicycle extends AbstractBike implements GeoEntity {
+
+    // Animations
     protected static final RawAnimation DIE_ANIM = RawAnimation.begin().thenPlayAndHold("bike.die");
     protected static final RawAnimation RING_BELL_ANIM = RawAnimation.begin().thenPlay("bike.bell");
     protected static final RawAnimation BALLOON_INFLATE_ANIM = RawAnimation.begin().thenPlay("bike.balloon.inflate").thenPlay("bike.balloon.inflate.hold");
     protected static final RawAnimation BALLOON_DEFLATE_ANIM = RawAnimation.begin().thenPlay("bike.balloon.deflate");
     protected static final RawAnimation SCREEN_POPUP = RawAnimation.begin().thenPlay("bike.screen.popup");
+
+    // Pedometer (8 bytes)
+    private int currentDisplayStat = 0;
+    private int digitCountPedometer = 0;
+    @Environment(EnvType.CLIENT)
+    private final float[] clientDisplayCache = new float[DecagonDisplayManager.MAX_DISPLAYS];
+    private static final EntityDataAccessor<Integer> DISPLAY_DATA = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DISPLAY_METADATA = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+
+    // Colors (16 bytes)
     private static final EntityDataAccessor<Integer> FWHEEL_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> RWHEEL_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> GEARBOX_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> FRAME_COLOR = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
+
+    // Properties (7 bytes)
     private static final EntityDataAccessor<Boolean> HAS_DISPLAY = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> HAS_BALLOON = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> TICKS_OUT_OF_WATER = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> BALLOON_INFLATED = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Integer> DISPLAYSTAT = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> DIGITCOUNT = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Float> CACHED_TARGET = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> DISPLAY_1 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> DISPLAY_2 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> DISPLAY_3 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> DISPLAY_4 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> DISPLAY_5 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> DISPLAY_6 = SynchedEntityData.defineId(Bicycle.class, EntityDataSerializers.FLOAT);
+
     private final DecagonDisplayManager displayManager = new DecagonDisplayManager();
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private final CenterMass centerMass = new CenterMass(
@@ -98,15 +104,11 @@ public class Bicycle extends AbstractBike implements GeoEntity {
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
-        builder.define(DISPLAY_1, -1F);
-        builder.define(DISPLAY_2, -1F);
-        builder.define(DISPLAY_3, -1F);
-        builder.define(DISPLAY_4, -1F);
-        builder.define(DISPLAY_5, -1F);
-        builder.define(DISPLAY_6, -1F);
-        builder.define(CACHED_TARGET, -1F);
-        builder.define(DIGITCOUNT, 0);
-        builder.define(DISPLAYSTAT, 0);
+
+        // Pedometer
+        builder.define(DISPLAY_DATA, 0);
+        builder.define(DISPLAY_METADATA, 0);
+
         builder.define(HAS_DISPLAY, false);
         builder.define(BALLOON_INFLATED, false);
         builder.define(HAS_BALLOON, false);
@@ -165,10 +167,8 @@ public class Bicycle extends AbstractBike implements GeoEntity {
             if (this.ticksSinceLastRing <= 6) {
                 this.ticksSinceLastRing++;
             }
-        } else {
-            this.updateDisplayTarget(ClientConfig.CONFIG.instance().isImperial());
+            this.updateDisplayTarget();
         }
-
     }
 
     @Override
@@ -886,14 +886,6 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         return displayManager;
     }
 
-    public int getCurrentDisplayStat() {
-        return this.entityData.get(DISPLAYSTAT);
-    }
-
-    public void setCurrentDisplayStat(int currentDisplayStat) {
-        this.entityData.set(DISPLAYSTAT, currentDisplayStat);
-    }
-
     public void chooseNextDisplayStat() {
         // In range of 0-3
         // 0: Distance
@@ -923,128 +915,102 @@ public class Bicycle extends AbstractBike implements GeoEntity {
         this.setCurrentDisplayStat(type.getType());
     }
 
-    public Pair<DecagonDisplayManager.DisplayType, Float> autoCastUnitDistance(float distance, boolean useImperial) {
-        DecagonDisplayManager.DisplayType displayType = DecagonDisplayManager.DisplayType.DISTANCE_METERS;
-        if (distance > 1000) {
-            displayType = DecagonDisplayManager.DisplayType.DISTANCE_KM;
-            distance /= 1000;
-        }
-
-        if (useImperial) {
-            if (displayType == DecagonDisplayManager.DisplayType.DISTANCE_KM) {
-                displayType = DecagonDisplayManager.DisplayType.DISTANCE_MI;
-                distance *= 0.621371F;
-            } else {
-                displayType = DecagonDisplayManager.DisplayType.DISTANCE_FT;
-                distance *= 3.28084F;
-            }
-        }
-
-        return new Pair<>(displayType, distance);
-    }
-
-    public Pair<DecagonDisplayManager.DisplayType, Float> autoCastUnitSpeed(float speed, boolean useImperial, boolean forceInitialKMH) {
-        DecagonDisplayManager.DisplayType displayType = DecagonDisplayManager.DisplayType.SPEED_MS;
-
-        if (forceInitialKMH) {
-            displayType = DecagonDisplayManager.DisplayType.SPEED_KMH;
-        } else if (speed > 3.6F) {
-            displayType = DecagonDisplayManager.DisplayType.SPEED_KMH;
-            speed *= 3.6F;
-
-            if (useImperial) {
-                displayType = DecagonDisplayManager.DisplayType.SPEED_MPH;
-                speed *= 0.621371F;
-            }
-        }
-
-        return new Pair<>(displayType, speed);
-    }
-
-    public Pair<DecagonDisplayManager.DisplayType, Float> autoCastUnitTime(float timeInTicks) {
-        DecagonDisplayManager.DisplayType displayType = DecagonDisplayManager.DisplayType.TIME_SEC;
-        float time = (float) Math.floor(timeInTicks / 20F);
-        if (time > 60) {
-            displayType = DecagonDisplayManager.DisplayType.TIME_MIN;
-            time /= 60;
-            if (time > 60) {
-                displayType = DecagonDisplayManager.DisplayType.TIME_HR;
-                time /= 60;
-                if (time > 24) {
-                    displayType = DecagonDisplayManager.DisplayType.TIME_DAY;
-                    time /= 24;
-                }
-            }
-        }
-
-        return new Pair<>(displayType, time);
-    }
-
-    public Pair<DecagonDisplayManager.DisplayType, Float> getTargetDisplayScore(boolean useImperial) {
-        DecagonDisplayManager.DisplaySubType subType = DecagonDisplayManager.DisplayType.fromType(this.getCurrentDisplayStat()).getSubType();
+    private float getRawStatValue(DecagonDisplayManager.DisplaySubType subType) {
         if (this.getFirstPassenger() instanceof Player player) {
             PlayerAccessor mixPlayer = (PlayerAccessor) player;
             if (mixPlayer.bikesarepain$isJSCActive()) {
                 return switch (subType) {
-                    case DISTANCE -> this.autoCastUnitDistance(mixPlayer.bikesarepain$getJSCDistance(), useImperial);
-                    case TIME -> this.autoCastUnitTime(this.getTicksPedalled());
-                    case SPEED -> this.autoCastUnitSpeed(mixPlayer.bikesarepain$getJSCRealSpeed(), useImperial, true);
-                    case CALORIES ->
-                            new Pair<>(DecagonDisplayManager.DisplayType.CALORIES_KCAL, mixPlayer.bikesarepain$getJSCCalories());
+                    case DISTANCE -> mixPlayer.bikesarepain$getJSCDistance(); // raw meters
+                    case TIME -> (float) this.getTicksPedalled(); // raw ticks
+                    case SPEED -> mixPlayer.bikesarepain$getJSCRealSpeed(); // raw m/s
+                    case CALORIES -> mixPlayer.bikesarepain$getJSCCalories(); // raw kcal
                 };
             }
         }
+        // Default logic if JSC isn't active
         return switch (subType) {
-            case DISTANCE -> this.autoCastUnitDistance(this.getBlocksTravelled(), useImperial);
-            case TIME -> this.autoCastUnitTime(this.getTicksPedalled());
-            default -> this.autoCastUnitSpeed(this.getSpeedInMetersPerSecond(), useImperial, false);
+            case DISTANCE -> this.getBlocksTravelled(); // raw blocks/meters
+            case TIME -> (float) this.getTicksPedalled(); // raw ticks
+            default -> this.getSpeedInMetersPerSecond(); // raw m/s
         };
     }
 
-    public void updateDisplayTarget(boolean useImperial) {
-        Pair<DecagonDisplayManager.DisplayType, Float> result = this.getTargetDisplayScore(useImperial);
-
-        this.setCurrentDisplayStat(result.getA().getType());
-        this.displayManager.preprocessTarget(result.getB() < 0 ? 0f : result.getB(), this);
+    public int getCurrentDisplayStat() {
+        return this.currentDisplayStat;
     }
 
-    public float getCachedFloatDisplay(int displayIndex) {
-        return switch (displayIndex) {
-            case 0 -> this.entityData.get(DISPLAY_1);
-            case 1 -> this.entityData.get(DISPLAY_2);
-            case 2 -> this.entityData.get(DISPLAY_3);
-            case 3 -> this.entityData.get(DISPLAY_4);
-            case 4 -> this.entityData.get(DISPLAY_5);
-            case 5 -> this.entityData.get(DISPLAY_6);
-            default -> -1;
-        };
+    public void setCurrentDisplayStat(int currentDisplayStat) {
+        this.currentDisplayStat = currentDisplayStat;
     }
 
+    public void updateDisplayTarget() {
+        int stat = this.getCurrentDisplayStat();
+        float value = this.getRawStatValue(
+                DecagonDisplayManager.DisplaySubType.fromFullType(stat)
+        );
+
+        this.encodeAndSyncDisplayData(value, stat);
+    }
+
+    private void encodeAndSyncDisplayData(float number, int stat) {
+        // Calculate integer and decimal digits
+        int integerPart = (int) number;
+        int integerDigits = (integerPart == 0) ? 1 : (int) Math.log10(integerPart) + 1;
+
+        int packedMetadata = getPackedMetadata(number, stat, integerDigits);
+
+        int packedData = (int) (number * 1000F);
+        this.entityData.set(DISPLAY_DATA, packedData);
+        this.entityData.set(DISPLAY_METADATA, packedMetadata);
+    }
+
+    private static int getPackedMetadata(float number, int stat, int integerDigits) {
+        String numStr = String.valueOf(number);
+        int decimalPointIndex = numStr.indexOf('.');
+        int decimalDigits = 0;
+        if (decimalPointIndex != -1) {
+            String decimalPart = numStr.substring(decimalPointIndex + 1);
+            if (decimalPart.contains("E")) {
+                decimalDigits = 3;
+            } else {
+                decimalPart = decimalPart.replaceAll("0*$", "");
+                decimalDigits = decimalPart.length();
+            }
+        }
+        decimalDigits = Math.min(decimalDigits, 3);
+
+        return (stat * 100) + (integerDigits * 10) + decimalDigits;
+    }
+
+    @Environment(EnvType.CLIENT)
     public void setCachedFloatDisplay(int displayIndex, float value) {
-        switch (displayIndex) {
-            case 0 -> this.entityData.set(DISPLAY_1, value);
-            case 1 -> this.entityData.set(DISPLAY_2, value);
-            case 2 -> this.entityData.set(DISPLAY_3, value);
-            case 3 -> this.entityData.set(DISPLAY_4, value);
-            case 4 -> this.entityData.set(DISPLAY_5, value);
-            case 5 -> this.entityData.set(DISPLAY_6, value);
+        if (displayIndex >= 0 && displayIndex < this.clientDisplayCache.length) {
+            this.clientDisplayCache[displayIndex] = value;
         }
     }
 
-    public float getCachedTarget() {
-        return this.entityData.get(CACHED_TARGET);
+    @Environment(EnvType.CLIENT)
+    public float getCachedFloatDisplay(int displayIndex) {
+        if (displayIndex >= 0 && displayIndex < this.clientDisplayCache.length) {
+            return this.clientDisplayCache[displayIndex];
+        }
+        return -1;
     }
 
-    public void setCachedTarget(float target) {
-        this.entityData.set(CACHED_TARGET, target);
+    public int getDisplayData() {
+        return this.entityData.get(DISPLAY_DATA);
+    }
+
+    public int getDisplayMetadata() {
+        return this.entityData.get(DISPLAY_METADATA);
     }
 
     public int getDigitCount() {
-        return this.entityData.get(DIGITCOUNT);
+        return this.digitCountPedometer;
     }
 
     public void setDigitCount(int count) {
-        this.entityData.set(DIGITCOUNT, count);
+        this.digitCountPedometer = count;
     }
 
     public boolean hasBalloon() {

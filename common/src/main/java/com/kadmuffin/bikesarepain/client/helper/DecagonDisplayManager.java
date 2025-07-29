@@ -13,8 +13,12 @@ import java.util.Arrays;
 
 @Environment(EnvType.CLIENT)
 public class DecagonDisplayManager {
-    private static final int MAX_DISPLAYS = 6;
-    private static final float DECIMAL_PRECISION = 1000;
+    private int lastDisplayData = -1;
+    private int lastIntDigits = -1;
+    private DisplayType cachedDisplayType = DisplayType.DISTANCE_METERS;
+
+    public static final int MAX_DISPLAYS = 6;
+    public static final float DECIMAL_PRECISION = 1000;
     private static final float[] ROTATION_ANGLES = {
             0f,    // Nothing
             (float) Math.toRadians(-30f),  // .
@@ -52,26 +56,10 @@ public class DecagonDisplayManager {
     private final float[] currentUnitRotations = new float[3];
     private float typeScreenRotation = 0;
 
-    public void preprocessTarget(float target, Bicycle bicycle) {
-        if (target < 0 || target > 999999F) {
-            BikesArePain.LOGGER.debug("Invalid target number: {}", target);
-            return;
-        }
+    public void updateDisplayLerped(GeoBone bone, float lerpFactor, Bicycle bicycle) {
+        decodeAndCacheAll(bicycle);
 
-        // Round to two decimal places
-        target = Math.round(target * DECIMAL_PRECISION) / DECIMAL_PRECISION;
-
-        if (target != bicycle.getCachedTarget()) {
-            bicycle.setCachedTarget(target);
-            bicycle.setDigitCount(target == 0 ? 1 : (int) (Math.log10(target) + 1));
-            updateCachedDigits(bicycle);
-        }
-    }
-
-    public void updateDisplayLerped(GeoBone bone, DisplayType type, float lerpFactor, Bicycle bicycle) {
-        if (bicycle.getCachedTarget() == -1) {
-            return;
-        }
+        DisplayType type = this.cachedDisplayType;
 
         String boneName = bone.getName();
         // Lerped rotation for the type screen
@@ -119,55 +107,6 @@ public class DecagonDisplayManager {
         }
 
         return currentRotation + rotationDiff * lerpFactor;
-    }
-
-    private void updateCachedDigits(Bicycle bicycle) {
-        float target = bicycle.getCachedTarget();
-        int integerPart = (int) target;
-        float fractionalPart = target - integerPart;
-        float[] digits = new float[MAX_DISPLAYS];
-
-        Arrays.fill(digits, -1);
-
-        int integerDigits = integerPart == 0 ? 1 : (int) Math.log10(integerPart) + 1;
-
-        // Calculate max decimal places
-        int maxDecimalPlaces = Math.min(MAX_DISPLAYS - integerDigits - 1, 3); // Limit to 3 decimal places
-
-        int digitCount = integerDigits + (maxDecimalPlaces > 0 ? maxDecimalPlaces + 1 : 0);
-        bicycle.setDigitCount(digitCount);
-
-        Player player = bicycle.getRider();
-        final boolean playClick = player instanceof Player && bicycle.lookingAtPedometer();
-
-        // Handle integer part
-        for (int i = integerDigits - 1; i >= 0; i--) {
-            digits[i] = integerPart % 10;
-            integerPart /= 10;
-            if (playClick) {
-                bicycle.level().playSound(player, player.getOnPos(), SoundManager.PEDOMETER_CLICK.get(), SoundSource.AMBIENT, 0.02F, 1.5F+((float)Math.random()));
-            }
-
-        }
-
-        // Add decimal point if we have space
-        if (maxDecimalPlaces > 0) {
-            digits[integerDigits] = -0.5f;
-
-            for (int j = 0; j < maxDecimalPlaces; j++) {
-                fractionalPart *= 10;
-                int digit = (int) fractionalPart;
-                digits[integerDigits + 1 + j] = (float) digit;
-                fractionalPart -= digit;
-                if (playClick) {
-                    bicycle.level().playSound(player, player.getOnPos(), SoundManager.PEDOMETER_CLICK.get(), SoundSource.AMBIENT, 0.005F, 1.5F+((float)Math.random()));
-                }
-            }
-        }
-
-        for (int i = 0; i < MAX_DISPLAYS; i++) {
-            bicycle.setCachedFloatDisplay(i, digits[i]);
-        }
     }
 
     private int getDisplayIndex(String boneName) {
@@ -297,6 +236,15 @@ public class DecagonDisplayManager {
             return DISTANCE;
         }
 
+        public static DisplaySubType fromFullType(int type) {
+            return switch (type) {
+                case 0, 1, 2, 3 -> DisplaySubType.DISTANCE;
+                case 4, 5, 6, 7 -> DisplaySubType.TIME;
+                case 8, 9, 10 -> DisplaySubType.SPEED;
+                default -> DisplaySubType.CALORIES;
+            };
+        }
+
         public int getType() {
             return type;
         }
@@ -359,6 +307,62 @@ public class DecagonDisplayManager {
                 case SPEED_MS, SPEED_KMH, SPEED_MPH -> DisplaySubType.SPEED;
                 case CALORIES_KCAL -> DisplaySubType.CALORIES;
             };
+        }
+
+    }
+
+    private void decodeAndCacheAll(Bicycle bicycle) {
+        int packedData = bicycle.getDisplayData();
+        int packedMetadata = bicycle.getDisplayMetadata();
+
+        if (packedData == lastDisplayData && packedMetadata == lastIntDigits) {
+            return;
+        }
+        lastDisplayData = packedData;
+        lastIntDigits = packedMetadata;
+
+        Player player = bicycle.getRider();
+        final boolean playClick = player instanceof Player && bicycle.lookingAtPedometer();
+        int stat = packedMetadata / 100;
+        int integerDigits = (packedMetadata / 10) % 10;
+        int decimalDigits = packedMetadata % 10;
+
+        this.cachedDisplayType = DisplayType.fromType(stat);
+
+        float[] digits = new float[MAX_DISPLAYS];
+        Arrays.fill(digits, -1);
+
+        int maxDisplayableDecimals = MAX_DISPLAYS - integerDigits - 1; // -1 for the decimal point itself.
+
+        int decimalsToShow = Math.max(0, Math.min(decimalDigits, maxDisplayableDecimals));
+
+        int tempPackedData = packedData;
+        int d3 = tempPackedData % 10; tempPackedData /= 10;
+        int d2 = tempPackedData % 10; tempPackedData /= 10;
+        int d1 = tempPackedData % 10; tempPackedData /= 10;
+
+        if (decimalsToShow > 0) {
+            digits[integerDigits] = -0.5f; // Decimal point
+            digits[integerDigits + 1] = d1;
+            if (decimalsToShow >= 2) digits[integerDigits + 2] = d2;
+            if (decimalsToShow >= 3) digits[integerDigits + 3] = d3;
+        }
+
+        for (int i = integerDigits - 1; i >= 0; i--) {
+            if (i < MAX_DISPLAYS) {
+                digits[i] = tempPackedData % 10;
+            }
+            if (playClick) {
+                bicycle.level().playSound(player, player.getOnPos(), SoundManager.PEDOMETER_CLICK.get(), SoundSource.AMBIENT, 0.02F, 1.5F+((float)Math.random()));
+            }
+            tempPackedData /= 10;
+        }
+
+        int digitCount = integerDigits + (decimalDigits > 0 ? 1 + decimalDigits : 0);
+        bicycle.setDigitCount(digitCount);
+
+        for (int i = 0; i < MAX_DISPLAYS; i++) {
+            bicycle.setCachedFloatDisplay(i, digits[i]);
         }
 
     }

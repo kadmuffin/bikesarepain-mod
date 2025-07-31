@@ -31,9 +31,7 @@ public class PhysicsPipeline {
         this.frictionForces = new ArrayList<>();
         this.mass = mass;
 
-        for (ForceSource force : forces) {
-            this.addForce(force);
-        }
+        this.addForces(forces);
     }
 
     public void addForce(ForceSource component) {
@@ -41,6 +39,12 @@ public class PhysicsPipeline {
             this.genericForces.add(c);
         } else if (component instanceof SlidingFriction c) {
             this.frictionForces.add(c);
+        }
+    }
+
+    public void addForces(List<ForceSource> forces) {
+        for (ForceSource force : forces) {
+            this.addForce(force);
         }
     }
 

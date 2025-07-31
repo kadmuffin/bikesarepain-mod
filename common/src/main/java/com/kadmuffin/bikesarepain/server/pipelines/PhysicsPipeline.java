@@ -23,6 +23,7 @@ public class PhysicsPipeline {
     private final List<SlidingFriction> frictionForces;
 
     private final CenterMass mass;
+    private float gravity = 10f;
 
     public PhysicsPipeline(List<ForceSource> forces, CenterMass mass) {
         this.genericForces = new ArrayList<>();
@@ -90,11 +91,19 @@ public class PhysicsPipeline {
         return this.mass;
     }
 
-    public BikeState buildState(ScaledInput input, float speedMps, float gravityMps2) {
+    public BikeState buildState(ScaledInput input, float speedMps) {
         float totalMassKg = (float) this.getCenterOfMass().getTotalMass();
         float playerMassKg = (float) this.getCenterOfMass().getPlayerMass();
         float modelMassKg = (float) this.getCenterOfMass().getModelMass();
 
-        return new BikeState(input, totalMassKg, playerMassKg, modelMassKg, speedMps, false, gravityMps2, 0);
+        return new BikeState(input, totalMassKg, playerMassKg, modelMassKg, speedMps, false, this.getGravity(), 0);
+    }
+
+    public float getGravity() {
+        return this.gravity;
+    }
+
+    public void setGravity(float gravity) {
+        this.gravity = gravity;
     }
 }

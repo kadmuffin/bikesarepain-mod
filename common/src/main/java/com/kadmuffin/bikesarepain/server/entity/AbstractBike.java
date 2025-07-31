@@ -584,15 +584,11 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return false;
     }
 
-    protected float gravityConstant() {
-        return 10F;
-    }
-
     protected BikeState buildState(float sideways, float forward) {
         ScaledInput input = scalePlayerInputs(sideways, forward);
         float speedMps = PhysicsPipeline.speedToMps(this.getSpeed());
 
-        return this.physics.buildState(input, speedMps, this.gravityConstant());
+        return this.physics.buildState(input, speedMps);
     }
 
     public ScaledInput scalePlayerInputs(float sideways, float forward) {

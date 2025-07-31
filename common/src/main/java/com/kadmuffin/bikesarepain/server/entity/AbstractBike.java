@@ -81,7 +81,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     protected PhysicsPipeline physicsPipeline;
     private final CenterMass centerMass;
     protected final EventHandler eventHandler;
-    private final Map<Class<? extends StateComponent>, StateComponent> stateComponents = new HashMap<>();
+    private final Map<Class<? extends StateComponent>, Supplier<? extends StateComponent>> stateFactories = new HashMap<>();
 
     protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level, List<ForceSource> forceSources, CenterMass centerMass, EventHandler eventHandler) {
         super(entityType, level);
@@ -94,13 +94,23 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.eventHandler = eventHandler;
     }
 
-    public void addStateComponent(StateComponent component) {
-        this.stateComponents.put(component.getClass(), component);
+    public <T extends StateComponent> void registerStateFactory(Class<T> type, Supplier<T> factory) {
+        T instance = factory.get();
+        if (!type.isInstance(instance)) {
+            throw new IllegalArgumentException("Factory does not produce instances of " + type.getName());
+        }
+        this.stateFactories.put(type, factory);
+    }
+
+    public <T extends StateComponent> boolean unregisterStateFactory(Class<T> type) {
+        return stateFactories.remove(type) != null;
     }
 
     public <T extends StateComponent> Optional<T> getStateComponent(Class<T> componentType) {
-        return Optional.ofNullable(stateComponents.get(componentType))
-                .map(componentType::cast);
+        @SuppressWarnings("unchecked")
+        Supplier<T> factory = (Supplier<T>) stateFactories.get(componentType);
+
+        return factory != null ? Optional.of(factory.get()) : Optional.empty();
     }
 
     public static AttributeSupplier.@NotNull Builder createBaseHorseAttributes() {

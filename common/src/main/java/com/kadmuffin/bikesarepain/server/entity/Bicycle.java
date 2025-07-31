@@ -117,7 +117,7 @@ public class Bicycle extends AbstractBike implements GeoEntity {
 
         this.eventHandler.subscribe(BrakeAppliedEvent.class, new BrakeSoundListener(SoundManager.BICYCLE_LAND.get(), SoundType.WOOD));
         this.eventHandler.subscribe(BrakeAppliedEvent.class, new BrakeParticleListener());
-        this.addStateComponent(DrivetrainState.defaultState());
+        this.registerStateFactory(DrivetrainState.class, DrivetrainState::defaultState);
 
         this.spokeLogic = new SpokeSoundLogic();
     }

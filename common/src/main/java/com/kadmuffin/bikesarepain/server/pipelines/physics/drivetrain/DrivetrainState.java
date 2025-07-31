@@ -62,4 +62,9 @@ public record DrivetrainState(
         return new DrivetrainState(maxPedalTorque, drivetrainEfficiency, chainringTeeth, sprocketTeeth,
                 cadenceRpm, optimalCadenceRpm, maxCadenceDrop, riderPowerWatts, minSpeedMps);
     }
+
+    public DrivetrainState withGears(int chainringTeeth, int sprocketTeeth) {
+        return new DrivetrainState(maxPedalTorque, drivetrainEfficiency, chainringTeeth, sprocketTeeth,
+                cadenceRpm, optimalCadenceRpm, maxCadenceDrop, riderPowerWatts, minSpeedMps);
+    }
 }

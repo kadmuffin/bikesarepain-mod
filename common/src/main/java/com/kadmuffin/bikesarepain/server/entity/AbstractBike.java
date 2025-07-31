@@ -590,12 +590,9 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     protected BikeState buildState(float sideways, float forward) {
         ScaledInput input = scalePlayerInputs(sideways, forward);
-        float totalMassKg = (float) this.getCenterMass().getTotalMass();
-        float playerMassKg = (float) this.getCenterMass().getPlayerMass();
-        float modelMassKg = (float) this.getCenterMass().getModelMass();
         float speedMps = PhysicsPipeline.speedToMps(this.getSpeed());
 
-        return new BikeState(input, totalMassKg, playerMassKg, modelMassKg, speedMps, this.isBraking(), this.gravityConstant(), this.getSyncedPitch());
+        return this.physics.buildState(input, speedMps, this.gravityConstant());
     }
 
     public ScaledInput scalePlayerInputs(float sideways, float forward) {

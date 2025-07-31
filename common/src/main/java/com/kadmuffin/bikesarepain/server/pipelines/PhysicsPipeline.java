@@ -90,4 +90,11 @@ public class PhysicsPipeline {
         return this.mass;
     }
 
+    public BikeState buildState(ScaledInput input, float speedMps, float gravityMps2) {
+        float totalMassKg = (float) this.getCenterOfMass().getTotalMass();
+        float playerMassKg = (float) this.getCenterOfMass().getPlayerMass();
+        float modelMassKg = (float) this.getCenterOfMass().getModelMass();
+
+        return new BikeState(input, totalMassKg, playerMassKg, modelMassKg, speedMps, false, gravityMps2, 0);
+    }
 }

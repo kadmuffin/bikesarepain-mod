@@ -62,13 +62,11 @@ public class PhysicsPipeline {
     }
 
     public record PhysicsResult(float netForce, boolean zeroVelocity) {}
-    public PhysicsResult calculateNetForceVel(BikeState currentState, Bike bike, EventHandler event) {
+    public PhysicsResult calculateNetForceVel(BikeState currentState, Bike bike, EventHandler event, SurfaceData data) {
         float netActiveForces = 0f;
         for (GenericForce force : this.genericForces) {
             netActiveForces += force.calculateForce(currentState, bike, event);
         }
-
-        SurfaceData data = SurfaceData.buildFrom(currentState, bike);
 
         if (currentState.currentSpeedMps() < 1e-5f) {
             float maxStaticFriction = 0f;
@@ -87,6 +85,25 @@ public class PhysicsPipeline {
         }
 
         return new PhysicsResult(netActiveForces + netKineticFriction, false);
+    }
+
+    public float calculateSpeed(Bike entity, EventHandler events, BikeState state) {
+        SurfaceData surface = SurfaceData.buildFrom(state, entity);
+
+        PhysicsPipeline.PhysicsResult result = this.calculateNetForceVel(state, entity, events, surface);
+
+        // If static friction wins, the bike stops
+        if (result.zeroVelocity()) {
+            return 0f;
+        }
+
+        // Calculate acceleration from the world-space net force
+        // F_net = m * a  ->  a = F_net / m
+        float accel = result.netForce() / state.totalMassKg();
+        float newSpeedMps = state.currentSpeedMps() + accel * PhysicsPipeline.deltaSeconds;
+        if (Math.abs(newSpeedMps) < PhysicsPipeline.TRANSITION_TO_STATIC_MPS) newSpeedMps = 0f;
+
+        return PhysicsPipeline.speedToBpt(newSpeedMps);
     }
 
     public static float speedToMps(float blocksPerTick) {

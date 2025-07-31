@@ -605,27 +605,10 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return new ScaledInput(f, g);
     }
 
-    public float calculateNewSpeed(BikeState state) {
-        PhysicsPipeline.PhysicsResult result =
-                this.physics.calculateNetForceVel(state, this, this.eventHandler);
-        if (result.zeroVelocity()) return 0f;
-
-        // F = m * a -> a = F / m
-        float accel = result.netForce() / state.totalMassKg();
-        float newSpeedMps = state.currentSpeedMps() + accel * PhysicsPipeline.deltaSeconds;
-        if (Math.abs(newSpeedMps) < PhysicsPipeline.TRANSITION_TO_STATIC_MPS) newSpeedMps = 0f;
-
-        return PhysicsPipeline.speedToBpt(newSpeedMps);
-    }
-
     public void updateMovement(float sideways, float forward) {
-        ScaledInput input = scalePlayerInputs(sideways, forward);
-
-        float speedMps = PhysicsPipeline.speedToMps(this.getSpeed());
-
         BikeState state = this.buildState(sideways, forward);
 
-        float newSpeed = calculateNewSpeed(state);
+        float newSpeed = this.physics.calculateSpeed(this, this.eventHandler, state);
 
         System.out.println("Speed multiplier set now to: " + newSpeed + " block/tick");
 

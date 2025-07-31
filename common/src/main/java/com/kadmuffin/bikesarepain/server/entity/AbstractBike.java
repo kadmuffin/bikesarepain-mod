@@ -79,7 +79,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private double lastEyeY = 0;
 
     protected PhysicsPipeline physicsPipeline;
-    private final CenterMass centerMass;
     protected final EventHandler eventHandler;
     private final Map<Class<? extends StateComponent>, Supplier<? extends StateComponent>> stateFactories = new HashMap<>();
 
@@ -89,8 +88,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.rotations.put("steeringYaw", new RotationData());
         this.rotations.put("tilt", new RotationData());
         this.rotations.put("pitch", new RotationData());
-        this.physicsPipeline = new PhysicsPipeline(forceSources);
-        this.centerMass = centerMass;
+        this.physicsPipeline = new PhysicsPipeline(forceSources, centerMass);
         this.eventHandler = eventHandler;
     }
 
@@ -122,7 +120,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     }
 
     public CenterMass getCenterMass() {
-        return this.centerMass;
+        return this.physicsPipeline.getCenterOfMass();
     }
 
     public static EntityDataAccessor<Boolean> getHasChest() {
@@ -503,7 +501,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 this.setXRot(newRots.x);
                 this.setYRot(newRots.y);
 
-                this.centerMass.setIgnorePlayerMass(true);
+                this.getCenterMass().setIgnorePlayerMass(true);
 
                 // Update movement
                 this.updateMovement(0, 0);
@@ -643,7 +641,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     @Override
     protected @NotNull Vec3 getRiddenInput(Player controllingPlayer, Vec3 movementInput) {
-        this.centerMass.setIgnorePlayerMass(false);
+        this.getCenterMass().setIgnorePlayerMass(false);
         this.updateMovement(controllingPlayer.xxa, controllingPlayer.zza);
 
         return new Vec3(0.0, 0.0, 1.0F);

@@ -1,12 +1,15 @@
 package com.kadmuffin.bikesarepain.server.pipelines;
 
 import com.kadmuffin.bikesarepain.records.physics.BikeState;
+import com.kadmuffin.bikesarepain.records.physics.ScaledInput;
 import com.kadmuffin.bikesarepain.records.physics.SurfaceData;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
+import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.interfaces.ForceSource;
 import com.kadmuffin.bikesarepain.server.interfaces.GenericForce;
 import com.kadmuffin.bikesarepain.server.interfaces.SlidingFriction;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +22,12 @@ public class PhysicsPipeline {
     private final List<GenericForce> genericForces;
     private final List<SlidingFriction> frictionForces;
 
-    public PhysicsPipeline(List<ForceSource> forces) {
+    private final CenterMass mass;
+
+    public PhysicsPipeline(List<ForceSource> forces, CenterMass mass) {
         this.genericForces = new ArrayList<>();
         this.frictionForces = new ArrayList<>();
+        this.mass = mass;
 
         for (ForceSource force : forces) {
             this.addForce(force);
@@ -79,4 +85,9 @@ public class PhysicsPipeline {
     public static float speedToBpt(float metersPerSec) {
         return metersPerSec / PhysicsPipeline.ticksPerSecond;
     }
+
+    public CenterMass getCenterOfMass() {
+        return this.mass;
+    }
+
 }

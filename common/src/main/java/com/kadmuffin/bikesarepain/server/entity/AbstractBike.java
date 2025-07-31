@@ -6,6 +6,7 @@ import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.records.physics.ScaledInput;
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
+import com.kadmuffin.bikesarepain.server.interfaces.Bike;
 import com.kadmuffin.bikesarepain.server.interfaces.StateComponent;
 import com.kadmuffin.bikesarepain.server.interfaces.ForceSource;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
@@ -42,7 +43,7 @@ import org.joml.Vector3f;
 import java.util.*;
 import java.util.function.Supplier;
 
-public abstract class AbstractBike extends AbstractHorse implements PlayerRideableJumping, Saddleable {
+public abstract class AbstractBike extends AbstractHorse implements PlayerRideableJumping, Saddleable, Bike {
     // Let devs add event listener for when the bike is moving
     // This is a list storing those lambdas
     private static final List<TriConsumer<AbstractBike, Float, Boolean>> onMoveListeners = new ArrayList<>();

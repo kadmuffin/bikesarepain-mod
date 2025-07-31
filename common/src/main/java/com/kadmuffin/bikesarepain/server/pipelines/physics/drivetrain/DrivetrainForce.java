@@ -2,6 +2,7 @@ package com.kadmuffin.bikesarepain.server.pipelines.physics.drivetrain;
 
 import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
+import com.kadmuffin.bikesarepain.server.interfaces.Bike;
 import com.kadmuffin.bikesarepain.server.interfaces.GenericForce;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import com.kadmuffin.bikesarepain.server.pipelines.events.physics.PedalTorqueEvent;
@@ -9,7 +10,7 @@ import com.kadmuffin.bikesarepain.server.pipelines.events.physics.PedalTorqueEve
 public class DrivetrainForce implements GenericForce {
     private record ForceResult(float force, float wheelTorque) {}
 
-    private static ForceResult getForce(AbstractBike bike, DrivetrainState drivetrain, float input) {
+    private static ForceResult getForce(Bike bike, DrivetrainState drivetrain, float input) {
         float dev = Math.abs(drivetrain.cadenceRpm() - drivetrain.optimalCadenceRpm()) / drivetrain.optimalCadenceRpm();
         float cadenceF = 1f - drivetrain.maxCadenceDrop() * dev;
         cadenceF = Math.max(1f - drivetrain.maxCadenceDrop(), cadenceF);
@@ -28,7 +29,7 @@ public class DrivetrainForce implements GenericForce {
     }
 
     @Override
-    public float calculateForce(BikeState state, AbstractBike bike, EventHandler event) {
+    public float calculateForce(BikeState state, Bike bike, EventHandler event) {
         DrivetrainState drivetrain = bike.getStateComponent(DrivetrainState.class)
                 .orElse(null);
         if (drivetrain == null) return 0f;

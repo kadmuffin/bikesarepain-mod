@@ -2,6 +2,7 @@ package com.kadmuffin.bikesarepain.server.pipelines.event;
 
 import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
+import com.kadmuffin.bikesarepain.server.interfaces.Bike;
 import com.kadmuffin.bikesarepain.server.interfaces.EventListener;
 import com.kadmuffin.bikesarepain.server.interfaces.PipelineEvent;
 
@@ -13,11 +14,11 @@ public abstract class TypedEventListener<T extends PipelineEvent> implements Eve
     }
 
     @Override
-    public final void handleEvent(PipelineEvent event, BikeState state, AbstractBike bike) {
+    public final void handleEvent(PipelineEvent event, BikeState state, Bike bike) {
         if (eventType.isInstance(event)) {
             handleSpecificEvent(eventType.cast(event), state, bike);
         }
     }
 
-    public abstract void handleSpecificEvent(T event, BikeState state, AbstractBike bike);
+    public abstract void handleSpecificEvent(T event, BikeState state, Bike bike);
 }

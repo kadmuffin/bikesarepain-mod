@@ -5,5 +5,5 @@ import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 
 public interface GenericForce extends ForceSource {
-    float calculateForce(BikeState currentState, AbstractBike bike, EventHandler event);
+    float calculateForce(BikeState currentState, Bike bike, EventHandler event);
 }

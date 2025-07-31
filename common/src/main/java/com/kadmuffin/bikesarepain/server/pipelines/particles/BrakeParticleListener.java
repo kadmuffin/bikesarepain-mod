@@ -2,6 +2,7 @@ package com.kadmuffin.bikesarepain.server.pipelines.particles;
 
 import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
+import com.kadmuffin.bikesarepain.server.interfaces.Bike;
 import com.kadmuffin.bikesarepain.server.pipelines.event.TypedEventListener;
 import com.kadmuffin.bikesarepain.server.pipelines.events.physics.BrakeAppliedEvent;
 import net.minecraft.core.BlockPos;
@@ -17,7 +18,8 @@ public class BrakeParticleListener extends TypedEventListener<BrakeAppliedEvent>
     }
 
     @Override
-    public void handleSpecificEvent(BrakeAppliedEvent event, BikeState state, AbstractBike bike) {
+    public void handleSpecificEvent(BrakeAppliedEvent event, BikeState state, Bike entity) {
+        if (!(entity instanceof AbstractBike bike)) return;
         BlockPos floorPos = bike.blockPosition().below();
         BlockState floorState = bike.level().getBlockState(floorPos);
 

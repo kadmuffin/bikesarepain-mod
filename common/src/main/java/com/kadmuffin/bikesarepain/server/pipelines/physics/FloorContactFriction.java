@@ -3,6 +3,7 @@ package com.kadmuffin.bikesarepain.server.pipelines.physics;
 import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.records.physics.SurfaceData;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
+import com.kadmuffin.bikesarepain.server.interfaces.Bike;
 import com.kadmuffin.bikesarepain.server.interfaces.SlidingFriction;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import net.minecraft.core.BlockPos;
@@ -15,7 +16,7 @@ public class FloorContactFriction implements SlidingFriction {
     }
 
     @Override
-    public float calculateKineticForce(BikeState currentState, AbstractBike bike, SurfaceData data, EventHandler event) {
+    public float calculateKineticForce(BikeState currentState, Bike bike, SurfaceData data, EventHandler event) {
         if (!bike.onGround()) {
             return 0.0f;
         }
@@ -26,7 +27,7 @@ public class FloorContactFriction implements SlidingFriction {
     }
 
     @Override
-    public float calculateMaxStaticForce(BikeState currentState, AbstractBike bike, SurfaceData data, EventHandler event) {
+    public float calculateMaxStaticForce(BikeState currentState, Bike bike, SurfaceData data, EventHandler event) {
         if (!bike.onGround()) {
             return 0.0f;
         }

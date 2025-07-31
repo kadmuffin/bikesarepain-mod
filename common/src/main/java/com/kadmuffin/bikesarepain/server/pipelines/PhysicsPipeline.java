@@ -5,6 +5,7 @@ import com.kadmuffin.bikesarepain.records.physics.ScaledInput;
 import com.kadmuffin.bikesarepain.records.physics.SurfaceData;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
+import com.kadmuffin.bikesarepain.server.interfaces.Bike;
 import com.kadmuffin.bikesarepain.server.interfaces.ForceSource;
 import com.kadmuffin.bikesarepain.server.interfaces.GenericForce;
 import com.kadmuffin.bikesarepain.server.interfaces.SlidingFriction;
@@ -52,7 +53,7 @@ public class PhysicsPipeline {
     }
 
     public record PhysicsResult(float netForce, boolean zeroVelocity) {}
-    public PhysicsResult calculateNetForceVel(BikeState currentState, AbstractBike bike, EventHandler event) {
+    public PhysicsResult calculateNetForceVel(BikeState currentState, Bike bike, EventHandler event) {
         float netActiveForces = 0f;
         for (GenericForce force : this.genericForces) {
             netActiveForces += force.calculateForce(currentState, bike, event);

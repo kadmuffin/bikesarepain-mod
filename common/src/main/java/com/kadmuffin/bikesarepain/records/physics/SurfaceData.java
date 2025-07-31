@@ -1,11 +1,12 @@
 package com.kadmuffin.bikesarepain.records.physics;
 
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
+import com.kadmuffin.bikesarepain.server.interfaces.Bike;
 import net.minecraft.core.BlockPos;
 
 public record SurfaceData(BlockPos blockPos, float normalForce, float effectiveRollingCoeff, float effectiveStaticCoeff) {
 
-    public static SurfaceData buildFrom(BikeState state, AbstractBike bike) {
+    public static SurfaceData buildFrom(BikeState state, Bike bike) {
         BlockPos blockPos = bike.getBlockPosBelowThatAffectsMyMovement();
         float blockFrictionCoeff = bike.level()
                 .getBlockState(blockPos)

@@ -2,6 +2,7 @@ package com.kadmuffin.bikesarepain.server.pipelines.event;
 
 import com.kadmuffin.bikesarepain.records.physics.BikeState;
 import com.kadmuffin.bikesarepain.server.entity.AbstractBike;
+import com.kadmuffin.bikesarepain.server.interfaces.Bike;
 import com.kadmuffin.bikesarepain.server.interfaces.EventListener;
 import com.kadmuffin.bikesarepain.server.interfaces.PipelineEvent;
 
@@ -28,7 +29,7 @@ public class EventHandler {
         }
     }
 
-    public void publish(PipelineEvent event, BikeState state, AbstractBike bike) {
+    public void publish(PipelineEvent event, BikeState state, Bike bike) {
         // Find all subscribers for this event's specific type
         List<EventListener> listeners = subscribers.get(event.getClass());
         if (listeners != null) {

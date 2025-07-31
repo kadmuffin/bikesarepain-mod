@@ -56,6 +56,11 @@ public class PhysicsPipeline {
         }
     }
 
+    public void clearForces() {
+        this.frictionForces.clear();
+        this.genericForces.clear();
+    }
+
     public record PhysicsResult(float netForce, boolean zeroVelocity) {}
     public PhysicsResult calculateNetForceVel(BikeState currentState, Bike bike, EventHandler event) {
         float netActiveForces = 0f;

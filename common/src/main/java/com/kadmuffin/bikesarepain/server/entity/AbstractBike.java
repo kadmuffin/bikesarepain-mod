@@ -7,7 +7,6 @@ import com.kadmuffin.bikesarepain.records.physics.ScaledInput;
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
 import com.kadmuffin.bikesarepain.server.interfaces.StateComponent;
-import com.kadmuffin.bikesarepain.server.interfaces.GenericForce;
 import com.kadmuffin.bikesarepain.server.interfaces.ForceSource;
 import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
 import com.kadmuffin.bikesarepain.server.pipelines.PhysicsPipeline;
@@ -78,7 +77,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private int pitchTargetTicking = 0;
     private double lastEyeY = 0;
 
-    protected PhysicsPipeline physicsPipeline;
+    protected PhysicsPipeline physics;
     protected final EventHandler eventHandler;
     private final Map<Class<? extends StateComponent>, Supplier<? extends StateComponent>> stateFactories = new HashMap<>();
 
@@ -88,7 +87,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         this.rotations.put("steeringYaw", new RotationData());
         this.rotations.put("tilt", new RotationData());
         this.rotations.put("pitch", new RotationData());
-        this.physicsPipeline = new PhysicsPipeline(forceSources, centerMass);
+        this.physics = new PhysicsPipeline(forceSources, centerMass);
         this.eventHandler = eventHandler;
     }
 
@@ -120,7 +119,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     }
 
     public CenterMass getCenterMass() {
-        return this.physicsPipeline.getCenterOfMass();
+        return this.physics.getCenterOfMass();
     }
 
     public static EntityDataAccessor<Boolean> getHasChest() {
@@ -614,7 +613,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     public float calculateNewSpeed(BikeState state) {
         PhysicsPipeline.PhysicsResult result =
-                this.physicsPipeline.calculateNetForceVel(state, this, this.eventHandler);
+                this.physics.calculateNetForceVel(state, this, this.eventHandler);
         if (result.zeroVelocity()) return 0f;
 
         // F = m * a -> a = F / m

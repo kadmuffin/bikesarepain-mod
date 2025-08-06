@@ -2,20 +2,21 @@ package com.kadmuffin.bikesarepain.server.entity;
 
 import com.kadmuffin.bikesarepain.accessor.PlayerAccessor;
 import com.kadmuffin.bikesarepain.client.ClientConfig;
-import com.kadmuffin.bikesarepain.client.helper.Utils;
-import com.kadmuffin.bikesarepain.server.GameRuleManager;
+import com.kadmuffin.bikesarepain.records.physics.BikeState;
+import com.kadmuffin.bikesarepain.records.physics.ScaledInput;
 import com.kadmuffin.bikesarepain.server.entity.ai.BikeBondWithPlayerGoal;
 import com.kadmuffin.bikesarepain.server.helper.CenterMass;
+import com.kadmuffin.bikesarepain.server.interfaces.Bike;
+import com.kadmuffin.bikesarepain.server.interfaces.StateComponent;
+import com.kadmuffin.bikesarepain.server.interfaces.ForceSource;
+import com.kadmuffin.bikesarepain.server.pipelines.event.EventHandler;
+import com.kadmuffin.bikesarepain.server.pipelines.PhysicsPipeline;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -32,19 +33,17 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.*;
 import org.apache.commons.lang3.function.TriConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
-import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.function.Supplier;
 
-public abstract class AbstractBike extends AbstractHorse implements PlayerRideableJumping, Saddleable {
+public abstract class AbstractBike extends AbstractHorse implements PlayerRideableJumping, Saddleable, Bike {
     // Let devs add event listener for when the bike is moving
     // This is a list storing those lambdas
     private static final List<TriConsumer<AbstractBike, Float, Boolean>> onMoveListeners = new ArrayList<>();
@@ -78,12 +77,38 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
     private int pitchTickingCount = 0;
     private int pitchTargetTicking = 0;
     private double lastEyeY = 0;
-    protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level) {
+
+    protected PhysicsPipeline physics;
+    protected final EventHandler eventHandler;
+    private final Map<Class<? extends StateComponent>, Supplier<? extends StateComponent>> stateFactories = new HashMap<>();
+
+    protected AbstractBike(EntityType<? extends AbstractHorse> entityType, Level level, List<ForceSource> forceSources, CenterMass centerMass, EventHandler eventHandler) {
         super(entityType, level);
         this.rotations.put("backWheelRotation", new RotationData());
         this.rotations.put("steeringYaw", new RotationData());
         this.rotations.put("tilt", new RotationData());
         this.rotations.put("pitch", new RotationData());
+        this.physics = new PhysicsPipeline(forceSources, centerMass);
+        this.eventHandler = eventHandler;
+    }
+
+    public <T extends StateComponent> void registerStateFactory(Class<T> type, Supplier<T> factory) {
+        T instance = factory.get();
+        if (!type.isInstance(instance)) {
+            throw new IllegalArgumentException("Factory does not produce instances of " + type.getName());
+        }
+        this.stateFactories.put(type, factory);
+    }
+
+    public <T extends StateComponent> boolean unregisterStateFactory(Class<T> type) {
+        return stateFactories.remove(type) != null;
+    }
+
+    public <T extends StateComponent> Optional<T> getStateComponent(Class<T> componentType) {
+        @SuppressWarnings("unchecked")
+        Supplier<T> factory = (Supplier<T>) stateFactories.get(componentType);
+
+        return factory != null ? Optional.of(factory.get()) : Optional.empty();
     }
 
     public static AttributeSupplier.@NotNull Builder createBaseHorseAttributes() {
@@ -92,6 +117,10 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 .add(Attributes.MOVEMENT_SPEED, 0.22499999403953552)
                 .add(Attributes.FALL_DAMAGE_MULTIPLIER, 0.5D)
                 .add(Attributes.JUMP_STRENGTH, 0.6D);
+    }
+
+    public CenterMass getCenterMass() {
+        return this.physics.getCenterOfMass();
     }
 
     public static EntityDataAccessor<Boolean> getHasChest() {
@@ -472,6 +501,8 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
                 this.setXRot(newRots.x);
                 this.setYRot(newRots.y);
 
+                this.getCenterMass().setIgnorePlayerMass(true);
+
                 // Update movement
                 this.updateMovement(0, 0);
 
@@ -549,159 +580,44 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return this.updateRotations(new Vec2(controllingPassenger.getXRot() * 0.5F, controllingPassenger.getYRot()));
     }
 
-    public void updateMovement(float sideways, float forward) {
+    @Override
+    public boolean shouldDiscardFriction() {
+        return false;
+    }
+
+    protected BikeState buildState(float sideways, float forward) {
+        ScaledInput input = scalePlayerInputs(sideways, forward);
+        float speedMps = PhysicsPipeline.speedToMps(this.getSpeed());
+
+        return this.physics.buildState(input, speedMps);
+    }
+
+    public ScaledInput scalePlayerInputs(float sideways, float forward) {
         float f = sideways * 0.5F;
         float g = forward;
-        if (g <= 0.0F) {
-            g *= 0.25F;
-        }
-        g *= this.getPedalMultiplier();
+        g *= this.getForwardInputMult();
         if (this.isBraking()) {
             g = 0F;
         }
 
-        double steerInf = this.getSpeed() > 0.08F ? (
-                this.getSteeringYaw() / this.getMaxSteeringAngle() * 0.5F
-        ) * this.getSpeed() * 1.4F : 0;
+        System.out.println("Player forward: " + g);
 
-        this.getCenterMass().setPlayerOffset(new Vector3d(f + steerInf, 0, 0));
+        return new ScaledInput(f, g);
+    }
 
-        // Rotate the wheels based on our speed knowing that
-        // the g is a magnitude in blocks
-        float lastSpeed = this.getSpeed();
-        this.setLastSpeed(lastSpeed);
+    public void updateMovement(float sideways, float forward) {
+        BikeState state = this.buildState(sideways, forward);
 
-        float rotation;
-        float movSpeed = 0F;
-        boolean isJSerialCommActive = false;
+        float newSpeed = this.physics.calculateSpeed(this, this.eventHandler, state);
 
-        if (this.getControllingPassenger() instanceof Player player) {
-            PlayerAccessor playerAcc = (PlayerAccessor) player;
-            if (playerAcc.bikesarepain$isJSCActive()) {
-                if (!this.level().isClientSide()) {
-                    playerAcc.bikesarepain$setJSCSinceUpdate(playerAcc.bikesarepain$getJSCSinceUpdate() + 1);
-                }
-                if (playerAcc.bikesarepain$getJSCSinceUpdate() < 80) {
-                    isJSerialCommActive = true;
-                    movSpeed = ((PlayerAccessor) player).bikesarepain$getJSCSpeed() / 3.6F;
-                    // Minecraft runs at 20 ticks per second
-                    movSpeed /= 20F;
+        System.out.println("Speed multiplier set now to: " + newSpeed + " block/tick");
 
-                    if (g < 0F) {
-                        movSpeed *= -1;
-                    }
-                } else {
-                    if (this.level().isClientSide()) {
-                        // Warn the player that the JSerialComm is not active
-                        player.displayClientMessage(
-                                Component.translatable("bikesarepain.jserialcomm.timeout"),
-                                false
-                        );
-                    }
-
-                    playerAcc.bikesarepain$setJSCActive(false);
-                }
-            }
-        }
-        if (!isJSerialCommActive) {
-            rotation = (g * this.getMaxPedalAnglePerSecond()) / 20F;
-            movSpeed = rotation * this.getWheelRadius();
-        }
-
-        if (this.isBraking() && this.onGround()) {
-            lastSpeed = (float) (lastSpeed * Math.exp(-this.getBrakeMultiplier() * 0.25F));
-            if (lastSpeed > 0F) {
-                this.playBrakeSound();
-                BlockPos floorPos = this.blockPosition().below();
-                BlockState floorState = this.level().getBlockState(floorPos);
-
-                // Scale the amount based on the speed
-                int amount = (int) Math.ceil(lastSpeed * 10);
-                amount = Math.min(amount, 10);
-
-                Vec3 frontWheelPos = this.getFrontWheelPos();
-                Vec3 backWheelPos = this.getBackWheelPos();
-
-                double yRot = Math.toRadians(this.getYRot());
-
-                double cosYRot = Math.cos(yRot);
-                double sinYRot = Math.sin(yRot);
-
-                // Calculate the particle positions from the local wheel (taking into account the yaw)
-                Vec3 frontWheelParticlePos = new Vec3(
-                        frontWheelPos.x * cosYRot - frontWheelPos.z * sinYRot,
-                        frontWheelPos.y,
-                        frontWheelPos.x * sinYRot + frontWheelPos.z * cosYRot
-                );
-                Vec3 backWheelParticlePos = new Vec3(
-                        backWheelPos.x * cosYRot - backWheelPos.z * sinYRot,
-                        backWheelPos.y,
-                        backWheelPos.x * sinYRot + backWheelPos.z * cosYRot
-                );
-
-                ParticleOptions particle = new BlockParticleOption(ParticleTypes.BLOCK, floorState);
-
-                // Add particles to the front and back wheel
-                for (int i = 0; i < amount * 2; i++) {
-                    this.level().addParticle(particle, this.getX() + frontWheelParticlePos.x, this.getY() + frontWheelParticlePos.y, this.getZ() + frontWheelParticlePos.z, 0, 0, 0);
-                    this.level().addParticle(particle, this.getX() + backWheelParticlePos.x, this.getY() + backWheelParticlePos.y, this.getZ() + backWheelParticlePos.z, 0, 0, 0);
-                }
-            }
-        }
-
-        boolean pressingForward = (Math.abs(g) > 0 && !isJSerialCommActive) || (isJSerialCommActive && Math.abs(movSpeed) > 0);
-
-        // Run event listeners
-        for (TriConsumer<AbstractBike, Float, Boolean> listener : onMoveListeners) {
-            listener.accept(this, movSpeed, pressingForward);
-        }
-
-        if (pressingForward && !this.level().isClientSide()) {
-            this.setTicksPedalled(this.getTicksPedalled() + 1);
-        }
-
-        float gravityAcceleration = 0F;
-        // Correct for model's usage of pitch calculation
-        float pitch = -this.getSyncedPitch();
-        if (Math.abs(pitch) > 0.05F) {
-            gravityAcceleration = (float) (Math.sin(pitch) * this.getGravity()) * 0.25F;
-            float maxGravityAcc = 0.1F;
-            gravityAcceleration = Math.max(-maxGravityAcc, Math.min(maxGravityAcc, gravityAcceleration));
-        }
-
-        if (!pressingForward) {
-            movSpeed = lastSpeed * this.inertiaFactor() + gravityAcceleration;
-            if (Math.abs(movSpeed) < 0.05F) {
-                movSpeed *= 0.8F;
-                if (Math.abs(movSpeed) < 0.003F) {
-                    movSpeed = 0;
-                }
-            }
-        } else {
-            float acceleration = (movSpeed - lastSpeed) * (1.15F - this.inertiaFactor());
-            movSpeed = lastSpeed + acceleration + gravityAcceleration;
-        }
-        final float maxSpeed = this.level().getGameRules().getRule(GameRuleManager.MAX_BIKE_SPEED).get() / 20F;
-        movSpeed = Math.clamp(movSpeed, -maxSpeed, maxSpeed);
-
-        rotation = movSpeed / this.getWheelRadius();
-
-        this.setRearWheelSpeed(rotation / (2 * (float) Math.PI));
-
-        float backWheelRotation = this.getBackWheelRotation() + rotation;
-        this.setBackWheelRotation(Utils.wrapRotation(backWheelRotation));
-
-        // Calculate the tilt of the bike
-        float newTilt = Math.clamp((float) this.getCenterMass().calculateRollAngle(), -this.getMaxTiltAngle(), this.getMaxTiltAngle());
-
-        float tilt = this.getTilt();
-        this.setTilt(tilt + (newTilt - tilt) * 0.25F);
-
-        this.setInternalSpeed(movSpeed);
+        this.setInternalSpeed(newSpeed);
     }
 
     @Override
     protected @NotNull Vec3 getRiddenInput(Player controllingPlayer, Vec3 movementInput) {
+        this.getCenterMass().setIgnorePlayerMass(false);
         this.updateMovement(controllingPlayer.xxa, controllingPlayer.zza);
 
         return new Vec3(0.0, 0.0, 1.0F);
@@ -709,9 +625,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     @Override
     public float getSpeed() {
-        if (this.isHealthAffectingSpeed()) {
-            return this.getInternalSpeed() * this.getSpeedFactor(this.getHealth() / this.getMaxHealth());
-        }
         return this.getInternalSpeed();
     }
 
@@ -802,9 +715,6 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
         return !this.isInLiquid();
     }
 
-    // These define the bike's physical properties
-    public abstract CenterMass getCenterMass();
-
     public abstract float getMaxTiltAngle();
 
     public abstract float getMaxSteeringAngle();
@@ -817,9 +727,7 @@ public abstract class AbstractBike extends AbstractHorse implements PlayerRideab
 
     public abstract float getTurnScalingFactor();
 
-    public abstract float inertiaFactor();
-
-    public abstract float getPedalMultiplier();
+    public abstract float getForwardInputMult();
 
     public abstract float getBrakeMultiplier();
 

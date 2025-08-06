@@ -15,13 +15,48 @@ public class CenterMass {
     private double modelMass;
     private double playerMass;
 
+    boolean ignorePlayerMass;
+    boolean ignoreModelMass;
+
     public CenterMass(Vector3d modelCenterOfMass, Vector3d playerCenterOfMass, double modelMass, double playerMass) {
         this.modelCenterOfMass = new Vector3d(modelCenterOfMass);
         this.playerCenterOfMass = new Vector3d(playerCenterOfMass);
         this.modelMass = modelMass;
         this.playerMass = playerMass;
+        this.ignorePlayerMass = false;
+        this.ignoreModelMass = false;
         this.trackedMassOffset = new Vector3d(0, 0, 0);
         this.trackedPlayerOffset = new Vector3d(0, 0, 0);
+    }
+
+    public double getModelMass() {
+        if (this.isIgnoringModelMass()) return 0f;
+        return this.modelMass;
+    }
+
+    public double getPlayerMass() {
+        if (this.isIgnoringPlayerMass()) return 0f;
+        return this.playerMass;
+    }
+
+    public double getTotalMass() {
+        return this.getModelMass() + this.getPlayerMass();
+    }
+
+    public void setIgnorePlayerMass(boolean state) {
+        this.ignorePlayerMass = state;
+    }
+
+    public void setIgnoreModelMass(boolean state) {
+        this.ignoreModelMass = state;
+    }
+
+    public boolean isIgnoringPlayerMass() {
+        return this.ignorePlayerMass;
+    }
+
+    public boolean isIgnoringModelMass() {
+        return this.ignoreModelMass;
     }
 
     public Vector3d getTrackedMassOffset() {
@@ -71,17 +106,17 @@ public class CenterMass {
         Vector3d combinedCenterOfMass = new Vector3d();
 
         // Scale model position by model mass
-        modelPosition.mul(modelMass);
+        modelPosition.mul(this.getModelMass());
 
         // Scale player position by player mass
-        playerPosition.mul(playerMass);
+        playerPosition.mul(this.getPlayerMass());
 
         // Add scaled positions
         combinedCenterOfMass.add(modelPosition);
         combinedCenterOfMass.add(playerPosition);
 
         // Divide by total mass
-        double totalMass = modelMass + playerMass;
+        double totalMass = this.getModelMass() + this.getPlayerMass();
         combinedCenterOfMass.mul(1.0 / totalMass);
 
         return combinedCenterOfMass;
